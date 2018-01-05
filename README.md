@@ -6,95 +6,47 @@ Update: July 2016 - Mantarayforensics.com has been decommissioned.  GitHub is no
 
 ![alt tag](https://raw.githubusercontent.com/mantarayforensics/mantaray/master/mantaray/images/Mantaray_Logo_Template_Full_Screen.gif)
 
-Overview
-==================================
+CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs. The main purpose of CMSmap is to integrate common vulnerabilities for different types of CMSs in a single tool.
 
-MantaRay is designed to automate the processing of forensic images, 
-directories and individual files with open source tools. With 
-support for numerous image formats, this tool provides a scalable 
-base to utilize open source and custom exploitation tools.
+At the moment, CMSs supported by CMSmap are WordPress, Joomla and Drupal.
 
-Dependencies
-==================================
+Please note that this project is an early state. As such, you might find bugs, flaws or mulfunctions. Use it at your own risk!
 
-See https://launchpad.net/~mantaray/+archive/stable for a full list
+Installation
+You can download the latest version of CMSmap by cloning the GitHub repository:
 
-* BulkExtractor
-* ENT – Calculate Entropy
-* KML from JPG EXIF Data
-* fdupes
-* EXIF Tool
-* Foremost
-* Jumplist Parser
-* Sleuth Kit tools
-* Regripper
-* Log2Timeline
-* Volatility
+git clone https://github.com/Dionach/CMSmap.git
+Usage
+CMSmap tool v0.6 - Simple CMS Scanner
+Author: Mike Manzotti mike.manzotti@dionach.com
+Usage: cmsmap.py -t <URL>
+Targets:
+	 -t, --target    target URL (e.g. 'https://example.com:8080/')
+	 -f, --force     force scan (W)ordpress, (J)oomla or (D)rupal
+	 -F, --fullscan  full scan using large plugin lists. False positives and slow!
+	 -a, --agent     set custom user-agent
+	 -T, --threads   number of threads (Default: 5)
+	 -i, --input     scan multiple targets listed in a given text file
+	 -o, --output    save output in a file
+	 --noedb         enumerate plugins without searching exploits
 
-Installation of MantaRay
-==================================
+Brute-Force:
+	 -u, --usr       username or file
+	 -p, --psw       password or file
+	 --noxmlrpc      brute forcing WordPress without XML-RPC
 
-SIFT 3.0 Workstation - (https://digital-forensics.sans.org/community/downloads):
+Post Exploitation:
+	 -k, --crack     password hashes file (Require hashcat installed. For WordPress and Joomla only)
+	 -w, --wordlist  wordlist file
 
-    Download the virtual machine from SANS
-    Update SIFT 3.0: 
-    sudo apt-get update
-    sudo apt-get upgrade
-    sudo update-sift
-    update to newest code found on GitHub (SIFT 3.0 --> /usr/share/mantaray)
+Others:
+	 -v, --verbose   verbose mode (Default: false)
+	 -U, --update    (C)MSmap, (W)ordpress plugins and themes, (J)oomla components, (D)rupal modules, (A)ll
+	 -h, --help      show this help
 
-Using bootstrap to install Mantaray:
-
-    wget -q https://raw.githubusercontent.com/mantarayforensics/mantaray/master/mrbootstrap.sh && sh mrbootstrap.sh -i
-
-Using bootstrap to install Mantaray, and the MantaRay Skin:
-
-    wget -q https://raw.githubusercontent.com/mantarayforensics/mantaray/master/mrbootstrap.sh && sh mrbootstrap.sh -s -i
-
-
-####PPA:
-
-    sudo apt-add-repository ppa:mantaray/stable
-    sudo apt-add-repository ppa:sift/stable
-    sudo apt-get update && sudo apt-get upgrade -y
-    sudo apt-get install mantaray
-        
-####Source from PPA:
-
-    sudo apt-add-repository ppa:mantaray/stable
-    apt-get source mantaray
-    
-####GitHub:
-
-    git clone https://github.com/mantarayforensics/mantaray.git
-    cd mantaray
-    
-Follow PPA directions to install dependencies
-
-How To Run MantaRay
-==================================
-From command line (as user with sudo privileges) in PPA:
-
-    sudo mantaray
-
-
-A popup window should appear. Pressing continue will begin running the script.
-
-Check For Updates
-==================================
-Using apt-get:
-
-    sudo apt-get update && sudo apt-get upgrade
-
-Using mantaray-updater:
-
-    sudo mantaray-updater
-    
-GitHub:
-
-    git pull origin master
-
-Errors and Bugs
-==================================
-If MantaRay crashes, please re-run it in debug mode and send a screenshot
-of the crash along with any other details you can report to our GitHub https://github.com/mantarayforensics/mantaray/issues
+Examples:
+	 cmsmap.py -t https://example.com
+	 cmsmap.py -t https://example.com -f W -F --noedb
+	 cmsmap.py -t https://example.com -i targets.txt -o output.txt
+	 cmsmap.py -t https://example.com -u admin -p passwords.txt
+	 cmsmap.py -k hashes.txt -w passwords.txt
