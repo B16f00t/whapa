@@ -1,10 +1,11 @@
+![alt tag](http://www.datarecovery.institute/wp-content/uploads/2016/08/whatsApp-forensics-Need1.png)
 Whatsapp Parser Tool
 ==================================
 ManTech Triage and Analysis System, Forensics Workflow Automation Suite
 
 Update: July 2016 - Mantarayforensics.com has been decommissioned.  GitHub is now the main portal for MantaRay.
 
-![alt tag](http://www.datarecovery.institute/wp-content/uploads/2016/08/whatsApp-forensics-Need1.png)
+
 
 CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs. The main purpose of CMSmap is to integrate common vulnerabilities 
 for different types of CMSs in a single tool. 
