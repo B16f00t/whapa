@@ -1,4 +1,4 @@
-		![alt tag](http://www.datarecovery.institute/wp-content/uploads/2016/08/whatsApp-forensics-Need1.png)
+![alt tag](http://www.datarecovery.institute/wp-content/uploads/2016/08/whatsApp-forensics-Need1.png)
 
 Whatsapp Parser Tool
 ==================================
