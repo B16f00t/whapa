@@ -1,4 +1,4 @@
-Whapa Parser Tool
+Whatsapp Parser Tool
 ==================================
 ManTech Triage and Analysis System, Forensics Workflow Automation Suite
 
