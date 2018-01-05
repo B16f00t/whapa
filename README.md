@@ -1,4 +1,4 @@
-![alt tag](https://www.dropbox.com/s/x78wxytxyma4xh1/whapa.png)
+![alt tag](https://www.dropbox.com/s/h7ujwjvd1tv2zmo/whapa.jpg)
 
 Whatsapp Parser
 ==================================
