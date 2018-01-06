@@ -55,13 +55,11 @@ Usage
 
 		 
 
-Notes
+Upconming update
 =====
-30/03/2015: Created a new repo to remove big wordlist. Users who have originally cloned the previous repo are invited to clone the new one.
+Creating reports of the information displayed by the software
   
 	
 Disclaimer
 =====
-Usage of CMSmap for attacking targets without prior mutual consent is illegal. 
-It is the end user's responsibility to obey all applicable local, state and federal laws. 
-Developers assume NO liability and are NOT responsible f
+The developer is not responsible, and expressly disclaims all liability for damages of any kind arising from the use, reference or reliance on the software. The information provided by the software is not guaranteed to be correct, complete and up-to-date.
