@@ -19,47 +19,41 @@ Please note that this project is an early stage. As such, you could find errors.
 
 Installation
 =====
-You can download the latest version of CMSmap by cloning the GitHub repository:
+You can download the latest version of whapa by cloning the GitHub repository:
 
-	git clone https://github.com/Dionach/CMSmap.git
+	git clone https://github.com/B16f00t/whapa.git
 
 
 Usage
 =====
-	CMSmap tool v0.6 - Simple CMS Scanner
-	Author: Mike Manzotti mike.manzotti@dionach.com
-	Usage: cmsmap.py -t <URL>
-	Targets:
-		 -t, --target    target URL (e.g. 'https://example.com:8080/')
-		 -f, --force     force scan (W)ordpress, (J)oomla or (D)rupal
-		 -F, --fullscan  full scan using large plugin lists. False positives and slow!
-		 -a, --agent     set custom user-agent
-		 -T, --threads   number of threads (Default: 5)
-		 -i, --input     scan multiple targets listed in a given text file
-		 -o, --output    save output in a file
-		 --noedb         enumerate plugins without searching exploits
+     __      __.__          __________
+    /  \    /  \  |__ _____ \______   \_____
+    \   \/\/   /  |  \\__  \ |     ___/\__  \
+     \        /|   Y  \/ __ \|    |     / __ \_
+      \__/\  / |___|  (____  /____|    (____  /
+           \/       \/     \/               \/
+    ---------- Whatsapp Parser v0.1 -----------
 
-	Brute-Force:
-		 -u, --usr       username or file
-		 -p, --psw       password or file
-		 --noxmlrpc      brute forcing WordPress without XML-RPC
+	usage: whapa.py [-h] [-k KEY | -i | -m] [-tS TIME_START] [-tE TIME_END] [-t TEXT] [-u USER] [-g GROUP] [-w] [DATABASE]
 
-	Post Exploitation:
-		 -k, --crack     password hashes file (Require hashcat installed. For WordPress and Joomla only)
-		 -w, --wordlist  wordlist file
+	To start choose a database and a mode with options
 
-	Others:
-		 -v, --verbose   verbose mode (Default: false)
-		 -U, --update    (C)MSmap, (W)ordpress plugins and themes, (J)oomla components, (D)rupal modules, (A)ll
-		 -h, --help      show this help
+	positional arguments:
+  		DATABASE              database file path - './msgstore.db' by default
 
-	Examples:
-		 cmsmap.py -t https://example.com
-		 cmsmap.py -t https://example.com -f W -F --noedb
-		 cmsmap.py -t https://example.com -i targets.txt -o output.txt
-		 cmsmap.py -t https://example.com -u admin -p passwords.txt
-		 cmsmap.py -k hashes.txt -w passwords.txt
+	optional arguments:
+  		-h, --help          			  show this help message and exit
+  		-k KEY, --key KEY     			  *** Decrypt Mode *** - key file path
+  		-i, --info       			  *** Info Mode ***
+  		-m, --messages      			  *** Message Mode ***
+  		-tS TIME_START, --time_start TIME_START   show messages by start time (dd-mm-yyyy HH:MM)
+  		-tE TIME_END, --time_end TIME_END         show messages by end time (dd-mm-yyyy HH:MM)
+  		-t TEXT, --text TEXT  			  show messages by text match
+  		-u USER, --user USER  			  show messages made by a phone number
+  		-g GROUP, --group GROUP                   show messages made in a group number
+  		-w, --web   			          show messages made by Whatsapp Web
 
+		 
 
 Notes
 =====
