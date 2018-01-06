@@ -55,7 +55,7 @@ Usage
 
 		 
 
-Upconming update
+Upcoming update
 =====
 Creating reports of the information displayed by the software
   
