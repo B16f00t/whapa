@@ -7,9 +7,9 @@ Updated: January 2018 - Version 0.1
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 
 The software is divided into three modes:
-* 1. Message Mode: It analyzes all messages in the database, applying different filters.
-* 2. Decryption Mode: It is in charge of decrypting crypto12 databases, as long as we have the key.
-* 3. Info Mode: Displays different information about statuses, broadcasts list and groups.
+* **Message Mode**: It analyzes all messages in the database, applying different filters.
+* **Decryption Mode**: It is in charge of decrypting crypto12 databases, as long as we have the key.
+* **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 
 Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
 
