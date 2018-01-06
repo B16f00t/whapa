@@ -2,19 +2,20 @@
 
 Whatsapp Parser
 ==================================
-ManTech Triage and Analysis System, Forensics Workflow Automation Suite
+Updated: January 2018 - Version 0.1
 
-Update: July 2016 - Mantarayforensics.com has been decommissioned.  GitHub is now the main portal for MantaRay.
+Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 
+The software is divided into three modes:
+* 1. Message Mode: It analyzes all messages in the database, applying different filters.
+* 2. Decryption Mode: It is in charge of decrypting crypto12 databases, as long as we have the key.
+* 3. Info Mode: Displays different information about statuses, broadcasts list and groups.
 
+Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
 
-CMSmap is a python open source CMS scanner that automates the process of detecting security flaws of the most popular CMSs. The main purpose of CMSmap is to integrate common vulnerabilities 
-for different types of CMSs in a single tool. 
+Bonus: It also comes with a tool to download the backup copies of google drive associated with a smartphone.
 
-At the moment, CMSs supported by CMSmap are WordPress, Joomla and Drupal.
-
-Please note that this project is an early state. As such, you might find bugs, flaws or mulfunctions.
-Use it at your own risk!
+Translated with www.DeepL.com/Translator
 
 
 Installation
