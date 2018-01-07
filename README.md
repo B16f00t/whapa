@@ -1,8 +1,12 @@
 ![alt tag](https://github.com/B16f00t/whapa/blob/master/whapa.png)
 
+.. image:: http://forthebadge.com/images/badges/made-with-python.svg
+      :target: #
+
 Whatsapp Parser
 ==================================
 Updated: January 2018 - Version 0.1
+WhatsApp Messenger Version 2.17.424
 
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 
@@ -39,7 +43,7 @@ Usage
 	To start choose a database and a mode with options
 
 	positional arguments:
-  		DATABASE              database file path - './msgstore.db' by default
+  		DATABASE              			  database file path - './msgstore.db' by default
 
 	optional arguments:
   		-h, --help          			  show this help message and exit
@@ -57,7 +61,7 @@ Usage
 
 Upcoming update
 =====
-Creating reports of the information displayed by the software
+Creating reports of the information displayed by the script.
   
 	
 Disclaimer
