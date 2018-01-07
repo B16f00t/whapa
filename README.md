@@ -1,32 +1,5 @@
 ![alt tag](https://github.com/B16f00t/whapa/blob/master/whapa.png)
 
-==============
- Instagram-Py 
-==============
-
-    | Instagram-py performs slick brute force attack on Instagram without any type of password limiting
-    | and also resumes your attack in ease. 
-    
-    --DeathSec
-
-
-.. image:: https://img.shields.io/github/issues/deathsec/instagram-py.svg?style=flat-square   
-      :target: https://github.com/deathsec/instagram-py/issues
-
-.. image:: https://img.shields.io/github/forks/deathsec/instagram-py.svg?style=flat-square   
-      :target: https://github.com/deathsec/instagram-py/network
-      
-.. image:: https://img.shields.io/github/stars/deathsec/instagram-py.svg?style=flat-square
-      :target: https://github.com/deathsec/instagram-py/stargazers
-
-.. image:: https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square   
-      :target: https://raw.githubusercontent.com/deathsec/instagram-py/master/LICENSE
-
-.. image:: https://img.shields.io/pypi/v/instagram-py.svg?style=flat-square
-      :target: #
-
-      
-
 
 Whatsapp Parser
 ==================================
@@ -34,9 +7,10 @@ Updated: January 2018 - Version 0.1
 WhatsApp Messenger Version 2.17.424
 
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
+The Script is written in Python 2.x
 
 The software is divided into three modes:
-* **Message Mode**: It analyzes all messages in the database, applying different filters.
+* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when it's avaiable.
 * **Decryption Mode**: Decrypt crypto12 databases, as long as we have the key.
 * **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 
@@ -51,6 +25,9 @@ Installation
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
+	
+	sudo easy_install3 -U pip # you have to install python3-setuptools , update pip
+
 
 
 Usage
