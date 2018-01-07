@@ -10,7 +10,7 @@ Whapa is a whatsapp database parser that automates the process. The main purpose
 The Script is written in Python 2.x
 
 The software is divided into three modes:
-* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when it's avaiable.
+* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when it's available.
 * **Decryption Mode**: Decrypt crypto12 databases, as long as we have the key.
 * **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 
@@ -26,7 +26,7 @@ You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
 	
-	sudo easy_install3 -U pip # you have to install python3-setuptools , update pip
+	$ sudo easy_install3 -U pip # you have to install python3-setuptools , update pip
 
 
 
