@@ -25,8 +25,13 @@ Installation
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
+
+	pip install -r requirements.txt
 	
-	$ sudo easy_install3 -U pip # you have to install python3-setuptools , update pip
+
+	sudo apt-get update
+	sudo apt-get install -y python3-pip
+	sudo pip3 install pyportify
 
 
 
