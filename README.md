@@ -32,34 +32,52 @@ You can download the latest version of whapa by cloning the GitHub repository:
 
 Usage
 =====
-     __      __.__          __________
-    /  \    /  \  |__ _____ \______   \_____
-    \   \/\/   /  |  \\__  \ |     ___/\__  \
-     \        /|   Y  \/ __ \|    |     / __ \_
-      \__/\  / |___|  (____  /____|    (____  /
-           \/       \/     \/               \/
-    ---------- Whatsapp Parser v0.1 -----------
-
-	usage: whapa.py [-h] [-k KEY | -i | -m] [-tS TIME_START] [-tE TIME_END] [-t TEXT] [-u USER] [-g GROUP] [-w] [DATABASE]
-
+	     __      __.__          __________         
+	    /  \    /  \  |__ _____ \______   \_____   
+	    \   \/\/   /  |  \\__  \ |     ___/\__  \  
+	     \        /|   Y  \/ __ \|    |     / __ \_
+	      \__/\  / |___|  (____  /____|    (____  /
+	           \/       \/     \/               \/ 
+	    ---------- Whatsapp Parser v0.1 -----------
+    	
+	usage: whapa.py [-h] [-k KEY | -i | -m] [-t TEXT] [-u USER] [-g GROUP] [-w]
+	                [-s] [-b] [-tS TIME_START] [-tE TIME_END]
+	                [-tT | -tI | -tA | -tV | -tC | -tL | -tX | -tP | -tG | -tD | -tR]
+	                [DATABASE]
+	
 	To start choose a database and a mode with options
-
+	
 	positional arguments:
-  		DATABASE              			  database file path - './msgstore.db' by default
-
+  	DATABASE              database file path - './msgstore.db' by default
+	
 	optional arguments:
-  		-h, --help          			  show this help message and exit
-  		-k KEY, --key KEY     			  *** Decrypt Mode *** - key file path
-  		-i, --info       			  *** Info Mode ***
-  		-m, --messages      			  *** Message Mode ***
-  		-tS TIME_START, --time_start TIME_START   show messages by start time (dd-mm-yyyy HH:MM)
-  		-tE TIME_END, --time_end TIME_END         show messages by end time (dd-mm-yyyy HH:MM)
-  		-t TEXT, --text TEXT  			  show messages by text match
-  		-u USER, --user USER  			  show messages made by a phone number
-  		-g GROUP, --group GROUP                   show messages made in a group number
-  		-w, --web   			          show messages made by Whatsapp Web
-
-		 
+	  -h, --help            show this help message and exit
+	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
+	  -i, --info            *** Info Mode ***
+	  -m, --messages        *** Message Mode ***
+	  -t TEXT, --text TEXT  filter messages by text match
+	  -u USER, --user USER  filter messages made by a phone number
+	  -g GROUP, --group GROUP
+	                        filter messages made in a group number
+	  -w, --web             filter messages made by Whatsapp Web
+	  -s, --starred         filter messages starred by user
+	  -b, --broadcast       filter messages send by broadcast
+	  -tS TIME_START, --time_start TIME_START
+	                        filter messages by start time (dd-mm-yyyy HH:MM)
+	  -tE TIME_END, --time_end TIME_END
+	                        filter messages by end time (dd-mm-yyyy HH:MM)
+	  -tT, --type_text      filter text messages
+	  -tI, --type_image     filter image messages
+	  -tA, --type_audio     filter audio messages
+	  -tV, --type_video     filter video messages
+	  -tC, --type_contact   filter contact messages
+	  -tL, --type_location  filter location messages
+	  -tX, --type_call      filter audio/video call messages
+	  -tP, --type_application
+	                        filter application messages
+	  -tG, --type_gif       filter GIF messages
+	  -tD, --type_deleted   filter deleted object messages
+	  -tR, --type_share     filter Real time location messages	 
 
 Upcoming update
 =====
