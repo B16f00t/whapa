@@ -666,7 +666,7 @@ def info(consult):
                                             else:
                                                 print "Thumbnail null"
                                             if not os.path.isdir("./Media/profiles"):
-                                                os.mkdir("./profiles")
+                                                os.mkdir("./Media/profiles")
                                             with open("buffer", 'wb') as buffer_copy:
                                                 buffer_copy.write(str(data[17]))
                                             with open("buffer", 'rb') as buffer_copy:
