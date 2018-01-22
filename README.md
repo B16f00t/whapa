@@ -4,13 +4,13 @@
 Whatsapp Parser
 ==================================
 Updated: January 2018 - Version 0.1
-WhatsApp Messenger Version 2.17.424
+WhatsApp Messenger Version 2.18.9
 
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 The Script is written in Python 2.x
 
 The software is divided into three modes:
-* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when it's available.
+* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
 * **Decryption Mode**: Decrypt crypto12 databases, as long as we have the key.
 * **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 
@@ -22,17 +22,27 @@ Please note that this project is an early stage. As such, you could find errors.
 
 Installation
 =====
+ whapa.py (Whatsapp parser)
+---------
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
+then:
 
 	pip install -r requirements.txt
 	
+ whagdext.py (Extracts datas from Google Drive Account)
+-------------
 
 	sudo apt-get update
 	sudo apt-get install -y python3-pip
 	sudo pip3 install pyportify
-
+	To usage:
+	config settings.cfg
+		[auth]
+		gmail = alias@gmail.com
+		passw = yourpassword
+	python3 whagdext.py "arguments"
 
 
 Usage
@@ -83,6 +93,33 @@ Usage
 	  -tG, --type_gif       filter GIF messages
 	  -tD, --type_deleted   filter deleted object messages
 	  -tR, --type_share     filter Real time location messages	 
+
+Examples
+=====
+("./Media" is the directory where thumbnails is being written)
+
+* Message mode:
+
+		python whapa.py -m 
+	Show all messages from the database.
+
+		python whapa.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
+	Show all messages from 12-12-2017 12:00 to 13-12-2017 12:00.
+
+		python whapa.py -m -w -tI
+	Show all images send by Whatsapp Web.
+
+
+* Decrypt mode:
+
+		python whapa.py msgstore.db.crypt12 -k key
+	Decrypt msgstore.dbcrypt12, creating msgstore.db
+
+* Info mode:
+
+		python whapa.py -i
+	Show a stage with options about groups, broadcast lists and statuses.
+
 
 Upcoming update
 =====
