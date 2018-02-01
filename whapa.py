@@ -21,7 +21,7 @@ def banner():
      \        /|   Y  \/ __ \|    |     / __ \_
       \__/\  / |___|  (____  /____|    (____  /
            \/       \/     \/               \/ 
-    ---------- Whatsapp Parser v0.1 -----------
+    ---------- Whatsapp Parser v0.2 -----------
     """
 
 
@@ -97,7 +97,7 @@ def reply(txt):
         i = chain.rfind("Media/")
         b = len(chain)
         if i == -1:  # Image doesn't exist
-            thumb = "not downloaded"
+            thumb = "Not downloaded"
         else:
             thumb = "/" + (str(rep[17]))[i:b]
         if rep[11]:  # media_caption
@@ -111,7 +111,7 @@ def reply(txt):
         i = chain.rfind("Media/")
         b = len(chain)
         if i == -1:  # Audio doesn't exist
-            thumb = "not downloaded"
+            thumb = "Not downloaded"
         else:
             thumb = "/" + (str(rep[17]))[i:b]
         ans += Fore.GREEN + " - Name: " + Fore.RESET + thumb + Fore.GREEN + " - Type: " + Fore.RESET + rep[7] + Fore.GREEN + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(rep[12])
@@ -121,7 +121,7 @@ def reply(txt):
         i = chain.rfind("Media/")
         b = len(chain)
         if i == -1:  # Video doesn't exist
-            thumb = "not downloaded"
+            thumb = "Not downloaded"
         else:
             thumb = "/" + (str(rep[17]))[i:b]
         if rep[11]:  # media_caption
@@ -152,7 +152,7 @@ def reply(txt):
         i = chain.rfind("Media/")
         b = len(chain)
         if i == -1:  # Image doesn't exist
-            thumb = "not downloaded"
+            thumb = "Not downloaded"
         else:
             thumb = "/" + chain[i:b]
         if rep[11]:  # media_caption
@@ -165,14 +165,14 @@ def reply(txt):
             ans += Fore.GREEN + " - Type: " + Fore.RESET + rep[7] + Fore.GREEN + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9]))
 
     elif int(rep[8]) == 10:  # media_wa_type 10, Video/Audio call lost
-        ans += Fore.GREEN + " - Message:" + Fore.RESET + " Missed " + rep[0].strip("@s.whatsapp.net") + " lost"
+        ans += Fore.GREEN + " - Message: " + Fore.RESET + " Missed " + rep[11] + " call"
 
     elif int(rep[8]) == 13:  # media_wa_type 13 Gif
         chain = str(rep[17]).split('w')[0]
         i = chain.rfind("Media/")
         b = len(chain)
         if i == -1:  # Video doesn't exist
-            thumb = "not downloaded"
+            thumb = "Not downloaded"
         else:
             thumb = "/" + (str(rep[17]))[i:b]
         if rep[11]:  # media_caption
@@ -269,7 +269,10 @@ def messages(consult):
                         if data[15]:  # Somebody sends me a message by broadcast
                             print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.GREEN + "by broadcast to" + Fore.RESET + " me"
                         else:  # Somebody sends me a message
-                            print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.GREEN + "to" + Fore.RESET + " me"
+                            if int(data[8]) == 10:
+                                print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0]  # sender system message
+                            else:
+                                print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.GREEN + "to" + Fore.RESET + " me"
 
                     elif int(data[1]) == 0 and (str(data[0]).split('@'))[1] == "broadcast":  # Somebody posts a Status
                         print Fore.GREEN + "From" + Fore.RESET, (str(data[15]).split('@'))[0], Fore.GREEN + "posts status" + Fore.RESET
@@ -350,7 +353,7 @@ def messages(consult):
                         i = chain.rfind("Media/")
                         b = len(chain)
                         if i == -1:  # Image doesn't exist
-                            thumb = "not downloaded"
+                            thumb = "Not downloaded"
                         else:
                             thumb = "/" + (str(data[17]))[i:b]
                         if data[11]:  # media_caption
@@ -360,7 +363,7 @@ def messages(consult):
                         print Fore.GREEN + "Type: " + Fore.RESET + "image/jpeg" + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9]))
                         if data[19]:  # raw_data
                             distutils.dir_util.mkpath("./Media/WhatsApp Images/Sent")
-                            if thumb == "not downloaded":
+                            if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = "/Media/WhatsApp Images/Sent/IMG-" + str((int(data[5]) / 1000)) + ".jpg"
                                 else:
@@ -375,7 +378,7 @@ def messages(consult):
                         i = chain.rfind("Media/")
                         b = len(chain)
                         if i == -1:  # Audio doesn't exist
-                            thumb = "not downloaded"
+                            thumb = "Not downloaded"
                         else:
                             thumb = "/" + (str(data[17]))[i:b]
                         print Fore.GREEN + "Name:" + Fore.RESET, thumb
@@ -386,7 +389,7 @@ def messages(consult):
                         i = chain.rfind("Media/")
                         b = len(chain)
                         if i == -1:  # Video doesn't exist
-                            thumb = "not downloaded"
+                            thumb = "Not downloaded"
                         else:
                             thumb = "/" + (str(data[17]))[i:b]
                         if data[11]:  # media_caption
@@ -396,7 +399,7 @@ def messages(consult):
                         print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                         if data[19]:
                             distutils.dir_util.mkpath("./Media/WhatsApp Video/Sent")
-                            if thumb == "not downloaded":
+                            if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = "/Media/WhatsApp Video/Sent/VID-" + str((int(data[5]) / 1000)) + ".mp4"
                                 else:
@@ -428,7 +431,7 @@ def messages(consult):
                         i = chain.rfind("Media/")
                         b = len(chain)
                         if i == -1:  # Image doesn't exist
-                            thumb = "not downloaded"
+                            thumb = "Not downloaded"
                         else:
                             thumb = "/" + chain[i:b]
                         if data[11]:  # media_caption
@@ -441,7 +444,7 @@ def messages(consult):
                             print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9]))
                         if data[19]:
                             distutils.dir_util.mkpath("./Media/WhatsApp Documents/Sent")
-                            if thumb == "not downloaded":
+                            if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = "/Media/WhatsApp Animated Documents/Sent/DOC-" + str((int(data[5]) / 1000))
                                 else:
@@ -452,14 +455,14 @@ def messages(consult):
                                 profile_file.write(str(data[19]))
 
                     elif int(data[8]) == 10:  # media_wa_type 10, Video/Audio call lost
-                        print Fore.GREEN + "Message:" + Fore.RESET + " Missed", data[0].strip("@s.whatsapp.net"), "lost"
+                        print Fore.GREEN + "Message:" + Fore.RESET, "Missed " + data[11] + " call"
 
                     elif int(data[8]) == 13:  # media_wa_type 13 Gif
                         chain = str(data[17]).split('w')[0]
                         i = chain.rfind("Media/")
                         b = len(chain)
                         if i == -1:  # Video doesn't exist
-                            thumb = "not downloaded"
+                            thumb = "Not downloaded"
                         else:
                             thumb = "/" + (str(data[17]))[i:b]
                         if data[11]:  # media_caption
@@ -469,7 +472,7 @@ def messages(consult):
                         print Fore.GREEN + "Type: " + Fore.RESET + "Gif" + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                         if data[19]:
                             distutils.dir_util.mkpath("./Media/WhatsApp Animated Gifs/Sent")
-                            if thumb == "not downloaded":
+                            if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = "/Media/WhatsApp Animated Gifs/Sent/VID-" + str((int(data[5]) / 1000)) + ".mp4"
                                 else:
@@ -534,7 +537,7 @@ def info(consult):
     while True:
         print "\n-------------------------- INFO MODE ----------------------------"
         print "0  ) Exit"
-        print "1  ) Status"
+        print "1  ) Statuses"
         for key, value in info_dic.items():
             i = key
             if key < 10:
@@ -566,7 +569,7 @@ def info(consult):
                             i = chain.rfind("Media/")
                             b = len(chain)
                             if i == -1:  # Image doesn't exist
-                                thumb = "not displayed"
+                                thumb = "Not displayed"
                             else:
                                 thumb = "/" + (str(data[17]))[i:b]
                             if data[11]:  # media_caption
@@ -577,11 +580,11 @@ def info(consult):
                                 print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                             else:
                                 print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9]))
-                            if thumb != "not displayed":
+                            if thumb != "Not displayed":
                                 print "The picture is stored on the phone path '" + thumb + "'"
                             print Fore.GREEN + "Timestamp:" + Fore.RESET, time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000)), Fore.GREEN + "- Status:" + Fore.RESET, status(int(data[3]))
                     except Exception as e:
-                        print "Error Status", e
+                        print "Status error", e
                         continue
 
             elif opt > i:
