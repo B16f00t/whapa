@@ -3,15 +3,15 @@
 
 Whatsapp Parser
 ==================================
-Updated: January 2018 - Version 0.1
-WhatsApp Messenger Version 2.18.9
+Updated: February 2018 - Version 0.2
+WhatsApp Messenger Version 2.18.29
 
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 The Script is written in Python 2.x
 
 The software is divided into three modes:
 * **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
-* **Decryption Mode**: Decrypt crypto12 databases, as long as we have the key.
+* **Decryption Mode**: Decrypt crypto12 databases as long as we have the key.
 * **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 
 Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
@@ -53,7 +53,7 @@ Usage
 	     \        /|   Y  \/ __ \|    |     / __ \_
 	      \__/\  / |___|  (____  /____|    (____  /
 	           \/       \/     \/               \/ 
-	    ---------- Whatsapp Parser v0.1 -----------
+	    ---------- Whatsapp Parser v0.2 -----------
     	
 	usage: whapa.py [-h] [-k KEY | -i | -m] [-t TEXT] [-u USER] [-g GROUP] [-w]
 	                [-s] [-b] [-tS TIME_START] [-tE TIME_END]
