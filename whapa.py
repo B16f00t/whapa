@@ -127,7 +127,7 @@ def reply(txt):
         if rep[11]:  # media_caption
             ans += Fore.GREEN + " - Name: " + Fore.RESET + thumb + Fore.GREEN + " - Caption: " + Fore.RESET + rep[11]
         else:
-            ans += Fore.GREEN + "Name: " + Fore.RESET + thumb
+            ans += Fore.GREEN + " - Name: " + Fore.RESET + thumb
         ans += Fore.GREEN + " - Type: " + Fore.RESET + rep[7] + Fore.GREEN + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(rep[12])
 
     elif int(rep[8]) == 4:  # media_wa_type 4, Contact
@@ -344,7 +344,7 @@ def messages(consult):
                             elif int(data[9]) == 19:
                                 print Fore.GREEN + "Message:" + Fore.RESET + " Messages and calls in this chat are now protected with end-to-end encryption"
                             elif int(data[9]) == 20:
-                                print Fore.GREEN + "Message:" + Fore.RESET, ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0], "Joined using an invitation link from this group"
+                                print Fore.GREEN + "Message:" + Fore.RESET, ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0], "joined using an invitation link from this group"
                         else:
                             print Fore.GREEN + "Message:" + Fore.RESET, data[4]
 
@@ -455,7 +455,7 @@ def messages(consult):
                                 profile_file.write(str(data[19]))
 
                     elif int(data[8]) == 10:  # media_wa_type 10, Video/Audio call lost
-                        print Fore.GREEN + "Message:" + Fore.RESET, "Missed " + data[11] + " call"
+                        print Fore.GREEN + "Message:" + Fore.RESET, "Missed " + str(data[11]).capitalize() + " call"
 
                     elif int(data[8]) == 13:  # media_wa_type 13 Gif
                         chain = str(data[17]).split('w')[0]
@@ -716,7 +716,7 @@ def info(consult):
                                         elif int(data[9]) == 19:
                                             print Fore.GREEN + "Message:" + Fore.RESET + " Messages and calls in this chat are now protected with end-to-end encryption"
                                         elif int(data[9]) == 20:
-                                            print Fore.GREEN + "Message:" + Fore.RESET, ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0], "Joined using an invitation link from this group"
+                                            print Fore.GREEN + "Message:" + Fore.RESET, ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0], "joined using an invitation link from this group"
                                         print Fore.GREEN + "Timestamp:" + Fore.RESET , time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000))
 
                             except Exception as e:
@@ -832,6 +832,7 @@ if __name__ == "__main__":
                          latitude, longitude, remote_resource FROM messages;"
             sql_consult = cursor.execute(sql_string)
             info(sql_consult)
+
         elif args.database:
             db_connect(args.database)
 
