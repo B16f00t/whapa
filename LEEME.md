@@ -3,7 +3,7 @@
 
 Whatsapp Parser
 ==================================
-Actualizado: February 2018 - Version 0.2
+Actualizado: February 2018 - Version 0.1
 
 WhatsApp Messenger Version 2.18.29
 
