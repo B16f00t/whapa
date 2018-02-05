@@ -18,6 +18,7 @@ Please note that this project is an early stage. As such, you could find errors.
 
 **Bonus**: It also comes with a tool to download the backup copies of google drive associated with a smartphone.
 
+* "Whapas.py" is the spanish version of "whapa.py"
 
 
 Installation
