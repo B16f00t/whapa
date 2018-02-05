@@ -4,20 +4,21 @@
 Whatsapp Parser
 ==================================
 Actualizado: February 2018 - Version 0.2
+
 WhatsApp Messenger Version 2.18.29
 
 Whapa es un analizador de bases de datos whatsapp que automatiza el proceso. El objetivo principal de whapa es presentar los datos manejados por la base de datos Sqlite de una manera comprensible para el analista.
 El Script está desarollado en Python 2. x
 
 La herramienta se divide en tres modos:
-* **Modo Mensaje: Analiza todos los mensajes de la base de datos, aplicando diferentes filtros. Extrae las miniaturas cuando están disponibles.
-* **Modo Descifrado: Descifra bases de datos crypto12 mientras tengamos la clave.
-* **Modo Información: Muestra información diferente sobre estados, lista de difusión y grupos.
+* **Modo Mensaje:** Analiza todos los mensajes de la base de datos, aplicando diferentes filtros. Extrae las miniaturas cuando están disponibles.
+* **Modo Descifrado:** Descifra bases de datos crypto12 mientras tengamos la clave.
+* **Modo Información:** Muestra información diferente sobre estados, lista de difusión y grupos.
 
 Tenga en cuenta que este proyecto esta una etapa temprana. Como tal, se pueden encontrar errores. Utilícelo bajo su propio riesgo!
 
 **Bonus**: también incluye una herramienta para descargar copias de seguridad de Google Drive asociada a un smartphone.
-"Whapas.py" es la Versión española de Whapa.py
+"Whapas.py" es la Versión española de whapa.py
 
 
 Instalación
@@ -47,52 +48,57 @@ después:
 
 Uso
 =====
-	     __      __.__          __________         
-	    /  \    /  \  |__ _____ \______   \_____   
-	    \   \/\/   /  |  \\__  \ |     ___/\__  \  
-	     \        /|   Y  \/ __ \|    |     / __ \_
-	      \__/\  / |___|  (____  /____|    (____  /
-	           \/       \/     \/               \/ 
-	    ---------- Whatsapp Parser v0.2 -----------
+Version inglesa **whapa.py**
+
+Version española **whapas.py**
+
+     __      __.__                                
+    /  \    /  \  |__ _____  ___________    ______
+    \   \/\/   /  |  \\__  \ \____ \__  \  /  ___/
+     \        /|   Y  \/ __ \|  |_> > __ \_\___ \ 
+      \__/\  / |___|  (____  /   __(____  /____  >
+           \/       \/     \/|__|       \/     \/  
+    ---------- Whatsapp Parser Spanish v0.1 -----------
+
     	
-	usage: whapa.py [-h] [-k KEY | -i | -m] [-t TEXT] [-u USER] [-g GROUP] [-w]
+	usage: whapas.py [-h] [-k KEY | -i | -m] [-t TEXT] [-u USER] [-g GROUP] [-w]
 	                [-s] [-b] [-tS TIME_START] [-tE TIME_END]
 	                [-tT | -tI | -tA | -tV | -tC | -tL | -tX | -tP | -tG | -tD | -tR]
 	                [DATABASE]
 	
-	To start choose a database and a mode with options
+	Para empezar elija una base de dats y un modo con opciones
 	
 	positional arguments:
-  	DATABASE              database file path - './msgstore.db' by default
+  	DATABASE                ruta del la base de datos - './msgstore.db' por defecto
 	
 	optional arguments:
 	  -h, --help            show this help message and exit
-	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
-	  -i, --info            *** Info Mode ***
-	  -m, --messages        *** Message Mode ***
-	  -t TEXT, --text TEXT  filter messages by text match
-	  -u USER, --user USER  filter messages made by a phone number
+	  -k KEY, --key KEY     *** Modo Descifrar*** - ruta del archivo key
+	  -i, --info            *** Modo Información ***
+	  -m, --messages        *** Modo Mensaje ***
+	  -t TEXT, --text TEXT  filtrar mensajes por coincidencias de texto
+	  -u USER, --user USER  filtrar mensajes hechos por un número
 	  -g GROUP, --group GROUP
-	                        filter messages made in a group number
-	  -w, --web             filter messages made by Whatsapp Web
-	  -s, --starred         filter messages starred by user
-	  -b, --broadcast       filter messages send by broadcast
+	                        filtrar mensajes por grupo
+	  -w, --web             filtrar mensajes hechos por Whatsapp Web
+	  -s, --starred         filtrar mensajes destacados por el usuario
+	  -b, --broadcast       filtrat mensajes por difusión
 	  -tS TIME_START, --time_start TIME_START
-	                        filter messages by start time (dd-mm-yyyy HH:MM)
+	                        filtrar mensajes por tiempo de comienzo (dd-mm-yyyy HH:MM)
 	  -tE TIME_END, --time_end TIME_END
-	                        filter messages by end time (dd-mm-yyyy HH:MM)
-	  -tT, --type_text      filter text messages
-	  -tI, --type_image     filter image messages
-	  -tA, --type_audio     filter audio messages
-	  -tV, --type_video     filter video messages
-	  -tC, --type_contact   filter contact messages
-	  -tL, --type_location  filter location messages
-	  -tX, --type_call      filter audio/video call messages
+	                        filtrar mensajes por tiempo de fin (dd-mm-yyyy HH:MM)
+	  -tT, --type_text      filtrar mensajes de textos
+	  -tI, --type_image     filtrar mensajes de imagenes
+	  -tA, --type_audio     filtrar mensajes de audio
+	  -tV, --type_video     filtrar mensajes de video
+	  -tC, --type_contact   filtrat mensajes de contactos
+	  -tL, --type_location  filtrat mensajes de localizaciones
+	  -tX, --type_call      filtrar mensajes de audio/video llamada.
 	  -tP, --type_application
-	                        filter application messages
-	  -tG, --type_gif       filter GIF messages
-	  -tD, --type_deleted   filter deleted object messages
-	  -tR, --type_share     filter Real time location messages	 
+	                        filtrar mensajes de aplicaciones
+	  -tG, --type_gif       filtrar mensajes de GIF
+	  -tD, --type_deleted   filtrat mensajes de objetos eliminados
+	  -tR, --type_share     filtrar mensajes de localización en tiempo real	 
 
 Ejemplos
 =====
