@@ -106,24 +106,24 @@ Ejemplos
 
 * Modo Mensaje:
 
-		python whapa.py -m 
+		python whapas.py -m 
 	Muestra todos los mensajes de la base de datos
 
-		python whapa.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
+		python whapas.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
 	Muestra todos los mensajes de la fecha 12-12-2017 12:00 a 13-12-2017 12:00.
 
-		python whapa.py -m -w -tI
+		python whapas.py -m -w -tI
 	Muestra todos los mensajes enviados a través de Whatsapp Web.
 
 
 * Modo Descifrar:
 
-		python whapa.py msgstore.db.crypt12 -k key
+		python whapas.py msgstore.db.crypt12 -k key
 	Descifra msgstore.dbcrypt12, creadno msgstore.db
 
 * Modo Información:
 
-		python whapa.py -i
+		python whapas.py -i
 	Muestra una pantalla con opciones dobre grupos, listas de difusión y estados.
 
 
