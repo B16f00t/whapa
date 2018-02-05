@@ -4,6 +4,7 @@
 Whatsapp Parser
 ==================================
 Updated: February 2018 - Version 0.2
+
 WhatsApp Messenger Version 2.18.29
 
 Whapa is a whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
