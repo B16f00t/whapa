@@ -133,6 +133,7 @@ Examples
 Reports
 =====
 To create reports the first thing we need to do is to configure the file"./cfg/settings.cfg". For example:
+
 	[report]
 	logo =./cfg/logo.png
 	company = Foo S.L
