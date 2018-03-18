@@ -24,7 +24,7 @@ Please note that this project is an early stage. As such, you could find errors.
 
 Changelog
 =====
-https://github.com/B16f00t/whapa/blob/master/doc/CHANGELOG.md	
+https://github.com/B16f00t/whapa/doc/CHANGELOG.md	
 
 Installation
 =====
