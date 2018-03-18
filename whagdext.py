@@ -34,9 +34,10 @@ def getGoogleDriveToken(token):
     request = requests.post('https://android.clients.google.com/auth', data=payload)
     token = re.search('Auth=(.*?)\n', request.text)
     if token:
-       return token.group(1)
+        print("If you have a problem press this link https://accounts.google.com/b/0/DisplayUnlockCaptcha")
+        return token.group(1)
     else:
-       quit(request.text)
+        quit(request.text)
 
 def rawGoogleDriveRequest(bearer, url):
     headers = {'Authorization': 'Bearer '+bearer}
@@ -76,7 +77,7 @@ def getConfigs():
     global gmail, passw, devid, pkg, sig, client_pkg, client_sig, client_ver
     config = ConfigParser()
     try:
-        config.read('settings.cfg')
+        config.read('./cfg/settings.cfg')
         gmail = config.get('auth', 'gmail')
         passw = config.get('auth', 'passw')
         devid = config.get('auth', 'devid')
@@ -108,8 +109,8 @@ def localFileList():
         return localFileList()
 
 def createSettingsFile():
-    with open('settings.cfg', 'w') as cfg:
-        cfg.write('[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
+    with open('./cfg/settings.cfg', 'w') as cfg:
+        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes=\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
 
 def getSingleFile(data, asset):
     data = json.loads(data)
@@ -131,7 +132,7 @@ def getMultipleFiles(data, folder):
 
 def runMain(mode, asset, bID):
     global bearer
-    if os.path.isfile('settings.cfg') == False:
+    if os.path.isfile('./cfg/settings.cfg') == False:
         createSettingsFile()
     getConfigs()
     bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
@@ -190,7 +191,7 @@ def main():
     elif str(sys.argv[1]) == '-sync' or str(sys.argv[1]) == 'sync':
         runMain('sync', 'all', 0)
     elif str(sys.argv[1]) == '-vers' or str(sys.argv[1]) == 'vers':
-        print('\nWhatsAppGDExtract Version 1.1 Copyright (C) 2016 by TripCode\n')
+        print('\nFork of WhatsAppGDExtract Version 1.1 Copyright (C) 2016 by TripCode\n')
     elif args < 3:
         quit('\nUsage: python '+str(sys.argv[0])+' -help|-vers|-info|-list|-sync|-pull file [backupID]\n')
     elif str(sys.argv[1]) == '-pull' or str(sys.argv[1]) == 'pull':

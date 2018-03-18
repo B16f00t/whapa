@@ -1,0 +1,151 @@
+@media print {
+ 	@page {margin-top:14px;
+	       margin-left: 50px;
+	       margin-right: 50px;
+	       margin-bottom: 75px;}
+
+}
+
+header, footer, nav, aside {
+ 	display: none;
+}
+
+li, img, table {
+	page-break-inside: avoid;
+}
+
+﻿body { padding-top:30px; }
+.widget .panel-body { padding:0px; }
+.widget .list-group { margin-bottom: 0; }
+.widget .panel-title { display:inline }
+.widget .label-info { float: right; }
+.widget li.list-group-item {border-radius: 0;border: 0;border-top: 1px solid #ddd;}
+.widget li.list-group-item:hover { background-color: rgba(86,61,124,.1); }
+.widget .mic-info { color: #666666;font-size: 11px; }
+.widget .action { margin-top:5px; }
+.widget .comment-text { font-size: 12px; }
+.widget .btn-block { border-top-left-radius:0px;border-top-right-radius:0px; }
+.header { padding: 10px;}
+.col-xs-2 .col-md-1 img { padding-right: 20px; color:#FFFFFF;}
+.row img { float:left; padding-right: 4px; padding-left: 4px;}
+
+.operson { float:right; padding-left:0px; color:#5586e5; font-weight:600;}
+.alter { float:right;}
+.altertext { float:right; position: relative;  }
+
+
+.round { background-color:#5ba6e7; -webkit-border-radius: 4px; -moz-border-radius: 4px; border-radius: 4px; }
+.time { position:relative; top: 45px; color:#000; font-weight:600;}
+.time2 { float:right; padding-left:0px; color:#000; font-weight:600;}
+
+.personName {  padding-left:0px; color:#5586e5; font-weight:400;}
+.personSay {   padding-left:0px; color:#000; font-weight:400;}
+
+.personName2 { float: right;  padding-left:0px; color:#5586e5; font-weight:400;}
+.personSay2 {  float: right; padding-left:0px; color:#000; font-weight:400;}
+
+ul { list-style-type:none; padding:0px; margin:0px;  }
+ul li {   padding-left: 0px; }
+
+
+chat bubbleee css  
+
+.bubble{
+    background-color: #F2F2F2;
+    border-radius: 5px;
+    box-shadow: 0 0 6px #B2B2B2;
+    display: inline-block;
+    padding: 10px 18px;
+    position: relative;
+    vertical-align: top;
+    float: left;   
+    margin: 5px 45px 5px 20px; 
+	border-color: #cdecb0;
+	 
+}
+
+.bubble::before {
+    background-color: #F2F2F2;
+    content: "\00a0";
+    display: block;
+    height: 16px;
+    position: absolute;
+    top: 11px;
+    transform:             rotate( 29deg ) skew( -35deg );
+        -moz-transform:    rotate( 29deg ) skew( -35deg );
+        -ms-transform:     rotate( 29deg ) skew( -35deg );
+        -o-transform:      rotate( 29deg ) skew( -35deg );
+        -webkit-transform: rotate( 29deg ) skew( -35deg );
+    width:  20px;
+    box-shadow: -2px 2px 2px 0 rgba( 178, 178, 178, .4 );
+    left: -9px; 
+	
+	}
+
+.bubble{
+		background-color: #F2F2F2;
+		border-radius: 5px;
+		box-shadow: 0 0 6px #B2B2B2;
+		display: inline-block;
+		padding: 10px 18px;
+		position: relative;
+		vertical-align: top;
+		margin: 10px 10px;
+		border-color: #cdecb0;
+		width: 60%;
+		
+	}
+
+
+ chat bubbleee2 css  
+
+
+bubble2{
+    background-color: #dfeecf;
+    border-radius: 5px;
+    box-shadow: 0 0 6px #B2B2B2;
+    display: inline-block;
+    padding: 10px 18px;
+    position: relative;
+    vertical-align: top;
+    float: left;   
+    margin: 5px 45px 5px 20px; 
+	border-color: #cdecb0;
+	
+	  }
+
+.bubble2::before {
+
+float:right;
+    background-color: #dfeecf;
+    content: "\00a0";
+    display: block;
+    height: 19px;
+    /*position: absolute;*/
+	position:relative;
+    left: 26px;
+	top: 11px;
+    transform:             rotate( 205deg ) skew( -35deg );
+        -moz-transform:    rotate( 205deg ) skew( -35deg );
+        -ms-transform:     rotate( 205deg ) skew( -35deg );
+        -o-transform:      rotate( 205deg ) skew( -35deg );
+        -webkit-transform: rotate( 205deg ) skew( -35deg );
+    width:  20px;
+    box-shadow: -2px 2px 2px 0 rgba( 178, 178, 178, .4 );
+     
+	}
+
+.bubble2{
+		float: right;
+		width: 60%;
+		background-color: #dfeecf;
+		border-radius: 5px;
+		box-shadow: 0 0 6px #B2B2B2;
+		display: inline-block;
+		padding: 10px 18px;
+		position: relative;
+		vertical-align: top;
+		margin: 10px 10px;
+		border-color: #cdecb0;
+		
+	}
