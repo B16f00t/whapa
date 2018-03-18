@@ -156,7 +156,7 @@ Upcoming update
 =====
 Recover deleted messages.
 
-to get in contact
+Get in touch
 =====
 https:/t.me/B16F00T
   
