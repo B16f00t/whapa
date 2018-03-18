@@ -160,6 +160,7 @@ Recover deleted messages.
 
 Get in touch
 =====
+Acknowledgements, suggestions, languages, improvements...
 https:/t.me/B16F00T
   
 	
