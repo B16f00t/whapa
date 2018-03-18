@@ -150,6 +150,8 @@ Usage example: python -m -r -u 34XXX230775 (Creates a report of the conversation
 
 Note that to create a report that makes sense to the reader you must always specify a user with the flag"-u" or a group with the flag"-g". (To know the group number we want to use in our report we can first use the command "python whapa.py -i" and then copy and paste it into the command"python -m -r -g PASTE-HERE-GROUPNUMBER@g.us").
 
+For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the whapa directory.
+
 If we want to print the document or create the report in pdf, I recommend in the print option -> scale the view <= 70%, otherwise the report will be displayed too large.
 
 Upcoming update
