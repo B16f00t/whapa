@@ -155,6 +155,10 @@ If we want to print the document or create the report in pdf, I recommend in the
 Upcoming update
 =====
 Recover deleted messages.
+
+to get in contact
+=====
+https:/t.me/B16F00T
   
 	
 Disclaimer
