@@ -1423,7 +1423,7 @@ if __name__ == "__main__":
             update.write("echo Updating whagdext.py" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagdext.py 2> /dev/null" + os.linesep)
             update.write("echo Updating requirements.txt" + os.linesep)
-            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc > /dev/null" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc 2> /dev/null" + os.linesep)
             update.write("echo Updating chat.css" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/chat.css -O ./cfg 2> /dev/null" + os.linesep)
             update.write("echo Updating settings.cfg" + os.linesep)
