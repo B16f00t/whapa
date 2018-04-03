@@ -18,6 +18,8 @@ import sys
 arg_user = ""
 arg_group = ""
 report_var = ""
+report_html = ""
+version = "0.4"
 
 
 def banner():
@@ -29,7 +31,7 @@ def banner():
      \        /|   Y  \/ __ \|    |     / __ \_
       \__/\  / |___|  (____  /____|    (____  /
            \/       \/     \/               \/ 
-    ---------- Whatsapp Parser v0.3  -----------
+    ---------- Whatsapp Parser v""" + version + """ -----------
     """
 
 
@@ -85,198 +87,206 @@ def reply(txt):
     rep = sql_answer.fetchone()
     ans = ""
     reply_msj = ""
-    if int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "g.us":  # I send message to group
-        ans = "Me"
-        if report_var == 'EN':
-            reply_msj = "<font color=\"#FF0000\" > Me </font>"
-        elif report_var == 'ES':
-            reply_msj = "<font color=\"#FF0000\" > Yo </font>"
-    elif int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "s.whatsapp.net":  # I send message to somebody
-        ans = "Me"
-        if report_var == 'EN':
-            reply_msj = "<font color=\"#FF0000\" > Me </font>"
-        elif report_var == 'ES':
-            reply_msj = "<font color=\"#FF0000\" > Yo </font>"
-    elif int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "broadcast":  # I send broadcast
-        ans = "Me"
-        if report_var == 'EN':
-            reply_msj = "<font color=\"#FF0000\" > Me </font>"
-        elif report_var == 'ES':
-            reply_msj = "<font color=\"#FF0000\" > Yo </font>"
-    elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "g.us":  # Group send me a message
-        ans = (str(rep[15]).split('@'))[0]
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj = "<font color=\"#FF0000\" > " + (str(rep[15]).split('@'))[0] + " " + gets_name(rep[15]) + "</font>"
-    elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "s.whatsapp.net":  # Somebody sends me a message (normal and broadcast)
-        ans = (str(rep[0]).split('@'))[0]
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj = "<font color=\"#FF0000\" > " + (str(rep[0]).split('@'))[0] + " " + gets_name(rep[0]) + "</font>"
-    elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "broadcast":  # Somebody posts a Status
-        ans = (str(rep[15]).split('@'))[0]
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj = "<font color=\"#FF0000\" > " + (str(rep[15]).split('@'))[0] + " " + gets_name(rep[15]) + "</font>"
-
-    if int(rep[8]) == 0:  # media_wa_type 0, text message
-        ans += Fore.RED + " - Message: " + Fore.RESET + rep[4]
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += "<br>" + cgi.escape(rep[4])
-
-    elif int(rep[8]) == 1:  # media_wa_type 1, Image
-        chain = str(rep[17]).split('w')[0]
-        i = chain.rfind("Media/")
-        b = len(chain)
-        if i == -1:  # Image doesn't exist
-            thumb = "Not downloaded"
-        else:
-            thumb = "/" + (str(rep[17]))[i:b]
-        if rep[11]:  # media_caption
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
+    if rep is not None:  # Message not deleted
+        if int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "g.us":  # I send message to group
+            ans = "Me"
+            if report_var == 'EN':
+                reply_msj = "<font color=\"#FF0000\" > Me </font>"
+            elif report_var == 'ES':
+                reply_msj = "<font color=\"#FF0000\" > Yo </font>"
+        elif int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "s.whatsapp.net":  # I send message to somebody
+            ans = "Me"
+            if report_var == 'EN':
+                reply_msj = "<font color=\"#FF0000\" > Me </font>"
+            elif report_var == 'ES':
+                reply_msj = "<font color=\"#FF0000\" > Yo </font>"
+        elif int(rep[1]) == 1 and (str(rep[0]).split('@'))[1] == "broadcast":  # I send broadcast
+            ans = "Me"
+            if report_var == 'EN':
+                reply_msj = "<font color=\"#FF0000\" > Me </font>"
+            elif report_var == 'ES':
+                reply_msj = "<font color=\"#FF0000\" > Yo </font>"
+        elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "g.us":  # Group send me a message
+            ans = (str(rep[15]).split('@'))[0]
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
-        else:
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb
+                reply_msj = "<font color=\"#FF0000\" > " + (str(rep[15]).split('@'))[0] + " " + gets_name(rep[15]) + "</font>"
+        elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "s.whatsapp.net":  # Somebody sends me a message (normal and broadcast)
+            ans = (str(rep[0]).split('@'))[0]
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
-
-    elif int(rep[8]) == 2:  # media_wa_type 2, Audio
-        chain = str(rep[17]).split('w')[0]
-        i = chain.rfind("Media/")
-        b = len(chain)
-        if i == -1:  # Audio doesn't exist
-            thumb = "Not downloaded"
-        else:
-            thumb = "/" + (str(rep[17]))[i:b]
-        ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br></br><audio controls> <source src=\"" + thumb.decode('utf-8') + "\" type=\"" + rep[7] + "\"</audio>"
-
-    elif int(rep[8]) == 3:  # media_wa_type 3 Video
-        chain = str(rep[17]).split('w')[0]
-        i = chain.rfind("Media/")
-        b = len(chain)
-        if i == -1:  # Video doesn't exist
-            thumb = "Not downloaded"
-        else:
-            thumb = "/" + (str(rep[17]))[i:b]
-        if rep[11]:  # media_caption
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
+                reply_msj = "<font color=\"#FF0000\" > " + (str(rep[0]).split('@'))[0] + " " + gets_name(rep[0]) + "</font>"
+        elif int(rep[1]) == 0 and (str(rep[0]).split('@'))[1] == "broadcast":  # Somebody posts a Status
+            ans = (str(rep[15]).split('@'))[0]
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
-        else:
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb
-            reply_msj += "<br>" + thumb.decode('utf-8')
+                reply_msj = "<font color=\"#FF0000\" > " + (str(rep[15]).split('@'))[0] + " " + gets_name(rep[15]) + "</font>"
+
+        if int(rep[8]) == 0:  # media_wa_type 0, text message
+            ans += Fore.RED + " - Message: " + Fore.RESET + rep[4]
             if (report_var == 'EN') or (report_var == 'ES'):
-                ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
-                if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br/> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                reply_msj += "<br>" + cgi.escape(rep[4])
 
-    elif int(rep[8]) == 4:  # media_wa_type 4, Contact
-        ans += Fore.RED + " - Name: " + Fore.RESET + rep[10] + Fore.RED + " - Type:" + Fore.RESET + " Contact vCard"
-        if report_var == 'EN':
-            reply_msj += "<br>" + cgi.escape(rep[10]) + " &#9742;  Contact vCard"
-        if report_var == 'ES':
-            reply_msj += "<br>" + cgi.escape(rep[10]) + " &#9742;  Contacto vCard"
-
-    elif int(rep[8]) == 5:  # media_wa_type 5, Location
-        if rep[6]:  # media_url exists
-            if rep[10]:  # media_name exists
-                ans += Fore.RED + " - Url: " + Fore.RESET + rep[6] + Fore.RED + " - Name: " + Fore.RESET + rep[10]
-                if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += "<br>" + cgi.escape(rep[6]) + " - " + cgi.escape(rep[10])
+        elif int(rep[8]) == 1:  # media_wa_type 1, Image
+            chain = str(rep[17]).split('w')[0]
+            i = chain.rfind("Media/")
+            b = len(chain)
+            if i == -1:  # Image doesn't exist
+                thumb = "Not downloaded"
             else:
-                ans += Fore.RED + " - Url: " + Fore.RESET + rep[6]
+                thumb = "/" + (str(rep[17]))[i:b]
+            if rep[11]:  # media_caption
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
                 if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += "<br>" + cgi.escape(rep[6])
-        else:
-            if rep[10]:
-                ans += Fore.RED + "Name: " + Fore.RESET + rep[10]
+                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+            else:
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb
                 if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += "<br>" + cgi.escape(rep[10])
-        ans += Fore.RED + " - Type:" + Fore.RESET + " Location" + Fore.RED + " - Lat: " + Fore.RESET + str(rep[13]) + Fore.RED + " - Long: " + Fore.RESET + str(rep[14])
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += "(" + str(rep[13]) + "," + str(rep[14]) + ")" + "<br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+                    reply_msj += "<br>" + thumb.decode('utf-8') + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
-    elif int(rep[8]) == 8:  # media_wa_type 8, Audio / Video Call
-        ans += Fore.RED + " - Call: " + Fore.RESET + rep[11] + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += "<br>" + "&#128222; " + str(rep[11]).capitalize() + " " + duration_file(rep[12])
+        elif int(rep[8]) == 2:  # media_wa_type 2, Audio
+            chain = str(rep[17]).split('w')[0]
+            i = chain.rfind("Media/")
+            b = len(chain)
+            if i == -1:  # Audio doesn't exist
+                thumb = "Not downloaded"
+            else:
+                thumb = "/" + (str(rep[17]))[i:b]
+            ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
+            if (report_var == 'EN') or (report_var == 'ES'):
+                reply_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br></br><audio controls> <source src=\"" + thumb.decode('utf-8') + "\" type=\"" + rep[7] + "\"</audio>"
 
-    elif int(rep[8]) == 9:  # media_wa_type 9, Application
-        chain = str(rep[17]).split('w')[0]
-        i = chain.rfind("Media/")
-        b = len(chain)
-        if i == -1:  # Image doesn't exist
-            thumb = "Not downloaded"
-        else:
-            thumb = "/" + chain[i:b]
-        if rep[11]:  # media_caption
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
-            if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
-        else:
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb
-            if (report_var == 'EN') or (report_var == 'ES'):
+        elif int(rep[8]) == 3:  # media_wa_type 3 Video
+            chain = str(rep[17]).split('w')[0]
+            i = chain.rfind("Media/")
+            b = len(chain)
+            if i == -1:  # Video doesn't exist
+                thumb = "Not downloaded"
+            else:
+                thumb = "/" + (str(rep[17]))[i:b]
+            if rep[11]:  # media_caption
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
+            else:
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb
                 reply_msj += "<br>" + thumb.decode('utf-8')
-        if int(rep[12]) > 0:
-            ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9])) + Fore.RED + " - Pages: " + Fore.RESET + str(rep[12])
-            if report_var == 'EN':
-                reply_msj += " " + size_file(int(rep[9])) + " - " + str(rep[12]) + " Pages"
-            if report_var == 'ES':
-                reply_msj += " " + size_file(int(rep[9])) + " - " + str(rep[12]) + " Páginas".decode('utf-8')
-        else:
-            ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9]))
-            if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += " " + size_file(int(rep[9]))
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
+                    if (report_var == 'EN') or (report_var == 'ES'):
+                        reply_msj += " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br/> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
-    elif int(rep[8]) == 10:  # media_wa_type 10, Video/Audio call lost
-        ans += Fore.RED + " - Message: " + Fore.RESET + " Missed " + rep[11] + " call"
+        elif int(rep[8]) == 4:  # media_wa_type 4, Contact
+            ans += Fore.RED + " - Name: " + Fore.RESET + rep[10] + Fore.RED + " - Type:" + Fore.RESET + " Contact vCard"
+            if report_var == 'EN':
+                reply_msj += "<br>" + cgi.escape(rep[10]) + " &#9742;  Contact vCard"
+            if report_var == 'ES':
+                reply_msj += "<br>" + cgi.escape(rep[10]) + " &#9742;  Contacto vCard"
+
+        elif int(rep[8]) == 5:  # media_wa_type 5, Location
+            if rep[6]:  # media_url exists
+                if rep[10]:  # media_name exists
+                    ans += Fore.RED + " - Url: " + Fore.RESET + rep[6] + Fore.RED + " - Name: " + Fore.RESET + rep[10]
+                    if (report_var == 'EN') or (report_var == 'ES'):
+                        reply_msj += "<br>" + cgi.escape(rep[6]) + " - " + cgi.escape(rep[10])
+                else:
+                    ans += Fore.RED + " - Url: " + Fore.RESET + rep[6]
+                    if (report_var == 'EN') or (report_var == 'ES'):
+                        reply_msj += "<br>" + cgi.escape(rep[6])
+            else:
+                if rep[10]:
+                    ans += Fore.RED + "Name: " + Fore.RESET + rep[10]
+                    if (report_var == 'EN') or (report_var == 'ES'):
+                        reply_msj += "<br>" + cgi.escape(rep[10])
+            ans += Fore.RED + " - Type:" + Fore.RESET + " Location" + Fore.RED + " - Lat: " + Fore.RESET + str(rep[13]) + Fore.RED + " - Long: " + Fore.RESET + str(rep[14])
+            if (report_var == 'EN') or (report_var == 'ES'):
+                reply_msj += "(" + str(rep[13]) + "," + str(rep[14]) + ")" + "<br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+
+        elif int(rep[8]) == 8:  # media_wa_type 8, Audio / Video Call
+            ans += Fore.RED + " - Call: " + Fore.RESET + rep[11] + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
+            if (report_var == 'EN') or (report_var == 'ES'):
+                reply_msj += "<br>" + "&#128222; " + str(rep[11]).capitalize() + " " + duration_file(rep[12])
+
+        elif int(rep[8]) == 9:  # media_wa_type 9, Application
+            chain = str(rep[17]).split('w')[0]
+            i = chain.rfind("Media/")
+            b = len(chain)
+            if i == -1:  # Image doesn't exist
+                thumb = "Not downloaded"
+            else:
+                thumb = "/" + chain[i:b]
+            if rep[11]:  # media_caption
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
+            else:
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += "<br>" + thumb.decode('utf-8')
+            if int(rep[12]) > 0:
+                ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9])) + Fore.RED + " - Pages: " + Fore.RESET + str(rep[12])
+                if report_var == 'EN':
+                    reply_msj += " " + size_file(int(rep[9])) + " - " + str(rep[12]) + " Pages"
+                if report_var == 'ES':
+                    reply_msj += " " + size_file(int(rep[9])) + " - " + str(rep[12]) + " Páginas".decode('utf-8')
+            else:
+                ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9]))
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += " " + size_file(int(rep[9]))
+            if (report_var == 'EN') or (report_var == 'ES'):
+                reply_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
+
+        elif int(rep[8]) == 10:  # media_wa_type 10, Video/Audio call lost
+            ans += Fore.RED + " - Message: " + Fore.RESET + " Missed " + rep[11] + " call"
+            if report_var == 'EN':
+                reply_msj += "<br>" + "&#128222; Missed" + str(rep[11]).capitalize()
+            if report_var == 'ES':
+                reply_msj += "<br>" + "&#128222; " + str(rep[11]).capitalize() + " llamada perdida"
+
+        elif int(rep[8]) == 13:  # media_wa_type 13 Gif
+            chain = str(rep[17]).split('w')[0]
+            i = chain.rfind("Media/")
+            b = len(chain)
+            if i == -1:  # Video doesn't exist
+                thumb = "Not downloaded"
+            else:
+                thumb = "/" + (str(rep[17]))[i:b]
+            if rep[11]:  # media_caption
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
+            else:
+                ans += Fore.RED + " - Name: " + Fore.RESET + thumb
+                if (report_var == 'EN') or (report_var == 'ES'):
+                    reply_msj += "<br>" + thumb.decode('utf-8')
+            ans += Fore.RED + " - Type: " + Fore.RESET + "Gif" + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9])) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
+            if (report_var == 'EN') or (report_var == 'ES'):
+                reply_msj += " - Gif - " + size_file(int(rep[9])) + " " + duration_file(rep[12]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+
+        elif int(rep[8]) == 15:  # media_wa_type 15, Deleted Object
+            if int(rep[16]) == 5:  # edit_version 5, deleted for me
+                ans += Fore.RED + " - Message:" + Fore.RESET + " Message deleted for Me"
+                if report_var == 'EN':
+                    reply_msj += "<br>" + "Message deleted for Me"
+                if report_var == 'ES':
+                    reply_msj += "<br>" + "Mensaje eliminado para mí".decode('utf-8')
+            elif int(rep[16]) == 7:  # edit_version 7, deleted for all
+                ans += Fore.RED + " - Message:" + Fore.RESET + " Message deleted for all participants"
+                if report_var == 'EN':
+                    reply_msj += "<br>" + "Message deleted for all participants"
+                if report_var == 'ES':
+                    reply_msj += "<br>" + "Mensaje eliminado para todos los destinatarios"
+
+        elif int(rep[8]) == 16:  # media_wa_type 16, Share location
+            ans += Fore.RED + " - Type:" + Fore.RESET + " Real time location " + Fore.RED + "- Caption: " + Fore.RESET + rep[11] + Fore.RED + " - Lat: " + Fore.RESET + str(rep[13]) + Fore.RED + " - Long: " + Fore.RESET + str(rep[14]) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(rep[12])
+            if report_var == 'EN':
+                reply_msj += "<br>" + "Real time location (" + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+            if report_var == 'ES':
+                reply_msj += "<br>" + "Ubicación en tiempo real(".decode('utf-8') + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+
+    else:  # Deleted Message
+        ans = "Deleted message"
         if report_var == 'EN':
-            reply_msj += "<br>" + "&#128222; Missed" + str(rep[11]).capitalize()
+            reply_msj = "Deleted message"
         if report_var == 'ES':
-            reply_msj += "<br>" + "&#128222; " + str(rep[11]).capitalize() + " llamada perdida"
-
-    elif int(rep[8]) == 13:  # media_wa_type 13 Gif
-        chain = str(rep[17]).split('w')[0]
-        i = chain.rfind("Media/")
-        b = len(chain)
-        if i == -1:  # Video doesn't exist
-            thumb = "Not downloaded"
-        else:
-            thumb = "/" + (str(rep[17]))[i:b]
-        if rep[11]:  # media_caption
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
-            if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11])
-        else:
-            ans += Fore.RED + " - Name: " + Fore.RESET + thumb
-            if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8')
-        ans += Fore.RED + " - Type: " + Fore.RESET + "Gif" + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9])) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
-        if (report_var == 'EN') or (report_var == 'ES'):
-            reply_msj += " - Gif - " + size_file(int(rep[9])) + " " + duration_file(rep[12]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
-
-    elif int(rep[8]) == 15:  # media_wa_type 15, Deleted Object
-        if int(rep[16]) == 5:  # edit_version 5, deleted for me
-            ans += Fore.RED + " - Message:" + Fore.RESET + " Message deleted for me"
-            if report_var == 'EN':
-                reply_msj += "<br>" + "Message deleted for me"
-            if report_var == 'ES':
-                reply_msj += "<br>" + "Mensaje eliminado para mí".decode('utf-8')
-        elif int(rep[16]) == 7:  # edit_version 7, deleted for all
-            ans += Fore.RED + " - Message:" + Fore.RESET + " Message deleted for all participants"
-            if report_var == 'EN':
-                reply_msj += "<br>" + "Message deleted for all participants"
-            if report_var == 'ES':
-                reply_msj += "<br>" + "Mensaje eliminado para todos los destinatarios"
-
-    elif int(rep[8]) == 16:  # media_wa_type 16, Share location
-        ans += Fore.RED + " - Type:" + Fore.RESET + " Real time location " + Fore.RED + "- Caption: " + Fore.RESET + rep[11] + Fore.RED + " - Lat: " + Fore.RESET + str(rep[13]) + Fore.RED + " - Long: " + Fore.RESET + str(rep[14]) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(rep[12])
-        if report_var == 'EN':
-            reply_msj += "<br>" + "Real time location (" + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
-        if report_var == 'ES':
-            reply_msj += "<br>" + "Ubicación en tiempo real(".decode('utf-8') + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+            reply_msj = "Mensaje eliminado"
 
     return ans, reply_msj
 
@@ -307,7 +317,7 @@ def size_file(obj):
 
 
 def duration_file(obj):
-    """ Function duration time"""
+    """ Function duration tiMe"""
     hour = (int(obj / 3600))
     minu = int((obj - (hour * 3600)) / 60)
     seco = obj - ((hour * 3600) + (minu * 60))
@@ -321,7 +331,7 @@ def duration_file(obj):
 
 
 def names(obj):
-    """ Function saves a name list"""
+    """ Function saves a name list whether exits wa.db"""
     global names_dict
     names_dict = {}  # jid : display_name
     if os.path.exists(obj):
@@ -344,7 +354,7 @@ def names(obj):
 
 
 def gets_name(obj):
-    """ Function recover a name"""
+    """ Function recover a naMe"""
     if names_dict == {}:  # No exists wa.db
         return ""
     else:  # Exists Wa.db
@@ -370,7 +380,7 @@ def gets_name(obj):
                 return ""
 
 
-def report(obj):
+def report(obj, html):
     """ Function that saves the report """
     rep_ini = ""
     if report_var == 'EN':
@@ -385,7 +395,7 @@ def report(obj):
         <meta name="description" content="Report makes with Whatsapp Parser Tool">
         <meta name="author" content="B16f00t">
         <link rel="shortcut icon" href="cfg/logo.png">
-        <title>Whatsapp Parser Tool v0.3 Report</title>
+        <title>Whatsapp Parser Tool v""" + version + """ Report</title>
         <!-- Bootstrap core CSS -->
         <link href="dist/css/bootstrap.css" rel="stylesheet">
         <!-- Bootstrap theme -->
@@ -531,7 +541,7 @@ def report(obj):
     </body>
     </html>
     """
-    f = open('report.html', 'w')
+    f = open(html, 'w')
     f.write(rep_ini.encode("UTF-8") + obj.encode("UTF-8") + rep_end.encode("UTF-8"))
     f.close()
 
@@ -542,7 +552,7 @@ def create_settings_file():
         cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
 
 
-def messages(consult):
+def messages(consult, sql):
     """ Function that show database messages """
     try:
         n = 0
@@ -562,7 +572,7 @@ def messages(consult):
                                 report_name = "Mensaje de Sistema"
 
                         else:  # I send message to group
-                            print Fore.GREEN + "From" + Fore.RESET + " me" + Fore.GREEN + " to" + Fore.RESET, data[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
+                            print Fore.GREEN + "From" + Fore.RESET + " Me" + Fore.GREEN + " to" + Fore.RESET, data[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
                             if report_var == 'EN':
                                 report_name = "Me"
                             elif report_var == 'ES':
@@ -570,13 +580,13 @@ def messages(consult):
 
                     elif int(data[1]) == 1 and (str(data[0]).split('@'))[1] == "s.whatsapp.net":  # I send message to somebody
                         if int(data[3]) == 6:  # sender system message
-                            print Fore.GREEN + "From" + Fore.RESET, data[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
+                            print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
                             if report_var == 'EN':
                                 report_name = "System Message"
                             elif report_var == 'ES':
                                 report_name = "Mensaje de Sistema"
                         else:  # I send a message to somebody
-                            print Fore.GREEN + "From" + Fore.RESET + " me" + Fore.GREEN + " to" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
+                            print Fore.GREEN + "From" + Fore.RESET + " Me" + Fore.GREEN + " to" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
                             if report_var == 'EN':
                                 report_name = "Me"
                             elif report_var == 'ES':
@@ -584,7 +594,7 @@ def messages(consult):
 
                     elif int(data[1]) == 1 and (str(data[0]).split('@'))[1] == "broadcast":  # I send broadcast
                         if int(data[3]) == 6:  # broadcast system message
-                            print Fore.GREEN + "From" + Fore.RESET, data[0]
+                            print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET
                             if report_var == 'EN':
                                 report_name = "System Message"
                             elif report_var == 'ES':
@@ -595,7 +605,7 @@ def messages(consult):
                             for i in list_broadcast:
                                 list_copy.append("".join([x for x in i if x.isdigit()]))
                             list_copy.pop()
-                            print Fore.GREEN + "From" + Fore.RESET + " me" + Fore.GREEN + " to" + Fore.RESET, ", ".join(list_copy), Fore.YELLOW + gets_name(list_copy) + Fore.RESET, Fore.GREEN + "by broadcast" + Fore.RESET
+                            print Fore.GREEN + "From" + Fore.RESET + " Me" + Fore.GREEN + " to" + Fore.RESET, ", ".join(list_copy), Fore.YELLOW + gets_name(list_copy) + Fore.RESET, Fore.GREEN + "by broadcast" + Fore.RESET
                             if report_var == 'EN':
                                 report_name = "&#128227; Me"
                             elif report_var == 'ES':
@@ -608,7 +618,7 @@ def messages(consult):
 
                     elif int(data[1]) == 0 and (str(data[0]).split('@'))[1] == "s.whatsapp.net":
                         if data[15]:  # Somebody sends me a message by broadcast
-                            print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET, Fore.GREEN + "to" + Fore.RESET + " me" + Fore.GREEN + " by broadcast" + Fore.RESET
+                            print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET, Fore.GREEN + "to" + Fore.RESET + " Me" + Fore.GREEN + " by broadcast" + Fore.RESET
                             if (report_var == 'EN') or (report_var == 'ES'):
                                 report_name = "&#128227;" + (str(data[0]).split('@'))[0] + " " + gets_name(data[0])
                         else:  # Somebody sends me a message
@@ -619,22 +629,32 @@ def messages(consult):
                                 elif report_var == 'ES':
                                     report_name = "Mensaje de Sistema"
                             else:
-                                print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET, Fore.GREEN + "to" + Fore.RESET + " me"
+                                print Fore.GREEN + "From" + Fore.RESET, (str(data[0]).split('@'))[0], Fore.YELLOW + gets_name(data[0]) + Fore.RESET, Fore.GREEN + "to" + Fore.RESET + " Me"
                                 if (report_var == 'EN') or (report_var == 'ES'):
                                     report_name = (str(data[0]).split('@'))[0] + " " + gets_name(data[0])
 
                     elif int(data[1]) == 0 and (str(data[0]).split('@'))[1] == "broadcast":  # Somebody posts a Status
-                        print Fore.GREEN + "From" + Fore.RESET, (str(data[15]).split('@'))[0], Fore.YELLOW + gets_name(data[15]) + Fore.RESET, Fore.GREEN + "posts status" + Fore.RESET
+                        if int(data[1]) == 0:
+                            print Fore.GREEN + "From" + Fore.RESET, (str(data[15]).split('@'))[0], Fore.YELLOW + gets_name(data[15]) + Fore.RESET, Fore.GREEN + "posts status" + Fore.RESET
+                        else:
+                            print Fore.GREEN + "From" + Fore.RESET, "Me"
+
                         if report_var == 'EN':
-                            report_name = "Posts Status - " + (str(data[15]).split('@'))[0] + " " + gets_name(data[15])
+                            if int(data[1]) == 0:
+                                report_name = "Posts Status - " + (str(data[15]).split('@'))[0] + " " + gets_name(data[15])
+                            else:
+                                report_name = "I Post Status"
                         elif report_var == 'ES':
-                            report_name = "Publica Estado - " + (str(data[15]).split('@'))[0] + " " + gets_name(data[15])
+                            if int(data[1]) == 0:
+                                report_name = "Publica Estado - " + (str(data[15]).split('@'))[0] + " " + gets_name(data[15])
+                            else:
+                                report_name = "Publico Estado"
 
                     if data[21] or int(data[21]) > 0:
                         print Fore.RED + "Replying to:" + Fore.RESET, reply(data[21])[0]
                         if (report_var == 'EN') or (report_var == 'ES'):
                             report_msj = "<p style=\"border-left: 6px solid blue; background-color: lightgrey;border-radius:5px;\"; > " + reply(data[21])[1] + "</p>"
-                        consult = cursor.execute(sql_string)
+                        consult = cursor.execute(sql)
                         for x in range(n + 1):
                             consult = cursor.fetchone()
 
@@ -730,18 +750,24 @@ def messages(consult):
                                     report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " creó el grupo ' ".decode('utf-8') + cgi.escape(data[4]) + " '"
 
                             elif int(data[9]) == 12:
-                                print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "added", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "to the group"
-                                if report_var == 'EN':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " added " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " to the group"
-                                elif report_var == 'ES':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " añadió ".decode('utf-8') + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " al grupo"
-
+                                if data[15]:  #if exists remote_resource
+                                    print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "added", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "to the group"
+                                    if report_var == 'EN':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " added " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " to the group"
+                                    elif report_var == 'ES':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " añadió ".decode('utf-8') + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " al grupo"
+                                else:
+                                    print Fore.GREEN + "Message:" + Fore.RESET, "Added", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "to the group"
+                                    if report_var == 'EN':
+                                        report_msj += "Added " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " to the group"
+                                    elif report_var == 'ES':
+                                        report_msj += "Se añadió ".decode('utf-8') + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " al grupo"
                             elif int(data[9]) == 14:
-                                print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "eliminated", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "from the group"
+                                print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + " " + gets_name(data[15]) + Fore.RESET, "eliminated", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "from the group"
                                 if report_var == 'EN':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " eliminated " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " from the group"
+                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " eliminated " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " from the group"
                                 elif report_var == 'ES':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " eliminó ".decode('utf-8') + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " del grupo"
+                                    report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " eliminó ".decode('utf-8') + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " del grupo"
 
                             elif int(data[9]) == 15:
                                 print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "made you administrator"
@@ -777,6 +803,27 @@ def messages(consult):
                                     report_msj += ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " joined using an invitation link from this group"
                                 elif report_var == 'ES':
                                     report_msj += ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " se unió usando un enlace de invitación de este grupo".decode('utf-8')
+
+                            elif int(data[9]) == 22:
+                                print Fore.GREEN + "Message:" + Fore.RESET + " This chat could be with a company account"
+                                if report_var == 'EN':
+                                    report_msj += "This chat could be with a company account"
+                                elif report_var == 'ES':
+                                    report_msj += "Este chat podría ser con una cuenta de empresa".decode('utf-8')
+
+                            elif int(data[9]) == 27:
+                                if data[4] != "":
+                                    print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "changed the group description to '" + data[4] + "'"
+                                    if report_var == 'EN':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " changed the group description to ' " + cgi.escape(data[4]) + " '"
+                                    elif report_var == 'ES':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " cambió la descripción del grupo a ' ".decode('utf-8') + cgi.escape(data[4]) + " '"
+                                else:
+                                    print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "deleted the group description"
+                                    if report_var == 'EN':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " deleted the group description"
+                                    elif report_var == 'ES':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " borró la descripción del grupo".decode('utf-8')
 
                         else:
                             print Fore.GREEN + "Message:" + Fore.RESET, data[4]
@@ -943,6 +990,13 @@ def messages(consult):
                         elif report_var == 'ES':
                             report_msj += "&#128222; " + str(data[11]).capitalize() + " llamada perdida"
 
+                    elif int(data[8]) == 11:  # media_wa_type 11, Waiting for message
+                        print Fore.GREEN + "Message:" + Fore.RESET, "Waiting for message. This may take tiMe"
+                        if report_var == 'EN':
+                            report_msj += "<p style=\"color:#FF0000\";>&#9842; Waiting for message. This may take time </p>"
+                        elif report_var == 'ES':
+                            report_msj += "<p style=\"color:#FF0000\";>&#9842; Esperando mensaje. Esto puede tomar tiempo</p>"
+
                     elif int(data[8]) == 13:  # media_wa_type 13 Gif
                         chain = str(data[17]).split('w')[0]
                         i = chain.rfind("Media/")
@@ -979,9 +1033,9 @@ def messages(consult):
 
                     elif int(data[8]) == 15:  # media_wa_type 15, Deleted Object
                         if int(data[16]) == 5:  # edit_version 5, deleted for me
-                            print Fore.GREEN + "Message:" + Fore.RESET + " Message deleted for me"
+                            print Fore.GREEN + "Message:" + Fore.RESET + " Message deleted for Me"
                             if report_var == 'EN':
-                                report_msj += "Message deleted for me"
+                                report_msj += "Message deleted for Me"
                             elif report_var == 'ES':
                                 report_msj += "Mensaje eliminado para mí".decode('utf-8')
                         elif int(data[16]) == 7:  # edit_version 7, deleted for all
@@ -994,9 +1048,11 @@ def messages(consult):
                     elif int(data[8]) == 16:  # media_wa_type 16, Share location
                         print Fore.GREEN + "Type:" + Fore.RESET + " Real time location " + Fore.GREEN + "- Caption:" + Fore.RESET, data[11], Fore.GREEN + "- Lat:" + Fore.RESET, data[13], Fore.GREEN + "- Long:" + Fore.RESET, data[14], Fore.GREEN + "- Duration:" + Fore.RESET, duration_file(data[12])
                         if report_var == 'EN':
-                            report_msj += "Real time location (" + str(data[13]) + "," + str(data[14]) + ") - " + cgi.escape(data[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(data[13]) + "," + str(data[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(data[13]) + "," + str(data[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(data[13]) + "," + str(data[14]) + "&sensor=false\"/></a>"
+                            report_msj += "Real time location (" + str(data[13]) + "," + str(data[14]) + ") - " + '' if data[11] is None else cgi.escape(data[11])
+                            report_msj += " <br><a href=\"https://www.google.es/maps/search/(" + str(data[13]) + "," + str(data[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(data[13]) + "," + str(data[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(data[13]) + "," + str(data[14]) + "&sensor=false\"/></a>"
                         elif report_var == 'ES':
-                            report_msj += "Ubicación en tiempo real (".decode('utf-8') + str(data[13]) + "," + str(data[14]) + ") - " + cgi.escape(data[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(data[13]) + "," + str(data[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(data[13]) + "," + str(data[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(data[13]) + "," + str(data[14]) + "&sensor=false\"/></a>"
+                            report_msj += "Ubicación en tiempo real (".decode('utf-8') + str(data[13]) + "," + str(data[14]) + ") - " + cgi.escape(data[11])
+                            report_msj += " <br><a href=\"https://www.google.es/maps/search/(" + str(data[13]) + "," + str(data[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(data[13]) + "," + str(data[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(data[13]) + "," + str(data[14]) + "&sensor=false\"/></a>"
 
                     if data[20]:
                         if int(data[20]) == 1:
@@ -1012,7 +1068,7 @@ def messages(consult):
                         if (report_name == "Me") or (report_name == "&#128227; Me"):
                             rep_med += """
                             <li>
-                            <div class="bubble"> <span class="personName">""" + report_name + """</span> <br>
+                            <div class="bubble"> <span class="personNaMe">""" + report_name + """</span> <br>
                                 <span class="personSay">""" + report_msj + """</span> </div>
                             <span class=" time round ">""" + report_time + "&nbsp" + report_status + """</span> </li>"""
                         else:
@@ -1025,7 +1081,7 @@ def messages(consult):
                         if (report_name == "Yo") or (report_name == "&#128227; Yo"):
                             rep_med += """
                             <li>
-                            <div class="bubble"> <span class="personName">""" + report_name + """</span> <br>
+                            <div class="bubble"> <span class="personNaMe">""" + report_name + """</span> <br>
                                 <span class="personSay">""" + report_msj + """</span> </div>
                             <span class=" time round ">""" + report_time.decode('utf-8') + "&nbsp" + report_status.decode('utf-8') + """</span> </li>"""
                         else:
@@ -1041,7 +1097,8 @@ def messages(consult):
                 print "Error showing message details:", e
                 continue
         if args.report:
-            report(rep_med)
+            report(rep_med, report_html)
+
     except Exception as e:
         print "An error occurred connecting to the database", e
 
@@ -1049,7 +1106,7 @@ def messages(consult):
 def info(consult):
     """ Function that show info """
     info_dic = {}  # i:[Key_Remote_jid, data, type]
-    i = 1
+    i = 2
     try:
         for data in consult:
             try:
@@ -1080,6 +1137,7 @@ def info(consult):
         print "\n-------------------------- INFO MODE ----------------------------"
         print "0  ) Exit"
         print "1  ) Statuses"
+        print "2  ) Related Numbers"
         for key, value in info_dic.items():
             i = key
             if key < 10:
@@ -1106,7 +1164,11 @@ def info(consult):
                     try:
                         print Fore.RED + "--------------------------------------------------------------------------------" + Fore.RESET
                         if data[17]:  # thumb_image
-                            print Fore.GREEN + "From" + Fore.RESET, data[15].strip("@s.whatsapp.net"), Fore.YELLOW + gets_name(data[15]) + Fore.RESET
+                            if int(data[1]) == 0:
+                                print Fore.GREEN + "From" + Fore.RESET, data[15].strip("@s.whatsapp.net"), Fore.YELLOW + gets_name(data[15]) + Fore.RESET
+                            else:
+                                print Fore.GREEN + "From" + Fore.RESET, "Me"
+
                             chain = str(data[17]).split('w')[0]
                             i = chain.rfind("Media/")
                             b = len(chain)
@@ -1128,6 +1190,21 @@ def info(consult):
                     except Exception as e:
                         print "Status error", e
                         continue
+            elif opt == 2:
+                sql_consult_info = cursor.execute("SELECT key_remote_jid, status FROM Messages ORDER BY timestamp ASC;")
+                info_number = set()
+                for data in sql_consult_info:
+                    if data[1] != 6:
+                        info_number.add(data[0])
+                info_number.discard("-1")
+                info_number.discard("status@broadcast")
+                for p in info_number:
+                    if p.split('@')[1] == "g.us":
+                        print Fore.RED + p + Fore.RESET, Fore.YELLOW + gets_name(p) + Fore.RESET
+                    elif p.split('@')[1] == "s.whatsapp.net":
+                        print Fore.GREEN + p.split('@')[0] + Fore.RESET, Fore.YELLOW + gets_name(p) + Fore.RESET
+                    elif p.split('@')[1] == "broadcast" and i != "status@broadcast":
+                        print Fore.BLUE + p + Fore.RESET
 
             elif opt > i:
                 print "Bad option"
@@ -1150,7 +1227,7 @@ def info(consult):
                             if info_dic[opt][1]:  # if it's a group
                                 a = info_dic[opt][0].split("-")
                                 b = a[1].split("@")
-                                print "\n    Creator User          Timestamp               Name"
+                                print "\n    Creator User          Timestamp               NaMe"
                                 print "---------------------------------------------------------------------------"
                                 print "   ", a[0], "\t", time.strftime('%d-%m-%Y %H:%M', time.localtime(int(b[0]))), "\t", Fore.YELLOW + gets_name(a[0] + "@s.whatsapp.net") + Fore.RESET
                             else:  # if it's a broadcast
@@ -1160,11 +1237,11 @@ def info(consult):
                                 print "       Me \t\t", time.strftime('%d-%m-%Y %H:%M', time.localtime(int(a)))
 
                         elif opt2 == 2:
-                            sql_string_info = "SELECT gjid, jid, admin, pending,sent_sender_key FROM group_participants WHERE gjid = '" + info_dic[opt][0] + "';"
+                            sql_string_info = "SELECT gjid, jid, admin, pending, sent_sender_key FROM group_participants WHERE gjid = '" + info_dic[opt][0] + "';"
                             consult_info = cursor.execute(sql_string_info)
                             i = 0
                             if info_dic[opt][1]:  # if it's a group
-                                print "\n     Phone User        Admin            Name"
+                                print "\n     Phone User        Admin            NaMe"
                                 print "-----------------------------------------------------------------"
                                 for data in consult_info:
                                     if data[1]:
@@ -1257,6 +1334,14 @@ def info(consult):
                                             print Fore.GREEN + "Message:" + Fore.RESET + " Messages and calls in this chat are now protected with end-to-end encryption"
                                         elif int(data[9]) == 20:
                                             print Fore.GREEN + "Message:" + Fore.RESET, ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0], Fore.YELLOW + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "joined using an invitation link from this group"
+                                        elif int(data[9]) == 22:
+                                            print Fore.GREEN + "Message:" + Fore.RESET + " This chat could be with a company account"
+                                        elif int(data[9]) == 27:
+                                            if data[4] != "":
+                                                print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "changed the group description to ' " + data[4] + " '"
+                                            else:
+                                                print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "deleted the group description"
+
                                         print Fore.GREEN + "Timestamp:" + Fore.RESET, time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000))
 
                             except Exception as e:
@@ -1292,41 +1377,49 @@ def get_configs():
 if __name__ == "__main__":
     banner()
     parser = argparse.ArgumentParser(description="To start choose a database and a mode with options")
-    group_parser = parser.add_mutually_exclusive_group()
     parser.add_argument("database", help="Database file path - './msgstore.db' by default", metavar="DATABASE", nargs='?', default="./msgstore.db")
-    group_parser.add_argument("-k", "--key", help="*** Decrypt Mode *** - key file path")
-    group_parser.add_argument("-i", "--info", help="*** Info Mode ***", action="store_true")
-    group_parser.add_argument("-m", "--messages", help="*** Message Mode ***", action="store_true")
-    parser.add_argument("-t", "--text", help="Filter messages by text match")
-    parser.add_argument("-u", "--user", help="Filter messages by phone number")
-    parser.add_argument("-g", "--group", help="Filter messages made by group number")
-    parser.add_argument("-w", "--web", help="Filter messages made by Whatsapp Web", action="store_true")
-    parser.add_argument("-s", "--starred", help="Filter messages starred by owner", action="store_true")
-    parser.add_argument("-b", "--broadcast", help="Filter messages send by broadcast", action="store_true")
-    parser.add_argument("-tS", "--time_start", help="Filter messages by start time (dd-mm-yyyy HH:MM)")
-    parser.add_argument("-tE", "--time_end", help="Filter messages by end time (dd-mm-yyyy HH:MM)")
-    parser.add_argument("-r", "--report", help='Make html report in \'EN\' English or \'ES\' Spanish', const='EN', nargs='?', choices=['EN', 'ES'])
+    mode_parser = parser.add_mutually_exclusive_group()
+    mode_parser.add_argument("-k", "--key", help="*** Decrypt Mode *** - key file path")
+    mode_parser.add_argument("-i", "--info", help="*** Info Mode ***", action="store_true")
+    mode_parser.add_argument("-m", "--messages", help="*** Message Mode ***", action="store_true")
+    parser.add_argument("--update", help='Update via Git', action="store_true")
+    user_parser = parser.add_mutually_exclusive_group()
+    user_parser.add_argument("-u", "--user", help="Show chat with a phone number, ej. 34123456789")
+    user_parser.add_argument("-ua", "--user_all", help="Show messages made by a phone number")
+    user_parser.add_argument("-g", "--group", help="Show chat with a group number, ej. 34123456-14508@g.us")
+    user_parser.add_argument("-a", "--all", help="Show all chat messages classified by phone number, group number and broadcast list", action="store_true")
+    parser.add_argument("-t", "--text", help="Show messages by text match")
+    parser.add_argument("-w", "--web", help="Show messages made by Whatsapp Web", action="store_true")
+    parser.add_argument("-s", "--starred", help="Show messages starred by owner", action="store_true")
+    parser.add_argument("-b", "--broadcast", help="Show messages send by broadcast", action="store_true")
+    parser.add_argument("-ts", "--time_start", help="Show messages by start time (dd-mm-yyyy HH:MM)")
+    parser.add_argument("-te", "--time_end", help="Show messages by end time (dd-mm-yyyy HH:MM)")
+    parser.add_argument("-r", "--report", help='Make an html report in \'EN\' English or \'ES\' Spanish. If specified together with flag -a, makes a report for each chat', const='EN', nargs='?', choices=['EN', 'ES'])
     filter_parser = parser.add_mutually_exclusive_group()
-    filter_parser.add_argument("-tT", "--type_text", help="Filter text messages", action="store_true")
-    filter_parser.add_argument("-tI", "--type_image", help="Filter image messages", action="store_true")
-    filter_parser.add_argument("-tA", "--type_audio", help="Filter audio messages", action="store_true")
-    filter_parser.add_argument("-tV", "--type_video", help="Filter video messages", action="store_true")
-    filter_parser.add_argument("-tC", "--type_contact", help="Filter contact messages", action="store_true")
-    filter_parser.add_argument("-tL", "--type_location", help="Filter location messages", action="store_true")
-    filter_parser.add_argument("-tX", "--type_call", help="Filter audio/video call messages", action="store_true")
-    filter_parser.add_argument("-tP", "--type_application", help="Filter application messages", action="store_true")
-    filter_parser.add_argument("-tG", "--type_gif", help="Filter GIF messages", action="store_true")
-    filter_parser.add_argument("-tD", "--type_deleted", help="Filter deleted object messages", action="store_true")
-    filter_parser.add_argument("-tR", "--type_share", help="Filter Real time location messages", action="store_true")
+    filter_parser.add_argument("-tt", "--type_text", help="Show text messages", action="store_true")
+    filter_parser.add_argument("-ti", "--type_image", help="Show image messages", action="store_true")
+    filter_parser.add_argument("-ta", "--type_audio", help="Show audio messages", action="store_true")
+    filter_parser.add_argument("-tv", "--type_video", help="Show video messages", action="store_true")
+    filter_parser.add_argument("-tc", "--type_contact", help="Show contact messages", action="store_true")
+    filter_parser.add_argument("-tl", "--type_location", help="Show location messages", action="store_true")
+    filter_parser.add_argument("-tx", "--type_call", help="Show audio/video call messages", action="store_true")
+    filter_parser.add_argument("-tp", "--type_application", help="Show application messages", action="store_true")
+    filter_parser.add_argument("-tg", "--type_gif", help="Show GIF messages", action="store_true")
+    filter_parser.add_argument("-td", "--type_deleted", help="Show deleted object messages", action="store_true")
+    filter_parser.add_argument("-tr", "--type_share", help="Show Real time location messages", action="store_true")
     args = parser.parse_args()
     init()
-    names("wa.db")
     if os.path.isfile('./cfg/settings.cfg') is False:
         create_settings_file()
     if len(sys.argv) == 1:
         help()
     else:
-        if args.messages:
+        if args.update:
+            print "Updating"
+            os.system("git pull origin master")
+            print version
+        elif args.messages:
+            names("wa.db")
             db_connect(args.database)
             sql_string = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, remote_resource, edit_version, thumb_image, recipient_count, raw_data, starred, quoted_row_id FROM messages WHERE timestamp BETWEEN '"
             try:
@@ -1338,50 +1431,89 @@ if __name__ == "__main__":
                     epoch_start = 1000 * int(time.mktime(time.strptime(args.time_start, '%d-%m-%Y %H:%M')))
                 if args.time_end:
                     epoch_end = 1000 * int(time.mktime(time.strptime(args.time_end, '%d-%m-%Y %H:%M')))
-                sql_string = sql_string + str(epoch_start) + "' AND '" + str(epoch_end) + "'" + " ORDER BY timestamp ASC"
+                sql_string = sql_string + str(epoch_start) + "' AND '" + str(epoch_end) + "'"
 
-                if args.text:
-                    sql_string = sql_string + " AND data LIKE '%" + str(args.text) + "%'" + " ORDER BY timestamp ASC"
                 if args.user:
-                    sql_string = sql_string + " AND (key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net' OR remote_resource LIKE '%" + str(args.user) + "%')" + " ORDER BY timestamp ASC"
-                    arg_user = args.user
+                    sql_string = sql_string + " AND (key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net')"
+                if args.user_all:
+                    print "user all"
+                    sql_string = sql_string + " AND (key_remote_jid LIKE '%" + str(args.user_all) + "%@s.whatsapp.net' OR remote_resource LIKE '%" + str(args.user_all) + "%')"
+                    arg_user = args.user_all
                 if args.group:
-                    sql_string = sql_string + " AND key_remote_jid LIKE '%" + str(args.group) + "%'" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND key_remote_jid LIKE '%" + str(args.group) + "%'"
                     arg_group = args.group
+                if args.text:
+                    sql_string = sql_string + " AND data LIKE '%" + str(args.text) + "%'"
                 if args.web:
-                    sql_string = sql_string + " AND key_id LIKE '3EB0%'" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND key_id LIKE '3EB0%'"
                 if args.starred:
-                        sql_string = sql_string + " AND starred = 1" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND starred = 1"
                 if args.broadcast:
-                    sql_string = sql_string + " AND remote_resource LIKE '%broadcast%'" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND remote_resource LIKE '%broadcast%'"
                 if args.report:
                     report_var = args.report
+                    report_html = "report.html"
                     get_configs()
                 if args.type_text:
-                    sql_string = sql_string + " AND media_wa_type = 0" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 0"
                 if args.type_image:
-                    sql_string = sql_string + " AND media_wa_type = 1" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 1"
                 if args.type_audio:
-                    sql_string = sql_string + " AND media_wa_type = 2" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 2"
                 if args.type_video:
-                    sql_string = sql_string + " AND media_wa_type = 3" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 3"
                 if args.type_contact:
-                    sql_string = sql_string + " AND media_wa_type = 4" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 4"
                 if args.type_location:
-                    sql_string = sql_string + " AND media_wa_type = 5" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 5"
                 if args.type_call:
-                    sql_string = sql_string + " AND media_wa_type = 8" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 8"
                 if args.type_application:
-                    sql_string = sql_string + " AND media_wa_type = 9" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 9"
                 if args.type_gif:
-                    sql_string = sql_string + " AND media_wa_type = 13" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 13"
                 if args.type_deleted:
-                    sql_string = sql_string + " AND media_wa_type = 15" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 15"
                 if args.type_share:
-                    sql_string = sql_string + " AND media_wa_type = 16" + " ORDER BY timestamp ASC"
+                    sql_string = sql_string + " AND media_wa_type = 16"
+                if args.all:
+                    get_configs()
+                    chats = set()
+                    sql_consult_chat = cursor.execute(sql_string + " ORDER BY timestamp ASC;")
 
-                sql_consult = cursor.execute(sql_string + ";")
-                messages(sql_consult)
+                    try:
+                        for data in sql_consult_chat:
+                            chats.add(data[0])
+                        chats.discard("-1")
+                    except Exception as e:
+                        print "Error adding items in the joint", e
+
+                    sql_string_copy = sql_string
+                    for i in chats:
+                        print Fore.RED + "--------------------------------------------------------------------------------" + Fore.RESET
+                        if i.split('@')[1] == "g.us":
+                            print Fore.CYAN + "GROUP CHAT", i + Fore.RESET, Fore.YELLOW + gets_name(i) + Fore.RESET
+                            report_html = "report_group_chat_" + i + gets_name(i) + ".html"
+                            arg_group = i
+                            arg_user = ""
+                        elif i.split('@')[1] == "s.whatsapp.net":
+                            print Fore.CYAN + "USER CHAT", i + Fore.RESET, Fore.YELLOW + gets_name(i) + Fore.RESET
+                            report_html = "report_user_chat_" + i.split('@')[0] + gets_name(i) + ".html"
+                            arg_group = ""
+                            arg_user = i.split('@')[0]
+                        elif i.split('@')[1] == "broadcast" and i != "status@broadcast":
+                            print Fore.CYAN + "BROADCAST LIST CHAT", i + Fore.RESET
+                            report_html = "report_broadcast_list_" + i + ".html"
+                            arg_group = ""
+                            arg_user = i
+
+                        sql_string_copy = sql_string + " AND key_remote_jid = '" + i + "'"
+                        sql_consult_copy = cursor.execute(sql_string_copy + " ORDER BY timestamp ASC;")
+                        messages(sql_consult_copy, sql_string_copy)
+                    exit()
+
+                sql_consult = cursor.execute(sql_string + " ORDER BY timestamp ASC;")
+                messages(sql_consult, sql_string)
             except Exception as e:
                 print "Error:", e
 
@@ -1389,11 +1521,13 @@ if __name__ == "__main__":
             decrypt(args.database, args.key)
 
         elif args.info:
+            names("wa.db")
             db_connect(args.database)
             sql_string = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, remote_resource FROM messages;"
             sql_consult = cursor.execute(sql_string)
             info(sql_consult)
 
         elif args.database:
+            names("wa.db")
             db_connect(args.database)
 
