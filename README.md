@@ -3,9 +3,9 @@
 
 Whatsapp Parser
 ==================================
-Updated: March 2018 - Version 0.3
+Updated: April 2018 - Version 0.4
 
-WhatsApp Messenger Version 2.18.79
+WhatsApp Messenger Version 2.18.92
 
 Whapa is an android whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 The Script is written in Python 2.x
@@ -61,47 +61,57 @@ Usage
 	     \        /|   Y  \/ __ \|    |     / __ \_
 	      \__/\  / |___|  (____  /____|    (____  /
 	           \/       \/     \/               \/ 
-	    ---------- Whatsapp Parser v0.3 -----------
+	    ---------- Whatsapp Parser v0.4 -----------
     	
-	usage: whapa.py [-h] [-k KEY | -i | -m] [-t TEXT] [-u USER] [-g GROUP] [-w]
-	                [-s] [-b] [-tS TIME_START] [-tE TIME_END] [-r [{EN,ES}]]
-	                [-tT | -tI | -tA | -tV | -tC | -tL | -tX | -tP | -tG | -tD | -tR]
-	                [DATABASE]
-	
+	usage: whapa.py [-h] [-k KEY | -i | -m] [--update]
+        [-u USER | -ua USER_ALL | -g GROUP | -a] [-t TEXT] [-w] [-s]
+        [-b] [-ts TIME_START] [-te TIME_END] [-r [{EN,ES}]]
+        [-tt | -ti | -ta | -tv | -tc | -tl | -tx | -tp | -tg | -td | -tr]
+        [DATABASE]
+
 	To start choose a database and a mode with options
 	
 	positional arguments:
-  	DATABASE              database file path - './msgstore.db' by default
-	
+  	  DATABASE              Database file path - './msgstore.db' by default
+
 	optional arguments:
-	  -h, --help            Show this help message and exit
-	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
-	  -i, --info            *** Info Mode ***
-	  -m, --messages        *** Message Mode ***
-	  -t TEXT, --text TEXT  Filter messages by text match
-	  -u USER, --user USER  Filter messages made by phone number
-	  -g GROUP, --group GROUP
-	                        Filter messages made by group number
-	  -w, --web             Filter messages made by Whatsapp Web
-	  -s, --starred         Filter messages starred by owner
-	  -b, --broadcast       Filter messages send by broadcast
-	  -tS TIME_START, --time_start TIME_START
-	                        Filter messages by start time (dd-mm-yyyy HH:MM)
-	  -tE TIME_END, --time_end TIME_END
-	  -r, --report,         Make html report in 'EN' English or 'ES' Spanish
-	  -tT, --type_text      Filter text messages
-	  -tI, --type_image     Filter image messages
-	  -tA, --type_audio     Filter audio messages
-	  -tV, --type_video     Filter video messages
-	  -tC, --type_contact   Filter contact messages
-	  -tL, --type_location  Filter location messages
-	  -tX, --type_call      Filter audio/video call messages
-	  -tP, --type_application
-	                        Filter application messages
-	  -tG, --type_gif       Filter GIF messages
-	  -tD, --type_deleted   Filter deleted object messages
-	  -tR, --type_share     Filter Real time location messages	 
-	  
+  	  -h, --help            show this help message and exit
+  	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
+  	  -i, --info            *** Info Mode ***
+  	  -m, --messages        *** Message Mode ***
+  	  --update              Update Whatsapp Parser Tool
+  	  -u USER, --user USER  Show chat with a phone number, ej. 34123456789
+  	  -ua USER_ALL, --user_all USER_ALL
+         	                Show messages made by a phone number
+  	  -g GROUP, --group GROUP
+          	                Show chat with a group number, ej. 34123456-14508@g.us
+  	  -a, --all             Show all chat messages classified by phone number,
+           	                group number and broadcast list
+  	  -t TEXT, --text TEXT  Show messages by text match
+  	  -w, --web             Show messages made by Whatsapp Web
+  	  -s, --starred         Show messages starred by owner
+  	  -b, --broadcast       Show messages send by broadcast
+  	  -ts TIME_START, --time_start TIME_START
+          	                Show messages by start time (dd-mm-yyyy HH:MM)
+  	  -te TIME_END, --time_end TIME_END
+                                Show messages by end time (dd-mm-yyyy HH:MM)
+  	  -r [{EN,ES}], --report [{EN,ES}]
+               	         	Make an html report in 'EN' English or 'ES' Spanish.
+                	        If specified together with flag -a, makes a report for
+                        	each chat
+  	  -tt, --type_text      Show text messages
+  	  -ti, --type_image     Show image messages
+  	  -ta, --type_audio     Show audio messages
+  	  -tv, --type_video     Show video messages
+  	  -tc, --type_contact   Show contact messages
+  	  -tl, --type_location  Show location messages
+  	  -tx, --type_call      Show audio/video call messages
+  	  -tp, --type_application
+          	                Show application messages
+  	  -tg, --type_gif       Show GIF messages
+  	  -td, --type_deleted   Show deleted object messages
+  	  -tr, --type_share     Show Real time location messages
+  
 Examples
 =====
 
@@ -118,7 +128,9 @@ Examples
 	
 		python whapa.py -m -g 34XXXXXXXXX-1345475288@g.us	
 	Show all messages send by that group.
-
+		
+		pytho whapa.py -m -a -r EN
+	Show all chats of the phone and makes English reports.
 
 * Decrypt mode:
 
@@ -148,7 +160,7 @@ To generate the report we must specify the flag"-r" or -r EN" if we want the rep
 
 Usage example: python -m -r -u 34XXX230775 (Creates a report of the conversation with the user 34XXX230775)
 
-Note that to create a report that makes sense to the reader you must always specify a user with the flag"-u" or a group with the flag"-g". (To know the group number we want to use in our report we can first use the command "python whapa.py -i" and then copy and paste it into the command"python -m -r -g PASTE-HERE-GROUPNUMBER@g.us").
+Note that to create a report that makes sense to the reader you must always specify a user with the flag"-u" or a group with the flag"-g". (To know the group number we want to use in our report we can first use the command "python whapa.py -i" and then copy and paste it into the command "python -m -r -g PASTE-HERE-GROUPNUMBER@g.us").
 
 For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the whapa directory.
 
