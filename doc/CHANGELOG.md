@@ -6,7 +6,8 @@ Version 0.4
 
     * Added flag "--update" to update Whatsapp Parser Tool
     * Added flag in message mode, "-ua" Show all messages mades by a number phone
-    * Added flag in message mode, "-a" Show all chat messages classified by phone number, group number and broadcast list (thanks for the idea to @MariaRRR)
+    * Added flag in message mode, "-a" Show all chat messages classified by phone number, group number and broadcast list 
+     (thanks for the idea to @MariaRRR)
     * Added System Message, when the number is a company
     * Added System Message, group description
     * Added in info mode, the phone numbers with which the user have interacted
