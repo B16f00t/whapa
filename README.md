@@ -94,9 +94,9 @@ Usage
   	  -ts TIME_START, --time_start TIME_START
           	                Show messages by start time (dd-mm-yyyy HH:MM)
   	  -te TIME_END, --time_end TIME_END
-                                Show messages by end time (dd-mm-yyyy HH:MM)
+          			Show messages by end time (dd-mm-yyyy HH:MM)
   	  -r [{EN,ES}], --report [{EN,ES}]
-               	         	Make an html report in 'EN' English or 'ES' Spanish.
+          			Make an html report in 'EN' English or 'ES' Spanish.
                 	        If specified together with flag -a, makes a report for
                         	each chat
   	  -tt, --type_text      Show text messages
