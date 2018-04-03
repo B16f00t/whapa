@@ -1382,7 +1382,7 @@ if __name__ == "__main__":
     mode_parser.add_argument("-k", "--key", help="*** Decrypt Mode *** - key file path")
     mode_parser.add_argument("-i", "--info", help="*** Info Mode ***", action="store_true")
     mode_parser.add_argument("-m", "--messages", help="*** Message Mode ***", action="store_true")
-    parser.add_argument("--update", help='Update via Git', action="store_true")
+    parser.add_argument("--update", help='Update Whatsapp Parser Tool', action="store_true")
     user_parser = parser.add_mutually_exclusive_group()
     user_parser.add_argument("-u", "--user", help="Show chat with a phone number, ej. 34123456789")
     user_parser.add_argument("-ua", "--user_all", help="Show messages made by a phone number")
@@ -1415,9 +1415,23 @@ if __name__ == "__main__":
         help()
     else:
         if args.update:
-            print "Updating"
-            os.system("git pull origin master")
-            print version
+            update = open("update.sh", "w")
+            update.write("echo Updating whapa.py" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whapa.py > /dev/null" + os.linesep)
+            update.write("echo Updating README.md" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/README.md > /dev/null" + os.linesep)
+            update.write("echo Updating whagdext.py" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagdext.py > /dev/null" + os.linesep)
+            update.write("echo Updating requirements.txt" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc/ > /dev/null" + os.linesep)
+            update.write("echo Updating chat.css" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/chat.css -O ./cfg/ > /dev/null" + os.linesep)
+            update.write("echo Updating settings.cfg" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/settings.cfg -O ./cfg/ > /dev/null" + os.linesep)
+            update.write("rm update.sh" + os.linesep)
+            update.write("python whapa.py")
+            update.close()
+            os.system("sh update.sh")
         elif args.messages:
             names("wa.db")
             db_connect(args.database)
