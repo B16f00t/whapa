@@ -129,7 +129,7 @@ Examples
 		python whapa.py -m -g 34XXXXXXXXX-1345475288@g.us	
 	Show all messages send by that group.
 		
-		pytho whapa.py -m -a -r EN
+		python whapa.py -m -a -r EN
 	Show all chats of the phone and makes English reports.
 
 * Decrypt mode:
