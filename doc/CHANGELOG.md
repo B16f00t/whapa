@@ -2,6 +2,15 @@ Changelog
 
 All notable changes to this project will be documented in this file.
 
+Version 0.5
+    
+    * Improved parses speed
+    * When parse the database extracts all thumbnails
+    * Reports are sorted in "./reports" path
+    * Make an index of the reports ("index.hml"), when you use the -a -r flag 
+    * Added flag "-e", Extract mode, extracts all media thumbnails of the database in "./thumbnails" path
+    * Fix minor bugs
+
 Version 0.4
 
     * Added flag "--update" to update Whatsapp Parser Tool
