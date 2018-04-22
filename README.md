@@ -3,18 +3,19 @@
 
 Whatsapp Parser
 ==================================
-Updated: April 2018 - Version 0.4
+Updated: April 2018 - Version 0.5
 
-WhatsApp Messenger Version 2.18.92
+WhatsApp Messenger Version 2.18.105
 
 Whapa is an android whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 The Script is written in Python 2.x
 
 The software is divided into three modes:
-* **Message Mode**: It analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
+* **Message Mode**: Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
 		    "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
-* **Decryption Mode**: Decrypt crypto12 databases as long as we have the key.
+* **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
 * **Info Mode**: Displays different information about statuses, broadcasts list and groups.
+* **Extract Mode**: Extracts all thumbnails from the database
 
 If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
 
@@ -49,9 +50,11 @@ then:
 		[auth]
 		gmail = alias@gmail.com
 		passw = yourpassword
+		devid = Device ID (optional, if specified get more information)
 		
 	To usage:
-	python3 whagdext.py "arguments"
+		whagdext.py -help|-vers|-info|-list|-sync|-pull file [backupID]
+
 
 Usage
 =====
@@ -61,9 +64,9 @@ Usage
 	     \        /|   Y  \/ __ \|    |     / __ \_
 	      \__/\  / |___|  (____  /____|    (____  /
 	           \/       \/     \/               \/ 
-	    ---------- Whatsapp Parser v0.4 -----------
+	    ---------- Whatsapp Parser v0.5 -----------
     	
-	usage: whapa.py [-h] [-k KEY | -i | -m] [--update]
+	usage: whapa.py [-h] [-k KEY | -i | -m | -e] [--update]
         [-u USER | -ua USER_ALL | -g GROUP | -a] [-t TEXT] [-w] [-s]
         [-b] [-ts TIME_START] [-te TIME_END] [-r [{EN,ES}]]
         [-tt | -ti | -ta | -tv | -tc | -tl | -tx | -tp | -tg | -td | -tr]
@@ -79,6 +82,7 @@ Usage
   	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
   	  -i, --info            *** Info Mode ***
   	  -m, --messages        *** Message Mode ***
+	  -e, --extract         *** Extract Mode ***
   	  --update              Update Whatsapp Parser Tool
   	  -u USER, --user USER  Show chat with a phone number, ej. 34123456789
   	  -ua USER_ALL, --user_all USER_ALL
@@ -142,6 +146,11 @@ Examples
 		python whapa.py -i
 	Show a stage with options about groups, broadcast lists and statuses.
 
+* Extract mode:
+
+		python whapa.py -e -ts "01-01-2018 00:00"
+	Extract all thumbnails from '01-01-2018 00:00' so far. 
+
 Reports
 =====
 To create reports the first thing we need to do is to configure the file"./cfg/settings.cfg". For example:
@@ -156,11 +165,13 @@ To create reports the first thing we need to do is to configure the file"./cfg/s
 	
 Here we must put our company logo, company or unit name, as well as the assigned registration number, unit or group where we belong, who is the examiner and we can also specify notes on the report.
 
-To generate the report we must specify the flag"-r" or -r EN" if we want the report in English, as well as"-r ES" if we want the report in Spanish.
+To generate the report we must specify the flag "-r" or "-r EN" if we want the report in English, as well as "-r ES" if we want the report in Spanish.
 
 Usage example: python -m -r -u 34XXX230775 (Creates a report of the conversation with the user 34XXX230775)
 
-Note that to create a report that makes sense to the reader you must always specify a user with the flag"-u" or a group with the flag"-g". (To know the group number we want to use in our report we can first use the command "python whapa.py -i" and then copy and paste it into the command "python -m -r -g PASTE-HERE-GROUPNUMBER@g.us").
+Note that to create a report that makes sense to the reader you must always specify a user with the flag "-u" or a group with the flag "-g". (To know the group number we want to use in our report we can first use the command "python whapa.py -i" and then copy and paste it into the command "python -m -r -g PASTE-HERE-GROUPNUMBER@g.us"), or the flag "-a", which creates a report of all conversations held (slow option).
+
+If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
 
 For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the whapa directory.
 
