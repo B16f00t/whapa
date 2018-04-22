@@ -17,9 +17,9 @@ import sys
 # Define global variable
 arg_user = ""
 arg_group = ""
-report_var = ""
+report_var = ""             # Save args.report valor
 report_html = ""
-version = "0.4"
+version = "0.5"
 
 
 def banner():
@@ -82,7 +82,9 @@ def db_connect(db):
 
 def reply(txt):
     """ Function look out answer messages """
-    sql_reply_str = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, remote_resource, edit_version, thumb_image, recipient_count, raw_data, starred, quoted_row_id FROM messages_quotes WHERE _id = " + str(txt) + ";"
+    sql_reply_str = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, " \
+                "remote_resource, edit_version, thumb_image, recipient_count, raw_data, starred, quoted_row_id FROM messages WHERE key_id IN (SELECT messages_quotes.key_id FROM messages " \
+                "INNER JOIN messages_quotes ON messages.quoted_row_id = messages_quotes._id WHERE messages.quoted_row_id = " + str(txt) + ")"
     sql_answer = cursor.execute(sql_reply_str)
     rep = sql_answer.fetchone()
     ans = ""
@@ -135,11 +137,11 @@ def reply(txt):
             if rep[11]:  # media_caption
                 ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Caption: " + Fore.RESET + rep[11]
                 if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                    reply_msj += "<br>" + thumb.decode('utf-8') + " - " + cgi.escape(rep[11]) + "<br> <a href=\".." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='.." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
             else:
                 ans += Fore.RED + " - Name: " + Fore.RESET + thumb
                 if (report_var == 'EN') or (report_var == 'ES'):
-                    reply_msj += "<br>" + thumb.decode('utf-8') + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                    reply_msj += "<br>" + thumb.decode('utf-8') + "<br> <a href=\".." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='.." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 2:  # media_wa_type 2, Audio
             chain = str(rep[17]).split('w')[0]
@@ -151,7 +153,7 @@ def reply(txt):
                 thumb = "/" + (str(rep[17]))[i:b]
             ans += Fore.RED + " - Name: " + Fore.RESET + thumb + Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br></br><audio controls> <source src=\"" + thumb.decode('utf-8') + "\" type=\"" + rep[7] + "\"</audio>"
+                reply_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br></br><audio controls> <source src=\".." + thumb.decode('utf-8') + "\" type=\"" + rep[7] + "\"</audio>"
 
         elif int(rep[8]) == 3:  # media_wa_type 3 Video
             chain = str(rep[17]).split('w')[0]
@@ -171,7 +173,7 @@ def reply(txt):
                 if (report_var == 'EN') or (report_var == 'ES'):
                     ans += Fore.RED + " - Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + str(size_file(int(rep[9]))) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
                     if (report_var == 'EN') or (report_var == 'ES'):
-                        reply_msj += " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br/> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                        reply_msj += " " + size_file(int(rep[9])) + " - " + duration_file(rep[12]) + "<br/> <a href=\".." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='.." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 4:  # media_wa_type 4, Contact
             ans += Fore.RED + " - Name: " + Fore.RESET + rep[10] + Fore.RED + " - Type:" + Fore.RESET + " Contact vCard"
@@ -231,7 +233,7 @@ def reply(txt):
                 if (report_var == 'EN') or (report_var == 'ES'):
                     reply_msj += " " + size_file(int(rep[9]))
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
+                reply_msj += "<br> <a href=\"." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='.." + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 10:  # media_wa_type 10, Video/Audio call lost
             ans += Fore.RED + " - Message: " + Fore.RESET + " Missed " + rep[11] + " call"
@@ -258,7 +260,7 @@ def reply(txt):
                     reply_msj += "<br>" + thumb.decode('utf-8')
             ans += Fore.RED + " - Type: " + Fore.RESET + "Gif" + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(int(rep[9])) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12])
             if (report_var == 'EN') or (report_var == 'ES'):
-                reply_msj += " - Gif - " + size_file(int(rep[9])) + " " + duration_file(rep[12]) + "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                reply_msj += " - Gif - " + size_file(int(rep[9])) + " " + duration_file(rep[12]) + "<br> <a href=\".." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='.." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 15:  # media_wa_type 15, Deleted Object
             if int(rep[16]) == 5:  # edit_version 5, deleted for me
@@ -280,6 +282,10 @@ def reply(txt):
                 reply_msj += "<br>" + "Real time location (" + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
             if report_var == 'ES':
                 reply_msj += "<br>" + "Ubicación en tiempo real(".decode('utf-8') + str(rep[13]) + "," + str(rep[14]) + ") - " + cgi.escape(rep[11]) + " <br><a href=\"https://www.google.es/maps/search/(" + str(rep[13]) + "," + str(rep[14]) + ")\" target=\"_blank\"> <img src=\"http://maps.google.com/maps/api/staticmap?center=" + str(rep[13]) + "," + str(rep[14]) + "&zoom=16&size=300x150&markers=size:mid|color:red|label:A|" + str(rep[13]) + "," + str(rep[14]) + "&sensor=false\"/></a>"
+
+        ans += Fore.RED + " - Timestamp: " + Fore.RESET + time.strftime('%d-%m-%Y %H:%M', time.localtime(int(rep[5]) / 1000))
+        if (report_var == 'EN') or (report_var == 'ES'):
+            reply_msj += "</br><b><small>" + time.strftime('%d-%m-%Y %H:%M', time.localtime(int(rep[5]) / 1000)) + "</small></b>"
 
     else:  # Deleted Message
         ans = "Deleted message"
@@ -331,7 +337,7 @@ def duration_file(obj):
 
 
 def names(obj):
-    """ Function saves a name list whether exits wa.db"""
+    """ Function saves a name list if exits wa.db"""
     global names_dict
     names_dict = {}  # jid : display_name
     if os.path.exists(obj):
@@ -354,7 +360,7 @@ def names(obj):
 
 
 def gets_name(obj):
-    """ Function recover a naMe"""
+    """ Function recover a name of the wa.db"""
     if names_dict == {}:  # No exists wa.db
         return ""
     else:  # Exists Wa.db
@@ -381,12 +387,12 @@ def gets_name(obj):
 
 
 def report(obj, html):
-    """ Function that saves the report """
+    """ Function that makes the report """
     rep_ini = ""
     if report_var == 'EN':
         rep_ini = """
         <!DOCTYPE html>
-        <html lang="en">
+        <html lang='""" + report_var + """'>
     
         <head>
         <meta charset="utf-8">
@@ -394,14 +400,14 @@ def report(obj, html):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Report makes with Whatsapp Parser Tool">
         <meta name="author" content="B16f00t">
-        <link rel="shortcut icon" href="cfg/logo.png">
+        <link rel="shortcut icon" href="../cfg/logo.png">
         <title>Whatsapp Parser Tool v""" + version + """ Report</title>
         <!-- Bootstrap core CSS -->
         <link href="dist/css/bootstrap.css" rel="stylesheet">
         <!-- Bootstrap theme -->
         <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
         <!-- Custom styles for this template -->
-        <link href="./cfg/chat.css" rel="stylesheet">
+        <link href="../cfg/chat.css" rel="stylesheet">
         </head>
     
         <style>
@@ -429,7 +435,7 @@ def report(obj, html):
           <div class="container theme-showcase">
             <div class="header">
             <table style="width:100%">
-            <caption><img src=""" + logo + """ height=128 width=128 align="left"><h1>&nbsp&nbsp&nbsp&nbsp""" + company + """</h1></caption>
+            <caption><img src=../""" + logo + """ height=128 width=128 align="left"><h1>&nbsp&nbsp&nbsp&nbsp""" + company + """</h1></caption>
             <tr>
                 <th>Record</th>
                 <th>Unit / Company</th> 
@@ -458,7 +464,7 @@ def report(obj, html):
     elif report_var == 'ES':
         rep_ini = """
         <!DOCTYPE html>
-        <html lang="es">
+        <html lang='""" + report_var + """'>
         
         <head>
         <meta charset="utf-8">
@@ -466,14 +472,14 @@ def report(obj, html):
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta name="description" content="Informe creado por WhatsApp Parser Tool">
         <meta name="author" content="B16f00t">
-        <link rel="shortcut icon" href="cfg/logo.png">
+        <link rel="shortcut icon" href="../cfg/logo.png">
         <title>Whatsapp Parser Tool v0.3 Report</title>
         <!-- Bootstrap core CSS -->
         <link href="dist/css/bootstrap.css" rel="stylesheet">
         <!-- Bootstrap theme -->
         <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
         <!-- Custom styles for this template -->
-        <link href="./cfg/chat.css" rel="stylesheet">
+        <link href="../cfg/chat.css" rel="stylesheet">
         </head>
 
         <style>
@@ -501,7 +507,7 @@ def report(obj, html):
           <div class="container theme-showcase">
             <div class="header">
             <table style="width:100%">
-            <caption><img src=""".decode('utf-8') + logo + """ height=128 width=128 align="left"><h1>&nbsp&nbsp&nbsp&nbsp""" + company + """</h1></caption>
+            <caption><img src=../""".decode('utf-8') + logo + """ height=128 width=128 align="left"><h1>&nbsp&nbsp&nbsp&nbsp""" + company + """</h1></caption>
             <tr>
                 <th>Registro</th>
                 <th>Unidad / Compañia</th> 
@@ -541,8 +547,86 @@ def report(obj, html):
     </body>
     </html>
     """
+    if os.path.isfile("./reports") is False:
+        distutils.dir_util.mkpath("./reports")
+
     f = open(html, 'w')
     f.write(rep_ini.encode("UTF-8") + obj.encode("UTF-8") + rep_end.encode("UTF-8"))
+    f.close()
+
+
+def index_report(obj, html):
+    """ Function that makes the index report """
+    rep_ini = """
+    <!DOCTYPE html>
+    <html lang='""" + report_var + """'>
+
+    <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Report makes with Whatsapp Parser Tool">
+    <meta name="author" content="B16f00t">
+    <link rel="shortcut icon" href="../cfg/logo.png">
+    <title>Whatsapp Parser Tool v""" + version + """ Report Index</title>
+    <!-- Bootstrap core CSS -->
+    <link href="dist/css/bootstrap.css" rel="stylesheet">
+    <!-- Bootstrap theme -->
+    <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="../cfg/chat.css" rel="stylesheet">
+    </head>
+
+    <style>
+    table {
+    font-family: arial, sans-serif;
+    border-collapse: collapse;
+    width: 100%;
+    }
+    td, th {
+    border: 1px solid #dddddd;
+    text-align: left;
+    padding: 8px;
+    }
+    tr:nth-child(even) {
+    background-color: #dddddd;
+    }
+    #map {
+        height: 100px;
+        width: 100%;
+    }
+    </style>
+
+    <body>
+    <!-- Fixed navbar -->
+      <div class="container theme-showcase">
+      <caption><img src=../""" + logo + """ height=128 width=128 align="left"><h1>&nbsp&nbsp&nbsp&nbsp""" + company + """</h1></caption>
+      <h2 align=center> Whatsapp Messaging Content </h2>
+
+        <div class="header">
+        <table style="width:100%"">
+        """ + obj + """
+        </table>
+        </div>
+      <div class="container">
+        <ul>
+        </ul>
+    </div>
+    <!-- /container -->
+    <!-- Bootstrap core JavaScript
+        ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="https://code.jquery.com/jquery-1.10.2.min.js"></script>
+    <script src="dist/js/bootstrap.min.js"></script>
+    <script src="docs-assets/js/holder.js"></script>
+    </body>
+    </html>
+    """
+    if os.path.isfile("./reports") is False:
+        distutils.dir_util.mkpath("./reports")
+
+    f = open(html, 'w')
+    f.write(rep_ini.encode("UTF-8"))
     f.close()
 
 
@@ -634,6 +718,8 @@ def messages(consult, sql):
                                     report_name = (str(data[0]).split('@'))[0] + " " + gets_name(data[0])
 
                     elif int(data[1]) == 0 and (str(data[0]).split('@'))[1] == "broadcast":  # Somebody posts a Status
+                        if os.path.isfile("./Media/.Statuses") is False:
+                            distutils.dir_util.mkpath("./Media/.Statuses")
                         if int(data[1]) == 0:
                             print Fore.GREEN + "From" + Fore.RESET, (str(data[15]).split('@'))[0], Fore.YELLOW + gets_name(data[15]) + Fore.RESET, Fore.GREEN + "posts status" + Fore.RESET
                         else:
@@ -651,13 +737,12 @@ def messages(consult, sql):
                                 report_name = "Publico Estado"
 
                     if data[21] or int(data[21]) > 0:
+                        cursor_record = str(data[23])
                         print Fore.RED + "Replying to:" + Fore.RESET, reply(data[21])[0]
                         if (report_var == 'EN') or (report_var == 'ES'):
                             report_msj = "<p style=\"border-left: 6px solid blue; background-color: lightgrey;border-radius:5px;\"; > " + reply(data[21])[1] + "</p>"
-                        consult = cursor.execute(sql)
-                        for x in range(n + 1):
-                            consult = cursor.fetchone()
-
+                        consult = cursor.execute(sql + " AND messages._id >= " + cursor_record)
+                        consult = cursor.fetchone()
                     if int(data[8]) == 0:  # media_wa_type 0, text message
                         if int(data[3]) == 6:  # Status 6, system message
                             if int(data[9]) == 1:  # if media_size value change
@@ -714,7 +799,7 @@ def messages(consult, sql):
                                     else:
                                         print "Thumbnail stored on local path './Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg'"
                                 if (report_var == 'EN') or (report_var == 'ES'):
-                                    report_msj += "<br> <a href=\"./Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg\" target=\"_blank\"> <IMG SRC=\"./Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg\" width=\"100\" height=\"100\"/></a>"
+                                    report_msj += "<br> <a href=\"../Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg\" target=\"_blank\"> <IMG SRC=\"../Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg\" width=\"100\" height=\"100\"/></a>"
 
                             elif int(data[9]) == 7:
                                 print Fore.GREEN + "Message:" + Fore.RESET + " Removed", data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "from the list"
@@ -750,7 +835,7 @@ def messages(consult, sql):
                                     report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " creó el grupo ' ".decode('utf-8') + cgi.escape(data[4]) + " '"
 
                             elif int(data[9]) == 12:
-                                if data[15]:  #if exists remote_resource
+                                if data[15]:  # whether exists remote_resource
                                     print Fore.GREEN + "Message:" + Fore.RESET, data[15].strip("@s.whatsapp.net") + Fore.YELLOW + " " + gets_name(data[15]) + Fore.RESET, "added", ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + Fore.YELLOW + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + Fore.RESET, "to the group"
                                     if report_var == 'EN':
                                         report_msj += data[15].strip("@s.whatsapp.net") + " " + gets_name(data[15]) + " added " + ((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + " " + gets_name(((str(data[17])[60:].decode('utf-8', 'ignore')).split('@'))[0] + "@s.whatsapp.net") + " to the group"
@@ -849,20 +934,24 @@ def messages(consult, sql):
                         print Fore.GREEN + "Type: " + Fore.RESET + "image/jpeg" + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9]))
                         if (report_var == 'EN') or (report_var == 'ES'):
                             report_msj += " " + size_file(int(data[9]))
-                        if data[19]:  # raw_data
-                            if os.path.isfile(thumb) is False:
-                                distutils.dir_util.mkpath("./Media/WhatsApp Images/Sent")
-                                if thumb == "Not downloaded":
-                                    if int(data[1]) == 1:
-                                        thumb = "./Media/WhatsApp Images/Sent/IMG-" + str((int(data[5]) / 1000)) + ".jpg"
-                                    else:
-                                        thumb = "./Media/WhatsApp Images/IMG-" + str((int(data[5]) / 1000)) + ".jpg"
-                                print "Thumbnail was saved on local path '" + thumb + "'"
-                                file_created = thumb
-                                with open(file_created, 'wb') as profile_file:
+                        if os.path.isfile(thumb) is False:
+                            distutils.dir_util.mkpath("./Media/WhatsApp Images/Sent")
+                            if thumb == "Not downloaded":
+                                epoch = time.strftime("%Y%m%d", time.localtime((int(data[5]) / 1000)))
+                                if int(data[1]) == 1:
+                                    thumb = "./Media/WhatsApp Images/Sent/IMG-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.jpg"
+                                else:
+                                    thumb = "./Media/WhatsApp Images/IMG-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.jpg"
+                            print "Thumbnail was saved on local path '" + thumb + "'"
+                            file_created = thumb
+                            with open(file_created, 'wb') as profile_file:
+                                if data[19]:  # raw_data exists
                                     profile_file.write(str(data[19]))
+                                else:  # Gets the thumbnail of the message_thumbnails
+                                    profile_file.write(str(data[22]))
+
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            report_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                            report_msj += "<br> <a href=\"." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 2:  # media_wa_type 2, Audio
                         chain = str(data[17]).split('w')[0]
@@ -875,7 +964,7 @@ def messages(consult, sql):
                         print Fore.GREEN + "Name:" + Fore.RESET, thumb
                         print Fore.GREEN + "Type:" + Fore.RESET, data[7], Fore.GREEN + "- Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            report_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(data[9])) + " - " + duration_file(data[12]) + "<br></br><audio controls> <source src=\"" + thumb.decode('utf-8') + "\" type=\"" + data[7] + "\"</audio>"
+                            report_msj += "<br>" + thumb.decode('utf-8') + " " + size_file(int(data[9])) + " - " + duration_file(data[12]) + "<br></br><audio controls> <source src=\"." + thumb.decode('utf-8') + "\" type=\"" + data[7] + "\"</audio>"
 
                     elif int(data[8]) == 3:  # media_wa_type 3 Video
                         chain = str(data[17]).split('w')[0]
@@ -896,20 +985,24 @@ def messages(consult, sql):
                         print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                         if (report_var == 'EN') or (report_var == 'ES'):
                             report_msj += " " + size_file(int(data[9])) + " - " + duration_file(data[12])
-                        if data[19]:
-                            if os.path.isfile(thumb) is False:
-                                distutils.dir_util.mkpath("./Media/WhatsApp Video/Sent")
-                                if thumb == "Not downloaded":
-                                    if int(data[1]) == 1:
-                                        thumb = "./Media/WhatsApp Video/Sent/VID-" + str((int(data[5]) / 1000)) + ".mp4"
-                                    else:
-                                        thumb = "./Media/WhatsApp Video/VID-" + str((int(data[5]) / 1000)) + ".mp4"
-                                print "Thumbnail was saved on local path '" + thumb + "'"
-                                file_created = thumb
-                                with open(file_created, 'wb') as profile_file:
+                        if os.path.isfile(thumb) is False:
+                            distutils.dir_util.mkpath("./Media/WhatsApp Video/Sent")
+                            if thumb == "Not downloaded":
+                                epoch = time.strftime("%Y%m%d", time.localtime((int(data[5]) / 1000)))
+                                if int(data[1]) == 1:
+                                    thumb = "./Media/WhatsApp Video/Sent/VID-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.mp4"
+                                else:
+                                    thumb = "./Media/WhatsApp Video/VID-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.mp4"
+                            print "Thumbnail was saved on local path '" + thumb + "'"
+                            file_created = thumb
+                            with open(file_created, 'wb') as profile_file:
+                                if data[19]:
                                     profile_file.write(str(data[19]))
+                                else:
+                                    profile_file.write(str(data[22]))
+
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            report_msj += "<br/> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                            report_msj += "<br/> <a href=\"." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 4:  # media_wa_type 4, Contact
                         print Fore.GREEN + "Name:" + Fore.RESET, data[10], Fore.GREEN + "- Type:" + Fore.RESET + " Contact vCard"
@@ -968,20 +1061,23 @@ def messages(consult, sql):
                             print Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9]))
                             if (report_var == 'EN') or (report_var == 'ES'):
                                 report_msj += " " + size_file(int(data[9]))
-                        if data[19]:
-                            if os.path.isfile(thumb + ".jpg") is False:
-                                distutils.dir_util.mkpath("./Media/WhatsApp Documents/Sent")
-                                if thumb == "Not downloaded":
-                                    if int(data[1]) == 1:
-                                        thumb = "./Media/WhatsApp Documents/Sent/DOC-" + str((int(data[5]) / 1000))
-                                    else:
-                                        thumb = "./Media/WhatsApp Documents/DOC-" + str((int(data[5]) / 1000))
-                                print "Thumbnail was saved on local path '" + thumb + ".jpg'"
-                                file_created = thumb + ".jpg"
-                                with open(file_created, 'wb') as profile_file:
+                        if os.path.isfile(thumb + ".jpg") is False:
+                            distutils.dir_util.mkpath("./Media/WhatsApp Documents/Sent")
+                            if thumb == "Not downloaded":
+                                epoch = time.strftime("%Y%m%d", time.localtime((int(data[5]) / 1000)))
+                                if int(data[1]) == 1:
+                                    thumb = "./Media/WhatsApp Documents/Sent/DOC-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded"
+                                else:
+                                    thumb = "./Media/WhatsApp Documents/DOC-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded"
+                            print "Thumbnail was saved on local path '" + thumb + ".jpg'"
+                            file_created = thumb + ".jpg"
+                            with open(file_created, 'wb') as profile_file:
+                                if data[19]:
                                     profile_file.write(str(data[19]))
+                                else:
+                                    profile_file.write(str(data[22]))
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            report_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
+                            report_msj += "<br> <a href=\"." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='." + thumb.decode('utf-8') + ".jpg' width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 10:  # media_wa_type 10, Video/Audio call lost
                         print Fore.GREEN + "Message:" + Fore.RESET, "Missed " + str(data[11]).capitalize() + " call"
@@ -1016,20 +1112,24 @@ def messages(consult, sql):
                         print Fore.GREEN + "Type: " + Fore.RESET + "Gif" + Fore.GREEN + " - Size:" + Fore.RESET, data[9], "bytes " + size_file(int(data[9])) + Fore.GREEN + " - Duration:" + Fore.RESET, duration_file(data[12])
                         if (report_var == 'EN') or (report_var == 'ES'):
                             report_msj += " - Gif - " + size_file(int(data[9])) + " " + duration_file(data[12])
-                        if data[19]:
-                            if os.path.isfile(thumb) is False:
-                                distutils.dir_util.mkpath("./Media/WhatsApp Animated Gifs/Sent")
-                                if thumb == "Not downloaded":
-                                    if int(data[1]) == 1:
-                                        thumb = "./Media/WhatsApp Animated Gifs/Sent/VID-" + str((int(data[5]) / 1000)) + ".mp4"
-                                    else:
-                                        thumb = "./Media/WhatsApp Animated Gifs//VID-" + str((int(data[5]) / 1000)) + ".mp4"
-                                print "Thumbnail was saved on local path '" + thumb + "'"
-                                file_created = thumb
-                                with open(file_created, 'wb') as profile_file:
+                        if os.path.isfile(thumb) is False:
+                            distutils.dir_util.mkpath("./Media/WhatsApp Animated Gifs/Sent")
+                            epoch = time.strftime("%Y%m%d", time.localtime((int(data[5]) / 1000)))
+                            if thumb == "Not downloaded":
+                                if int(data[1]) == 1:
+                                    thumb = "./Media/WhatsApp Animated Gifs/Sent/VID-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.mp4"
+                                else:
+                                    thumb = "./Media/WhatsApp Animated Gifs/VID-" + epoch + "-" + str(int(data[5]) / 1000) + "-NotDownloaded.mp4"
+                            print "Thumbnail was saved on local path '" + thumb + "'"
+                            file_created = thumb
+                            with open(file_created, 'wb') as profile_file:
+                                if data[19]:
                                     profile_file.write(str(data[19]))
+                                else:
+                                    profile_file.write(str(data[22]))
+
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            report_msj += "<br> <a href=\"" + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='" + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
+                            report_msj += "<br> <a href=\"." + thumb.decode('utf-8') + "\" target=\"_blank\"> <IMG SRC='." + thumb.decode('utf-8') + "'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 15:  # media_wa_type 15, Deleted Object
                         if int(data[16]) == 5:  # edit_version 5, deleted for me
@@ -1061,14 +1161,12 @@ def messages(consult, sql):
                                 report_msj += "<br> &#127775; "
                     main_status, report_status = status(int(data[3]))
                     print Fore.GREEN + "Timestamp:" + Fore.RESET, time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000)), Fore.GREEN + "- Status:" + Fore.RESET, main_status
-                    if (report_var == 'EN') or (report_var == 'ES'):
-                        report_time = time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000))
-
                     if report_var == 'EN':
+                        report_time = time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000))
                         if (report_name == "Me") or (report_name == "&#128227; Me"):
                             rep_med += """
                             <li>
-                            <div class="bubble"> <span class="personNaMe">""" + report_name + """</span> <br>
+                            <div class="bubble"> <span class="personName">""" + report_name + """</span> <br>
                                 <span class="personSay">""" + report_msj + """</span> </div>
                             <span class=" time round ">""" + report_time + "&nbsp" + report_status + """</span> </li>"""
                         else:
@@ -1078,10 +1176,11 @@ def messages(consult, sql):
                                 <span class="personSay2">""" + report_msj + """</span> </div>
                             <span class=" time2 round ">""" + report_time + "&nbsp" + report_status + """</span> </li>"""
                     elif report_var == 'ES':
+                        report_time = time.strftime('%d-%m-%Y %H:%M', time.localtime(int(data[5]) / 1000))
                         if (report_name == "Yo") or (report_name == "&#128227; Yo"):
                             rep_med += """
                             <li>
-                            <div class="bubble"> <span class="personNaMe">""" + report_name + """</span> <br>
+                            <div class="bubble"> <span class="personName">""" + report_name + """</span> <br>
                                 <span class="personSay">""" + report_msj + """</span> </div>
                             <span class=" time round ">""" + report_time.decode('utf-8') + "&nbsp" + report_status.decode('utf-8') + """</span> </li>"""
                         else:
@@ -1096,7 +1195,14 @@ def messages(consult, sql):
             except Exception as e:
                 print "Error showing message details:", e
                 continue
-        if args.report:
+        if report_var:
+            global report_html
+            if not args.all:
+                report_html = "./reports/report.html"
+                if args.user:
+                    report_html = "./reports/report_user_chat_" + args.user + "_" + gets_name(args.user + "@s.whatsapp.net") + ".html"
+                if args.group:
+                    report_html = "./reports/report_group_chat_" + args.group + "_" + gets_name(args.group) + ".html"
             report(rep_med, report_html)
 
     except Exception as e:
@@ -1137,7 +1243,7 @@ def info(consult):
         print "\n-------------------------- INFO MODE ----------------------------"
         print "0  ) Exit"
         print "1  ) Statuses"
-        print "2  ) Related Numbers"
+        print "2  ) Chat list"
         for key, value in info_dic.items():
             i = key
             if key < 10:
@@ -1191,20 +1297,18 @@ def info(consult):
                         print "Status error", e
                         continue
             elif opt == 2:
-                sql_consult_info = cursor.execute("SELECT key_remote_jid, status FROM Messages ORDER BY timestamp ASC;")
-                info_number = set()
+                sql_consult_info = cursor.execute("SELECT key_remote_jid, subject FROM chat_list;")
+                info_number = {}
+                print
                 for data in sql_consult_info:
-                    if data[1] != 6:
-                        info_number.add(data[0])
-                info_number.discard("-1")
-                info_number.discard("status@broadcast")
-                for p in info_number:
-                    if p.split('@')[1] == "g.us":
-                        print Fore.RED + p + Fore.RESET, Fore.YELLOW + gets_name(p) + Fore.RESET
-                    elif p.split('@')[1] == "s.whatsapp.net":
-                        print Fore.GREEN + p.split('@')[0] + Fore.RESET, Fore.YELLOW + gets_name(p) + Fore.RESET
-                    elif p.split('@')[1] == "broadcast" and i != "status@broadcast":
-                        print Fore.BLUE + p + Fore.RESET
+                    info_number.update({data[0]: data[1]})
+                for key, value in info_number.items():
+                    if key.split('@')[1] == "g.us":
+                        print Fore.RED + key + Fore.RESET, Fore.YELLOW + (value if value else gets_name(key)) + Fore.RESET
+                    elif key.split('@')[1] == "s.whatsapp.net":
+                        print Fore.GREEN + key.split('@')[0] + Fore.RESET, Fore.YELLOW + gets_name(key) + Fore.RESET
+                    elif key.split('@')[1] == "broadcast" and i != "status@broadcast":
+                        print Fore.BLUE + key + Fore.RESET
 
             elif opt > i:
                 print "Bad option"
@@ -1373,6 +1477,45 @@ def get_configs():
         print "The 'settings.cfg' file is missing or corrupt!"
 
 
+def extract(obj, total):
+    """ Functions that extracts thumbnails"""
+    i = 1
+    for data in obj:
+        try:
+            chain = str(data[2]).split('w')[0]
+            a = chain.rfind("Media/")
+            if a == -1:  # Image doesn't exist
+                thumb = "Not downloaded"
+            else:
+                a = chain.rfind("/")
+                b = len(chain)
+                thumb = "./thumbnails" + (str(data[2]))[a:b]
+
+            if os.path.isfile(thumb) is False:
+                distutils.dir_util.mkpath("./thumbnails")
+
+            if thumb == "Not downloaded":
+                epoch = time.strftime("%Y%m%d", time.localtime((int(data[4]) / 1000)))
+                thumb = "./thumbnails/IMG-" + epoch + "-" + str(int(data[4]) / 1000) + "-NotDownloaded.jpg"
+            if int(data[1]) == 9:
+                thumb += ".jpg"
+
+            file_created = thumb
+            with open(file_created, 'wb') as profile_file:
+                if data[3]:  # raw_data exists
+                    profile_file.write(str(data[3]))
+                else:  # Gets the thumbnail of the message_thumbnails
+                    profile_file.write(str(data[5]))
+
+            sys.stdout.write("\rExtracting thumbnail " + str(i) + " / " + str(total))
+            sys.stdout.flush()
+            i += 1
+        except Exception as e:
+            print "Error extracting:", e
+    print "\n"
+    print "Extraction Complete. Thumbnails save in './thumbnails' path"
+
+
 #  Initializing
 if __name__ == "__main__":
     banner()
@@ -1382,6 +1525,7 @@ if __name__ == "__main__":
     mode_parser.add_argument("-k", "--key", help="*** Decrypt Mode *** - key file path")
     mode_parser.add_argument("-i", "--info", help="*** Info Mode ***", action="store_true")
     mode_parser.add_argument("-m", "--messages", help="*** Message Mode ***", action="store_true")
+    mode_parser.add_argument("-e", "--extract", help="*** Extract Mode ***", action="store_true")
     parser.add_argument("--update", help='Update Whatsapp Parser Tool', action="store_true")
     user_parser = parser.add_mutually_exclusive_group()
     user_parser.add_argument("-u", "--user", help="Show chat with a phone number, ej. 34123456789")
@@ -1425,6 +1569,8 @@ if __name__ == "__main__":
             update.write("echo Updating requirements.txt" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc/requirements.txt 2> /dev/null" + os.linesep)
             update.write("echo Updating chat.css" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/CHANGELOG.md -O ./doc/CHANGELOG.md 2> /dev/null" + os.linesep)
+            update.write("echo Updating CHANGELOG.md" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/chat.css -O ./cfg/chat.css 2> /dev/null" + os.linesep)
             update.write("echo Updating settings.cfg" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/settings.cfg -O ./cfg/settings.cfg 2> /dev/null" + os.linesep)
@@ -1435,7 +1581,10 @@ if __name__ == "__main__":
         elif args.messages:
             names("wa.db")
             db_connect(args.database)
-            sql_string = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, remote_resource, edit_version, thumb_image, recipient_count, raw_data, starred, quoted_row_id FROM messages WHERE timestamp BETWEEN '"
+            sql_string = "SELECT messages.key_remote_jid, messages.key_from_me, messages.key_id, messages.status, messages.data, messages.timestamp, messages.media_url, messages.media_mime_type," \
+                         " messages.media_wa_type, messages.media_size, messages.media_name, messages.media_caption, messages.media_duration, messages.latitude, messages.longitude, " \
+                         " messages.remote_resource, messages.edit_version, messages.thumb_image, messages.recipient_count, messages.raw_data, messages.starred, messages.quoted_row_id, " \
+                         " message_thumbnails.thumbnail, messages._id FROM messages LEFT JOIN message_thumbnails ON messages.key_id = message_thumbnails.key_id WHERE messages.timestamp BETWEEN '"
             try:
                 epoch_start = "0"
                 """ current date in Epoch milliseconds string """
@@ -1448,85 +1597,94 @@ if __name__ == "__main__":
                 sql_string = sql_string + str(epoch_start) + "' AND '" + str(epoch_end) + "'"
 
                 if args.user:
-                    sql_string = sql_string + " AND (key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net')"
+                    sql_string = sql_string + " AND (messages.key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net')"
                 if args.user_all:
-                    print "user all"
-                    sql_string = sql_string + " AND (key_remote_jid LIKE '%" + str(args.user_all) + "%@s.whatsapp.net' OR remote_resource LIKE '%" + str(args.user_all) + "%')"
+                    sql_string = sql_string + " AND (messages.key_remote_jid LIKE '%" + str(args.user_all) + "%@s.whatsapp.net' OR messages.remote_resource LIKE '%" + str(args.user_all) + "%')"
                     arg_user = args.user_all
                 if args.group:
-                    sql_string = sql_string + " AND key_remote_jid LIKE '%" + str(args.group) + "%'"
+                    sql_string = sql_string + " AND messages.key_remote_jid LIKE '%" + str(args.group) + "%'"
                     arg_group = args.group
                 if args.text:
-                    sql_string = sql_string + " AND data LIKE '%" + str(args.text) + "%'"
+                    sql_string = sql_string + " AND messages.data LIKE '%" + str(args.text) + "%'"
                 if args.web:
-                    sql_string = sql_string + " AND key_id LIKE '3EB0%'"
+                    sql_string = sql_string + " AND messages.key_id LIKE '3EB0%'"
                 if args.starred:
-                    sql_string = sql_string + " AND starred = 1"
+                    sql_string = sql_string + " AND messages.starred = 1"
                 if args.broadcast:
-                    sql_string = sql_string + " AND remote_resource LIKE '%broadcast%'"
+                    sql_string = sql_string + " AND messages.remote_resource LIKE '%broadcast%'"
                 if args.report:
                     report_var = args.report
-                    report_html = "report.html"
                     get_configs()
                 if args.type_text:
-                    sql_string = sql_string + " AND media_wa_type = 0"
+                    sql_string = sql_string + " AND messages.media_wa_type = 0"
                 if args.type_image:
-                    sql_string = sql_string + " AND media_wa_type = 1"
+                    sql_string = sql_string + " AND messages.media_wa_type = 1"
                 if args.type_audio:
-                    sql_string = sql_string + " AND media_wa_type = 2"
+                    sql_string = sql_string + " AND messages.media_wa_type = 2"
                 if args.type_video:
-                    sql_string = sql_string + " AND media_wa_type = 3"
+                    sql_string = sql_string + " AND messages.media_wa_type = 3"
                 if args.type_contact:
-                    sql_string = sql_string + " AND media_wa_type = 4"
+                    sql_string = sql_string + " AND messages.media_wa_type = 4"
                 if args.type_location:
-                    sql_string = sql_string + " AND media_wa_type = 5"
+                    sql_string = sql_string + " AND messages.media_wa_type = 5"
                 if args.type_call:
-                    sql_string = sql_string + " AND media_wa_type = 8"
+                    sql_string = sql_string + " AND messages.media_wa_type = 8"
                 if args.type_application:
-                    sql_string = sql_string + " AND media_wa_type = 9"
+                    sql_string = sql_string + " AND messages.media_wa_type = 9"
                 if args.type_gif:
-                    sql_string = sql_string + " AND media_wa_type = 13"
+                    sql_string = sql_string + " AND messages.media_wa_type = 13"
                 if args.type_deleted:
-                    sql_string = sql_string + " AND media_wa_type = 15"
+                    sql_string = sql_string + " AND messages.media_wa_type = 15"
                 if args.type_share:
-                    sql_string = sql_string + " AND media_wa_type = 16"
+                    sql_string = sql_string + " AND messages.media_wa_type = 16"
                 if args.all:
                     get_configs()
-                    chats = set()
-                    sql_consult_chat = cursor.execute(sql_string + " ORDER BY timestamp ASC;")
-
-                    try:
-                        for data in sql_consult_chat:
-                            chats.add(data[0])
-                        chats.discard("-1")
-                    except Exception as e:
-                        print "Error adding items in the joint", e
-
+                    # Makes a set with with chats active by timestamp
+                    chats_play = set()
+                    sql_consult_chat = cursor.execute(sql_string + "AND messages.status != 6")
+                    for data in sql_consult_chat:
+                        chats_play.add(data[0])
+                    chats_play.discard("-1"),
+                    # Makes a dict with all chats with it subject
+                    sql_consult_chat = cursor.execute("SELECT key_remote_jid, subject FROM chat_list;")
+                    chats_total = {}
+                    for data in sql_consult_chat:
+                        chats_total.update({data[0]: data[1]})
+                    # Makes a dict with actives chat by timestamp and it subject
+                    chats = {}
+                    for key, value in chats_total.items():
+                        if key in chats_play:
+                            chats.update({key: value})
                     sql_string_copy = sql_string
-                    for i in chats:
+                    report_med = ""
+                    for key, value in chats.items():
                         print Fore.RED + "--------------------------------------------------------------------------------" + Fore.RESET
-                        if i.split('@')[1] == "g.us":
-                            print Fore.CYAN + "GROUP CHAT", i + Fore.RESET, Fore.YELLOW + gets_name(i) + Fore.RESET
-                            report_html = "report_group_chat_" + i + gets_name(i) + ".html"
-                            arg_group = i
+                        if key.split('@')[1] == "g.us":
+                            print Fore.CYAN + "GROUP CHAT", key + Fore.RESET, Fore.YELLOW + "(" + value + ")" + Fore.RESET
+                            report_html = "./reports/report_group_chat_" + key + "_" + "(" + value + ").html"
+                            report_med += "<tr><th>Group</th><th><a href=\"report_group_chat_" + key + "_" + "(" + value + ").html" + "\" target=\"_blank\"> " + key + " " + "(" + value + ")</a></th></tr>"
+                            arg_group = key
                             arg_user = ""
-                        elif i.split('@')[1] == "s.whatsapp.net":
-                            print Fore.CYAN + "USER CHAT", i + Fore.RESET, Fore.YELLOW + gets_name(i) + Fore.RESET
-                            report_html = "report_user_chat_" + i.split('@')[0] + gets_name(i) + ".html"
+                        elif key.split('@')[1] == "s.whatsapp.net":
+                            print Fore.CYAN + "USER CHAT", key + Fore.RESET, Fore.YELLOW + gets_name(key) + Fore.RESET
+                            report_med += "<tr><th>User</th><th><a href=\"report_user_chat_" + key.split('@')[0] + "_" + gets_name(key) + ".html" + "\" target=\"_blank\"> " + key.split('@')[0] + " " + gets_name(key) + "</a></th></tr>"
+                            report_html = "./reports/report_user_chat_" + key.split('@')[0] + "_" + gets_name(key) + ".html"
                             arg_group = ""
-                            arg_user = i.split('@')[0]
-                        elif i.split('@')[1] == "broadcast" and i != "status@broadcast":
-                            print Fore.CYAN + "BROADCAST LIST CHAT", i + Fore.RESET
-                            report_html = "report_broadcast_list_" + i + ".html"
+                            arg_user = key.split('@')[0]
+                        elif key.split('@')[1] == "broadcast" and key != "status@broadcast":
+                            print Fore.CYAN + "BROADCAST LIST CHAT", key + Fore.RESET
+                            report_med += "<tr><th>Broadcast List</th><th><a href=\"report_broadcast_list_" + key + ".html" + "\" target=\"_blank\">  " + key + " " + "</a></th></tr>"
+                            report_html = "./reports/report_broadcast_list_" + key + ".html"
                             arg_group = ""
-                            arg_user = i
-
-                        sql_string_copy = sql_string + " AND key_remote_jid = '" + i + "'"
-                        sql_consult_copy = cursor.execute(sql_string_copy + " ORDER BY timestamp ASC;")
+                            arg_user = key
+                        sql_string_copy = sql_string + " AND messages.key_remote_jid = '" + key + "'"
+                        sql_consult_copy = cursor.execute(sql_string_copy)
                         messages(sql_consult_copy, sql_string_copy)
+                    if args.report:
+                        index_report(report_med, "./reports/index.html")
                     exit()
 
-                sql_consult = cursor.execute(sql_string + " ORDER BY timestamp ASC;")
+                sql_consult = cursor.execute(sql_string)
                 messages(sql_consult, sql_string)
             except Exception as e:
                 print "Error:", e
@@ -1537,9 +1695,32 @@ if __name__ == "__main__":
         elif args.info:
             names("wa.db")
             db_connect(args.database)
-            sql_string = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, remote_resource FROM messages;"
+            sql_string = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, " \
+                         "latitude, longitude, remote_resource FROM messages;"
             sql_consult = cursor.execute(sql_string)
             info(sql_consult)
+
+        elif args.extract:
+            db_connect(args.database)
+            print "Calculating number of images to extract"
+            epoch_start = "0"
+            """ current date in Epoch milliseconds string """
+            epoch_end = str(1000 * int(time.mktime(time.strptime(time.strftime('%d-%m-%Y %H:%M'), '%d-%m-%Y %H:%M'))))
+
+            if args.time_start:
+                epoch_start = 1000 * int(time.mktime(time.strptime(args.time_start, '%d-%m-%Y %H:%M')))
+            if args.time_end:
+                epoch_end = 1000 * int(time.mktime(time.strptime(args.time_end, '%d-%m-%Y %H:%M')))
+
+            sql_count = "SELECT COUNT(*) FROM messages LEFT JOIN message_thumbnails ON messages.key_id = message_thumbnails.key_id WHERE messages.timestamp" \
+                        " BETWEEN " + str(epoch_start) + " AND " + str(epoch_end) + " AND messages.media_wa_type IN (1, 3, 9, 13);"
+            cursor.execute(sql_count)
+            result = cursor.fetchone()
+            print result[0], "Images found"
+            sql_string_extract = "SELECT messages.key_id, messages.media_wa_type, messages.thumb_image, messages.raw_data, messages.timestamp, message_thumbnails.thumbnail FROM messages LEFT JOIN message_thumbnails " \
+                                 "ON messages.key_id = message_thumbnails.key_id WHERE messages.timestamp BETWEEN " + str(epoch_start) + " AND " + str(epoch_end) + " AND messages.media_wa_type IN (1, 3, 9, 13);"
+            sql_consult_extract = cursor.execute(sql_string_extract)
+            extract(sql_consult_extract, result[0])
 
         elif args.database:
             names("wa.db")
