@@ -51,6 +51,7 @@ then:
 		gmail = alias@gmail.com
 		passw = yourpassword
 		devid = Device ID (optional, if specified get more information)
+		celnumbr = BackupPhoneNumber (ex. 34666666666, no + or 00)
 		
 	To usage:
 		whagdext.py -help|-vers|-info|-list|-sync|-pull file [backupID]
