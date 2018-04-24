@@ -633,7 +633,7 @@ def index_report(obj, html):
 def create_settings_file():
     """ Function that creates the settings file """
     with open('./cfg/settings.cfg', 'w') as cfg:
-        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
+        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
 
 
 def messages(consult, sql):
@@ -772,12 +772,12 @@ def messages(consult, sql):
                                     report_msj += str(data[15].strip("@s.whatsapp.net")) + " " + gets_name(data[15]) + " changed the group icon"
                                 elif report_var == 'ES':
                                     report_msj += str(data[15].strip("@s.whatsapp.net")) + " " + gets_name(data[15]) + " cambió el icono del grupo".decode('utf-8')
-                                print "The last picture was stored on the phone path '/data/data/com.whatsapp/cache/Profile Pictures/" + (data[0].split('@'))[0] + ".jpg'"
+                                print "The last picture is stored on the phone path '/data/data/com.whatsapp/cache/Profile Pictures/" + (data[0].split('@'))[0] + ".jpg'"
                                 if data[17]:
                                     if os.path.isfile("./Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg") is False:
                                         print "Thumbnail was saved on local path './Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg'"
                                         if (report_var == 'EN') or (report_var == 'ES'):
-                                            report_msj += "'./Media/profiles/" + (data[0].split('@'))[0] + ".jpg'"
+                                            report_msj += "</br>./Media/profiles/" + (data[0].split('@'))[0] + "(" + str(int(data[5]) / 1000) + ").jpg'"
                                         distutils.dir_util.mkpath("./Media/profiles")
                                         with open("./cfg/buffer", 'wb') as buffer_copy:
                                             buffer_copy.write(str(data[17]))
