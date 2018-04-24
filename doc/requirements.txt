@@ -1,3 +1,4 @@
 pycryptodome
 colorama
 BeautifulSoup
+configparser
