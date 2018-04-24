@@ -10,7 +10,7 @@ WhatsApp Messenger Version 2.18.105
 Whapa is an android whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
 The Script is written in Python 2.x
 
-The software is divided into three modes:
+The software is divided into four modes:
 * **Message Mode**: Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
 		    "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
 * **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
