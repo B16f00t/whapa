@@ -274,4 +274,6 @@ def main():
 
 
 if __name__ == "__main__":
+    if os.path.isfile("./logs") is False:
+        distutils.dir_util.mkpath("./logs")
     main()
