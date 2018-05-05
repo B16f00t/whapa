@@ -59,7 +59,7 @@ def decrypt(db_file, key_file):
         with open("msgstore.db", "wb") as fh:
             fh.write(zlib.decompress(aes.decrypt(db_data[67:-20])))
 
-        print "msgstore.db.crypt12 decrypted, msgstore.db created."
+        print db_file + " decrypted, msgstore.db created."
     except Exception as e:
         print "An error has ocurred decrypting the Database:", e
 
