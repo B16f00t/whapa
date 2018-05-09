@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from configparser import ConfigParser
+import distutils.dir_util
 import json
 import os
 import re
