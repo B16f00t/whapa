@@ -1561,7 +1561,7 @@ if __name__ == "__main__":
         if args.update:
             update = open("update.sh", "w")
             update.write("echo [i] Updating" + os.linesep)
-            update.write("echo     [-] README.md" + os.linesep)
+            update.write("echo   \t  [-] README.md" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc/requirements.txt 2> /dev/null" + os.linesep)
             update.write("echo     [-] CHANGELOG.md" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/CHANGELOG.md -O ./doc/CHANGELOG.md 2> /dev/null" + os.linesep)
@@ -1575,11 +1575,10 @@ if __name__ == "__main__":
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whademe.py 2> /dev/null" + os.linesep)
             update.write("echo     [-] whagodri.py" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagodri.py 2> /dev/null" + os.linesep)
-            update.write("rm update.sh" + os.linesep)
             update.write("python whapa.py")
             update.write("python whademe.py")
             update.write("python whagodri.py")
-
+            update.write("rm update.sh" + os.linesep)
             update.close()
             os.system("sh update.sh")
         elif args.messages:
