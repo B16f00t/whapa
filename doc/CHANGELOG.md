@@ -1,19 +1,21 @@
 Changelog
-
+====
 All notable changes to this project will be documented in this file.
 
 May 2018
-    [+] whapa.py v0.5
+
+    [+] whapa.py v0.5    
     	[-] Improved parses speed
     	[-] When parse the database extracts all thumbnails
     	[-] Reports are sorted in "./reports" path
     	[-] Make an index of the reports ("index.hml"), when you use the -a -r flag 
     	[-] Added flag "-e", Extract mode, extracts all media thumbnails of the database in "./thumbnails" path
     	[-] Fix minor bugs
-    [+] whademe.py v0.1
-    [+] whagodri.py v0.1
+    [i] whademe.py v0.1
+    [i] whagodri.py v0.1
 
 April 2018
+
     [+] whapa.py v0.4
     	[-] Added flag "--update" to update Whatsapp Parser Tool
     	[-] Added flag in message mode, "-ua" Show all messages mades by a number phone
@@ -26,6 +28,7 @@ April 2018
     	[-] Fix minor bugs
     
 March 2018
+
     [+] whapa.py v0.2
     	[-] Added interactive html report
     	[-] Added pdf report
@@ -35,6 +38,7 @@ March 2018
     	[-] Removed whapas.py 
     
 February 2018
-    [+] whapa.py v0.1
+
+    [i] whapa.py v0.1
     	[-] Fixed minor bugs
     	[-] Added whapas.py
