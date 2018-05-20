@@ -1,27 +1,17 @@
 ![alt tag](https://github.com/B16f00t/whapa/blob/master/doc/whapa.png)
 
 
-Whatsapp Parser
-==================================
-Updated: April 2018 - Version 0.5
+Whatsapp Parser Toolset
+============================
+Updated: May 2018
 
-WhatsApp Messenger Version 2.18.105
+WhatsApp Messenger Version 2.18.142
 
-Whapa is an android whatsapp database parser that automates the process. The main purpose of whapa is to present the data handled by the Sqlite database in a way that is comprehensible to the analyst.
-The Script is written in Python 2.x
-
-The software is divided into four modes:
-* **Message Mode**: Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
-		    "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
-* **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
-* **Info Mode**: Displays different information about statuses, broadcasts list and groups.
-* **Extract Mode**: Extracts all thumbnails from the database
-
-If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
-
-Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
-
-**Bonus**: It also comes with a tool to download the backup copies of google drive associated with a smartphone.
+Whapa is a toolset to analyze whatsapp app for android. All tools are written in Python 2.X.
+Whapa toolset is divided in three tools:
+* **Whapa    (Whatsapp Parser)
+* **Whademe  (Whatsapp Decrypter and Merger)
+* **Whagodri (Whataspp Google Drive Extractor)
 
 Changelog
 =====
@@ -29,33 +19,26 @@ https://github.com/B16f00t/whapa/blob/master/doc/CHANGELOG.md
 
 Installation
 =====
- whapa.py (Whatsapp parser)
----------
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
 then:
 
 	pip install -r ./doc/requirements.txt
-	
- whagdext.py (Extracts whatsapp datas from google drive account)
--------------
-	To install:
-	sudo apt-get update
-	sudo apt-get install -y python3-pip
-	sudo pip3 install pyportify
-	
-	To config:
-	edit only the values of the file ./cfg/settings.cfg
-		[auth]
-		gmail = alias@gmail.com
-		passw = yourpassword
-		devid = Device ID (optional, if specified get more information)
-		celnumbr = BackupPhoneNumber (ex. 34666666666, no + or 00)
-		
-	To usage:
-		whagdext.py -help|-vers|-info|-list|-sync|-pull file [backupID]
 
+WHAPA
+====
+whapa.py is an android whatsapp database parser which automates the process and presents the data handled by the Sqlite database in a way that is comprehensible to the analyst.
+The software is divided into four modes:
+* **Message Mode**   : Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
+		       "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
+* **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
+* **Info Mode**      : Displays different information about statuses, broadcasts list and groups.
+* **Extract Mode**   : Extracts all thumbnails from the database
+
+If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
+
+Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
 
 Usage
 =====
@@ -178,9 +161,62 @@ For the report to contains the images, videos, documents... you must copy the "W
 
 If we want to print the document or create the report in pdf, I recommend in the print option -> scale the view <= 70%, otherwise the report will be displayed too large.
 
-Upcoming update
+WHADEME
 =====
-Recover deleted messages.
+whademe is a tool to decrypt directories containing backups and join them in a new database, to be able to be analyzed and obtain more information, such as deleted groups, messages, etc...
+
+Usage
+=====
+             __      __.__           ________            _____          
+	    /  \    /  \  |__ _____  \______ \   ____   /     \   ____  
+   	    \   \/\/   /  |  \\__  \  |    |  \_/ __ \ /  \ /  \_/ __ \ 
+   	     \        /|   Y  \/ __ \_|    `   \  ___//    Y    \  ___/ 
+ 	      \__/\  / |___|  (____  /_______  /\___  >____|__  /\___  >
+                   \/       \/     \/        \/     \/        \/     \/
+              ------------ Whatsapp Decrypter and Merger v0.1 ------------
+    
+	usage: whademe.py [-h] [-k KEY] [-m] [PATH]
+
+	Choose a files path to decrypt and/or merge
+
+	positional arguments:
+	PATH               Database path - './' by default
+
+	optional arguments:
+  	-h, --help         show this help message and exit
+  	-k KEY, --key KEY  Whatsapp Key path (Decrypt database)
+  	-m, --merge        Merge database
+
+
+WHAGODRI
+=====
+whagodri.py is a tool which allows WhatsApp users on Android to extract their backed up WhatsApp data from Google Drive.
+
+
+Usage
+=====
+    	 __      __.__             ________      ________        .__ 
+    	/  \    /  \  |__ _____   /  _____/  ____\______ \_______|__|
+    	\   \/\/   /  |  \\__  \ /   \  ___ /  _ \|    |  \_  __ \  |
+    	 \        /|   Y  \/ __ \\    \_\  (  <_> )    `   \  | \/  |
+    	  \__/\  / |___|  (____  /\______  /\____/_______  /__|  |__|
+    	       \/       \/     \/        \/              \/          
+	
+    	------------ Whatsapp Google Drive Extractor v0.1 ------------
+    
+	usage: whagodri.py [-h] [-i | -l | -lw | -p FilePath BackupID | -s] [-f]
+
+	Extract your Whatsapp files from Google Drive
+
+	optional arguments:
+  	-h, --help            show this help message and exit
+  	-i, --info            Show information about Whatsapp backups
+  	-l, --list            List all available files
+  	-lw, --list_whatsapp  List Whatsapp backups
+  	-p FilePath BackupID, --pull FilePath BackupID
+      	                      Pull a file from Google Drive
+  	-s, --sync            Sync all files locally
+  	-f, --flush           Flush log file to sync from the beginning
 
 Get in touch
 =====
