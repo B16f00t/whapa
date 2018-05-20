@@ -2,23 +2,23 @@
 
 
 Whatsapp Parser Toolset
-============================
+====
 Updated: May 2018
 
 WhatsApp Messenger Version 2.18.142
 
 Whapa is a toolset to analyze whatsapp app for android. All tools are written in Python 2.X.
 Whapa toolset is divided in three tools:
-* **Whapa    (Whatsapp Parser)
-* **Whademe  (Whatsapp Decrypter and Merger)
-* **Whagodri (Whataspp Google Drive Extractor)
+* **Whapa**    (Whatsapp Parser)
+* **Whademe**  (Whatsapp Decrypter and Merger)
+* **Whagodri** (Whataspp Google Drive Extractor)
 
 Changelog
-=====
+====
 https://github.com/B16f00t/whapa/blob/master/doc/CHANGELOG.md	
 
 Installation
-=====
+====
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
@@ -162,18 +162,18 @@ For the report to contains the images, videos, documents... you must copy the "W
 If we want to print the document or create the report in pdf, I recommend in the print option -> scale the view <= 70%, otherwise the report will be displayed too large.
 
 WHADEME
-=====
+====
 whademe is a tool to decrypt directories containing backups and join them in a new database, to be able to be analyzed and obtain more information, such as deleted groups, messages, etc...
 
 Usage
 =====
-             __      __.__           ________            _____          
-	    /  \    /  \  |__ _____  \______ \   ____   /     \   ____  
-   	    \   \/\/   /  |  \\__  \  |    |  \_/ __ \ /  \ /  \_/ __ \ 
-   	     \        /|   Y  \/ __ \_|    `   \  ___//    Y    \  ___/ 
- 	      \__/\  / |___|  (____  /_______  /\___  >____|__  /\___  >
-                   \/       \/     \/        \/     \/        \/     \/
-              ------------ Whatsapp Decrypter and Merger v0.1 ------------
+	   __      __.__           ________            _____          
+	  /  \    /  \  |__ _____  \______ \   ____   /     \   ____  
+	  \   \/\/   /  |  \\__  \  |    |  \_/ __ \ /  \ /  \_/ __ \ 
+	   \        /|   Y  \/ __ \_|    `   \  ___//    Y    \  ___/ 
+	    \__/\  / |___|  (____  /_______  /\___  >____|__  /\___  >
+	         \/       \/     \/        \/     \/        \/     \/
+          ------------ Whatsapp Decrypter and Merger v0.1 ------------
     
 	usage: whademe.py [-h] [-k KEY] [-m] [PATH]
 
