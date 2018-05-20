@@ -2,3 +2,4 @@ pycryptodome
 colorama
 BeautifulSoup
 configparser
+gpsoauth
