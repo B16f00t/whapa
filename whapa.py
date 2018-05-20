@@ -633,7 +633,7 @@ def index_report(obj, html):
 def create_settings_file():
     """ Function that creates the settings file """
     with open('./cfg/settings.cfg', 'w') as cfg:
-        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 0000000000000000\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
+        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
 
 
 def messages(consult, sql):
@@ -1560,22 +1560,26 @@ if __name__ == "__main__":
     else:
         if args.update:
             update = open("update.sh", "w")
-            update.write("echo Updating whapa.py" + os.linesep)
-            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whapa.py 2> /dev/null" + os.linesep)
-            update.write("echo Updating README.md" + os.linesep)
-            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/README.md 2> /dev/null" + os.linesep)
-            update.write("echo Updating whagdext.py" + os.linesep)
-            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagdext.py 2> /dev/null" + os.linesep)
-            update.write("echo Updating requirements.txt" + os.linesep)
+            update.write("echo [i] Updating" + os.linesep)
+            update.write("echo     [-] README.md" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/requirements.txt -O ./doc/requirements.txt 2> /dev/null" + os.linesep)
-            update.write("echo Updating chat.css" + os.linesep)
+            update.write("echo     [-] CHANGELOG.md" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/doc/CHANGELOG.md -O ./doc/CHANGELOG.md 2> /dev/null" + os.linesep)
-            update.write("echo Updating CHANGELOG.md" + os.linesep)
-            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/chat.css -O ./cfg/chat.css 2> /dev/null" + os.linesep)
-            update.write("echo Updating settings.cfg" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagdext.py 2> /dev/null" + os.linesep)
+            update.write("echo     [-] requirements.txt" + os.linesep)
+            update.write("echo     [-] settings.cfg" + os.linesep)
             update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/cfg/settings.cfg -O ./cfg/settings.cfg 2> /dev/null" + os.linesep)
+            update.write("echo     [-] whapa.py" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whapa.py 2> /dev/null" + os.linesep)
+            update.write("echo     [-] whademe.py" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whademe.py 2> /dev/null" + os.linesep)
+            update.write("echo     [-] whagodri.py" + os.linesep)
+            update.write("wget -N https://raw.githubusercontent.com/B16f00t/whapa/master/whagodri.py 2> /dev/null" + os.linesep)
             update.write("rm update.sh" + os.linesep)
             update.write("python whapa.py")
+            update.write("python whademe.py")
+            update.write("python whagodri.py")
+
             update.close()
             os.system("sh update.sh")
         elif args.messages:
