@@ -12,7 +12,7 @@ May 2018
     	[-] Added flag "-e", Extract mode, extracts all media thumbnails of the database in "./thumbnails" path
     	[-] Fix minor bugs
     [i] whademe.py v0.1
-    [i] whagodri.py v0.1 (replace to a whagdext3.py)
+    [i] whagodri.py v0.1 (replaces to a whagdext3.py)
 
 April 2018
 
