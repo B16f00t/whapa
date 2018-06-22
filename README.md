@@ -222,7 +222,7 @@ Get in touch
 =====
 Acknowledgements, suggestions, languages, improvements...
 
-https:/t.me/B16F00T
+https:/t.me/B16f00t
   
 	
 Disclaimer
