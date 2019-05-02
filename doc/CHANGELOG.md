@@ -2,6 +2,14 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+May 2019
+
+    [+] whapa.py v0.5    
+    	[-] Disappears the option to decrypt database (new tool)
+    [+] whamerge.py v0.1 (replaces to a whademe.py)
+	[-] Merge new fields
+    [+] whacipher.py is added
+
 May 2018
 
     [+] whapa.py v0.5    
@@ -11,8 +19,8 @@ May 2018
     	[-] Make an index of the reports ("index.hml"), when you use the -a -r flag 
     	[-] Added flag "-e", Extract mode, extracts all media thumbnails of the database in "./thumbnails" path
     	[-] Fix minor bugs
-    [i] whademe.py v0.1
-    [i] whagodri.py v0.1 (replaces to a whagdext3.py)
+    [+] whademe.py v0.1
+    [+] whagodri.py v0.1 (replaces to a whagdext3.py)
 
 April 2018
 
