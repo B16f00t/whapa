@@ -104,31 +104,32 @@ Examples
 =====
 
 * Message mode:
-	Show all messages from the database
-		python whapa.py -m 
 
-	Show all messages from 12-12-2017 12:00 to 13-12-2017 12:00
-		python whapa.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
+		Show all messages from the database
+			python whapa.py -m 
 
-	Show all images send by Whatsapp Web
-		python whapa.py -m -w -tI
+		Show all messages from 12-12-2017 12:00 to 13-12-2017 12:00
+			python whapa.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
 
-	Show all messages send by that group
-		python whapa.py -m -g 34XXXXXXXXX-1345475288@g.us	
+		Show all images send by Whatsapp Web
+			python whapa.py -m -w -tI
 
-	Show all chats of the phone and makes English reports (recommended)
-		python whapa.py -m -a -r EN
+		Show all messages send by that group
+			python whapa.py -m -g 34XXXXXXXXX-1345475288@g.us	
+
+		Show all chats of the phone and makes English reports (recommended)
+			python whapa.py -m -a -r EN
 
 
 * Info mode:
 
-	Show a stage with options about groups, broadcast lists and statuses.
-		python whapa.py -i
+		Show a stage with options about groups, broadcast lists and statuses.
+			python whapa.py -i
 
 * Extract mode:
 
-	Extract all thumbnails from '01-01-2018 00:00' so far. 
-		python whapa.py -e -ts "01-01-2018 00:00"
+		Extract all thumbnails from '01-01-2018 00:00' so far. 
+			python whapa.py -e -ts "01-01-2018 00:00"
 
 
 Reports
@@ -172,17 +173,17 @@ Usage
            \/        \/         \/     \/     /_____/      \/ 
     ------------------- Whatsapp Merger v0.1 -----------------
     
-usage: wamerge.py [-h] [-o OUTPUT] [PATH]
+	usage: wamerge.py [-h] [-o OUTPUT] [PATH]
 
-Choose a database files path to merge
+	Choose a database files path to merge
 
-positional arguments:
-  PATH                  Database path
+	positional arguments:
+	  PATH                  Database path
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -o OUTPUT, --output OUTPUT
-                        Database output file 'msgstore_merge.db'
+	optional arguments:
+	  -h, --help            show this help message and exit
+	  -o OUTPUT, --output OUTPUT
+				Database output file 'msgstore_merge.db'
 
 
 
@@ -233,22 +234,22 @@ Usage
            \/        \/        \/   |__|        \/     \/             
     ---------- Whatsapp Encryption and Decryption v0.1 ----------
     
-usage: wacipher.py [-h] [-f [FILE] | -p [PATH]] [-d DECRYPT]
-                   [-e ENCRYPT ENCRYPT]
+	usage: wacipher.py [-h] [-f [FILE] | -p [PATH]] [-d DECRYPT]
+			   [-e ENCRYPT ENCRYPT]
 
-Choose a file or path to decrypt or encrypt
+	Choose a file or path to decrypt or encrypt
 
-optional arguments:
-  -h, --help            show this help message and exit
-  -f [FILE], --file [FILE]
-                        Database file to encrypt o decrypt
-  -p [PATH], --path [PATH]
-                        Database path to decrypt
-  -d DECRYPT, --decrypt DECRYPT
-                        Whatsapp Key path (Decrypt database)
-  -e ENCRYPT ENCRYPT, --encrypt ENCRYPT ENCRYPT
-                        'Whatsapp Key path' + 'msgstore.db.crypt12' (Encrypt
-                        database)
+	optional arguments:
+	  -h, --help            show this help message and exit
+	  -f [FILE], --file [FILE]
+				Database file to encrypt o decrypt
+	  -p [PATH], --path [PATH]
+				Database path to decrypt
+	  -d DECRYPT, --decrypt DECRYPT
+				Whatsapp Key path (Decrypt database)
+	  -e ENCRYPT ENCRYPT, --encrypt ENCRYPT ENCRYPT
+				'Whatsapp Key path' + 'msgstore.db.crypt12' (Encrypt
+				database)
 
 Examples
 =====
