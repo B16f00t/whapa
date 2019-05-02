@@ -3,15 +3,17 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: May 2018
+Updated: May 2019
 
-WhatsApp Messenger Version 2.18.142
+WhatsApp Messenger Version 2.19.115
 
 Whapa is a toolset to analyze whatsapp app for android. All tools are written in Python 2.X.
 Whapa toolset is divided in three tools:
-* **Whapa**    (Whatsapp Parser)
-* **Whademe**  (Whatsapp Decrypter and Merger)
-* **Whagodri** (Whataspp Google Drive Extractor)
+* **Whapa**     (Whatsapp Parser)
+* **Whamerge**  (Whatsapp Merger)
+* **Whagodri**  (Whataspp Google Drive Extractor)
+* **Whacipher** (Whatsapp Encryption/Decryption)
+
 
 Changelog
 ====
@@ -29,11 +31,10 @@ then:
 WHAPA
 ====
 whapa.py is an android whatsapp database parser which automates the process and presents the data handled by the Sqlite database in a way that is comprehensible to the analyst.
-The software is divided into four modes:
+The software is divided into three modes:
 * **Message Mode**   : Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
 		       "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
 * **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
-* **Info Mode**      : Displays different information about statuses, broadcasts list and groups.
 * **Extract Mode**   : Extracts all thumbnails from the database
 
 If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
@@ -50,7 +51,7 @@ Usage
 	           \/       \/     \/               \/ 
 	    ---------- Whatsapp Parser v0.5 -----------
     	
-	usage: whapa.py [-h] [-k KEY | -i | -m | -e] [--update]
+	usage: whapa.py [-h] [-i | -m | -e] [--update]
         [-u USER | -ua USER_ALL | -g GROUP | -a] [-t TEXT] [-w] [-s]
         [-b] [-ts TIME_START] [-te TIME_END] [-r [{EN,ES}]]
         [-tt | -ti | -ta | -tv | -tc | -tl | -tx | -tp | -tg | -td | -tr]
@@ -63,7 +64,6 @@ Usage
 
 	optional arguments:
   	  -h, --help            show this help message and exit
-  	  -k KEY, --key KEY     *** Decrypt Mode *** - key file path
   	  -i, --info            *** Info Mode ***
   	  -m, --messages        *** Message Mode ***
 	  -e, --extract         *** Extract Mode ***
@@ -104,36 +104,32 @@ Examples
 =====
 
 * Message mode:
-
+	Show all messages from the database
 		python whapa.py -m 
-	Show all messages from the database.
 
+	Show all messages from 12-12-2017 12:00 to 13-12-2017 12:00
 		python whapa.py -m -tS "12-12-2017 12:00" -tE "13-12-2017 12:00"
-	Show all messages from 12-12-2017 12:00 to 13-12-2017 12:00.
 
+	Show all images send by Whatsapp Web
 		python whapa.py -m -w -tI
-	Show all images send by Whatsapp Web.
-	
+
+	Show all messages send by that group
 		python whapa.py -m -g 34XXXXXXXXX-1345475288@g.us	
-	Show all messages send by that group.
-		
+
+	Show all chats of the phone and makes English reports (recommended)
 		python whapa.py -m -a -r EN
-	Show all chats of the phone and makes English reports.
 
-* Decrypt mode:
-
-		python whapa.py msgstore.db.crypt12 -k key
-	Decrypt msgstore.dbcrypt12, creating msgstore.db
 
 * Info mode:
 
-		python whapa.py -i
 	Show a stage with options about groups, broadcast lists and statuses.
+		python whapa.py -i
 
 * Extract mode:
 
-		python whapa.py -e -ts "01-01-2018 00:00"
 	Extract all thumbnails from '01-01-2018 00:00' so far. 
+		python whapa.py -e -ts "01-01-2018 00:00"
+
 
 Reports
 =====
@@ -161,31 +157,33 @@ For the report to contains the images, videos, documents... you must copy the "W
 
 If we want to print the document or create the report in pdf, I recommend in the print option -> scale the view <= 70%, otherwise the report will be displayed too large.
 
-WHADEME
+WHAMERGE
 ====
-whademe is a tool to decrypt directories containing backups and join them in a new database, to be able to be analyzed and obtain more information, such as deleted groups, messages, etc...
+whamerge is a tool to joins backups in a new database, to be able to be analyzed and obtain more information, such as deleted groups, messages, etc...
+Warning: Do not join restored databases with old copies, since they repeat the same ids and the copy will not be done correctly.
 
 Usage
 =====
-	   __      __.__           ________            _____          
-	  /  \    /  \  |__ _____  \______ \   ____   /     \   ____  
-	  \   \/\/   /  |  \\__  \  |    |  \_/ __ \ /  \ /  \_/ __ \ 
-	   \        /|   Y  \/ __ \_|    `   \  ___//    Y    \  ___/ 
-	    \__/\  / |___|  (____  /_______  /\___  >____|__  /\___  >
-	         \/       \/     \/        \/     \/        \/     \/
-          ------------ Whatsapp Decrypter and Merger v0.1 ------------
+     __      __            _____                              
+    /  \    /  \_____     /     \   ___________  ____   ____  
+    \   \/\/   /\__  \   /  \ /  \_/ __ \_  __ \/ ___\_/ __ \ 
+     \        /  / __ \_/    Y    \  ___/|  | \/ /_/  >  ___/ 
+      \__/\  /  (____  /\____|__  /\___  >__|  \___  / \___  >
+           \/        \/         \/     \/     /_____/      \/ 
+    ------------------- Whatsapp Merger v0.1 -----------------
     
-	usage: whademe.py [-h] [-k KEY] [-m] [PATH]
+usage: wamerge.py [-h] [-o OUTPUT] [PATH]
 
-	Choose a files path to decrypt and/or merge
+Choose a database files path to merge
 
-	positional arguments:
-	PATH               Database path - './' by default
+positional arguments:
+  PATH                  Database path
 
-	optional arguments:
-  	-h, --help         show this help message and exit
-  	-k KEY, --key KEY  Whatsapp Key path (Decrypt database)
-  	-m, --merge        Merge database
+optional arguments:
+  -h, --help            show this help message and exit
+  -o OUTPUT, --output OUTPUT
+                        Database output file 'msgstore_merge.db'
+
 
 
 WHAGODRI
@@ -217,6 +215,52 @@ Usage
       	                      Pull a file from Google Drive
   	-s, --sync            Sync all files locally
   	-f, --flush           Flush log file to sync from the beginning
+
+
+WHACIPHER
+=====
+whacipher.py is a tool which allows decrypt or encrypt WhatsApp database. You must have the key of your phone to decrypt, and additionally a encrypted database as reference to encrypt a new database.
+
+
+Usage
+=====
+
+     __      __        _________ .__       .__                  
+    /  \    /  \_____  \_   ___ \|__|_____ |  |__   ___________ 
+    \   \/\/   /\__  \ /    \  \/|  \____ \|  |  \_/ __ \_  __ \
+     \        /  / __ \\     \___|  |  |_> >   Y  \  ___/|  | \/
+      \__/\  /  (____  /\______  /__|   __/|___|  /\___  >__|   
+           \/        \/        \/   |__|        \/     \/             
+    ---------- Whatsapp Encryption and Decryption v0.1 ----------
+    
+usage: wacipher.py [-h] [-f [FILE] | -p [PATH]] [-d DECRYPT]
+                   [-e ENCRYPT ENCRYPT]
+
+Choose a file or path to decrypt or encrypt
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -f [FILE], --file [FILE]
+                        Database file to encrypt o decrypt
+  -p [PATH], --path [PATH]
+                        Database path to decrypt
+  -d DECRYPT, --decrypt DECRYPT
+                        Whatsapp Key path (Decrypt database)
+  -e ENCRYPT ENCRYPT, --encrypt ENCRYPT ENCRYPT
+                        'Whatsapp Key path' + 'msgstore.db.crypt12' (Encrypt
+                        database)
+
+Examples
+=====
+
+	Decrypt a Whatsapp database
+		python wacipher.py -f msgstore.db.crypt12 -d key
+
+	Decrypt all Whatsapp database in a path
+		python wacipher.py -p ./ -d key
+
+	Encrypt a Whatsapp database (you must provide a encrypted database and the key to generate the new encrypted database)
+		python wacipher.py -f msgstore.db -e key msgstore.db.crypt12
 
 Get in touch
 =====
