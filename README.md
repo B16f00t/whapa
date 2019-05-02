@@ -34,7 +34,7 @@ whapa.py is an android whatsapp database parser which automates the process and 
 The software is divided into three modes:
 * **Message Mode**   : Analyzes all messages in the database, applying different filters. It extracts thumbnails when they're availables.
 		       "./Media" is the directory where thumbnails are being written. The rows are sorted by timestamp not by id.
-* **Decryption Mode**: Decryptes the crypto12 databases as long as it has the key.
+* **Info Mode**: Displays different information about statuses, broadcasts list and groups.
 * **Extract Mode**   : Extracts all thumbnails from the database
 
 If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
