@@ -100,7 +100,7 @@ def merge(db_path):
         if list_dbs[0] != "msgstore_full.db":
             try:
                 print "\n[i] Copying " + list_dbs[0] + " to msgstore_full.db"
-                shutil.copy(list_dbs[0], "msgstore_full.db")
+                shutil.copy(db_path + list_dbs[0], "msgstore_full.db")
                 print "   [+] Created msgstore_full.db"
             except Exception as e:
                 print "[e] Error copying: " + e
@@ -144,7 +144,7 @@ def merge(db_path):
 
                 print "\n   [-] msgstore_full.db --> " + str(len(ids_message_write)) + " messages, " + str(len(ids_chatlist_write)) + " chats, " + str(len(ids_quote_write)) + " replies, " + str(len(ids_thumb_write)) + " thumbnails"
                 # Open read connection
-                with sqlite3.connect(filename) as orig:
+                with sqlite3.connect(db_path + filename) as orig:
                     cursor_read = orig.cursor()
                     
                 cursor_read.execute("SELECT _id FROM messages;")
