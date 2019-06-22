@@ -8,7 +8,7 @@ Updated: May 2019
 WhatsApp Messenger Version 2.19.115
 
 Whapa is a toolset to analyze whatsapp app for android. All tools are written in Python 2.X.
-Whapa toolset is divided in three tools:
+Whapa toolset is divided in four tools:
 * **Whapa**     (Whatsapp Parser)
 * **Whamerge**  (Whatsapp Merger)
 * **Whagodri**  (Whataspp Google Drive Extractor)
