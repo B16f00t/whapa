@@ -2,9 +2,14 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Sep 2019
+    [+] The whole project has been updated and improved to python3, now it is managed from a graphical interface.
+    [+] Fix major bugs
+    [+] whapa-gui.py v1.0
+
 May 2019
 
-    [+] whapa.py v0.5    
+    [+] whapa.py v0.6
     	[-] Disappears the option to decrypt database (new tool)
     [+] whamerge.py v0.1 (replaces to a whademe.py)
 	[-] Merge new fields
@@ -12,7 +17,7 @@ May 2019
 
 May 2018
 
-    [+] whapa.py v0.5    
+    [+] whapa.py v0.5
     	[-] Improved parses speed
     	[-] When parse the database extracts all thumbnails
     	[-] Reports are sorted in "./reports" path
