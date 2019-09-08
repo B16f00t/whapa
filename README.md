@@ -11,6 +11,8 @@ Whapa is a forensic graphical toolset for analyzing whatsapp in android. All the
 
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
+Whapa is included as standard in distributions such as Tsurugi Linux (Digital Forensics) and BlackArch Linux (Penetration Testing).
+
 Whapa toolset is divided in four tools:
 
 * **Whapa**     (Whatsapp Parser)
