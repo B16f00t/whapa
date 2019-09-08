@@ -8,6 +8,7 @@ Updated: Sep 2019
 WhatsApp Messenger Version 2.19.244
 
 Whapa is a forensic graphical toolset for analyzing whatsapp in android. All the tools have been written in Python 3.X and have been tested on linux and windows 10 systems.
+
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
 Whapa toolset is divided in four tools:
@@ -35,6 +36,7 @@ Start
 ====
 if you use Linux system:
 * python3 whapa-gui.py
+
 if you use Windows system:
 * python whapa-gui.py
 	or 
@@ -64,14 +66,17 @@ To create reports the first thing we need to do is to configure the file"./cfg/s
 Here we must put our company logo, company or unit name, as well as the assigned registration number, unit or group where we belong, who is the examiner and we can also specify notes on the report.
 
 To generate the report we must specify the option "English" whether we want the report in English, as well as "ES" whether we want the report in Spanish.
+
 If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
 For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the whapa directory, otherwise the program will generate thumbnails.
+
 If we want to print the document or create the report in pdf, It recommends in the print option -> scale the view <= 60% or 70%, otherwise the report will be displayed too large.
 
 
 WHAMERGE
 ====
 whamerge is a tool to joins backups in a new database, to be able to be analyzed and obtain more information, such as deleted groups, messages, etc...
+
 Warning: Do not join restored databases with old copies, since they repeat the same ids and the copy will not be done correctly.
 
 
@@ -84,13 +89,14 @@ Make sure of:
 * Download the latest version of whapa
 * Install the requirements
 * Settings:
-	Edit only the values of the./cfg/settings.cfg file
-    	[auth]
-   		gmail = alias@gmail.com
-    		passw = yourpassword
-    		devid = Device ID (optional, if specified get more information)
-    		celnumbr = BackupPhoneNumber (ex. 3466666666666, no + or 00)
 
+Edit only the values of the./cfg/settings.cfg file
+
+		[auth]
+		gmail = alias@gmail.com
+		passw = yourpassword
+		devid = Device ID (optional, if specified get more information)
+		celnumbr = BackupPhoneNumber (ex. 3466666666666, no + or 00)
 * If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
 
 
