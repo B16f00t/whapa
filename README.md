@@ -1,5 +1,6 @@
-![alt tag](https://github.com/B16f00t/whapa/blob/master/doc/whapa.png)
-
+<p align="center">
+  <img  src="https://github.com/B16f00t/whapa/blob/master/doc/whapa.png">
+</p>
 
 Whatsapp Parser Toolset
 ====
@@ -50,6 +51,10 @@ if you use Windows system:
 * click on whapa-gui.bat
 
 Inside Whapa-GUI, on the toolbar you can find this user manual.
+
+<p align="center">
+  <img  src="https://raw.githubusercontent.com/B16f00t/whapa/master/doc/software.jpg">
+</p>
 
 WHAPA
 ====
