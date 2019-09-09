@@ -50,9 +50,9 @@ if you use Windows system:
 	or 
 * click on whapa-gui.bat
 
-Inside Whapa-GUI, on the toolbar you can find this user manual.
-
-
+<p align="center">
+  <img src="https://raw.githubusercontent.com/B16f00t/whapa/master/doc/software.jpg" width="720" height="576">
+</p>
 
 WHAPA
 ====
