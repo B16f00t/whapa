@@ -15,7 +15,7 @@ import argparse
 
 
 # Define global variable
-version = "1.0"
+version = "1.1"
 exitFlag = 0
 bearer = ""
 now = 0
@@ -107,13 +107,15 @@ def getGoogleDriveToken(token):
 
 
 def rawGoogleDriveRequest(bearer, url):
-    headers = {'Authorization': 'Bearer '+bearer}
+    headers = {'Authorization': 'Bearer ' + bearer,
+               'User-Agent': 'WhatsApp/2.19.244'}
     request = requests.get(url, headers=headers)
     return request.text
 
 
 def gDriveFileMapRequest(bearer):
-    header = {'Authorization': 'Bearer '+bearer}
+    header = {'Authorization': 'Bearer ' + bearer,
+              'User-Agent': 'WhatsApp/2.19.244'}
     url = "https://www.googleapis.com/drive/v2/files?mode=restore&spaces=appDataFolder&maxResults=1000&fields=items(description%2Cid%2CfileSize%2Ctitle%2Cmd5Checksum%2CmimeType%2CmodifiedDate%2Cparents(id)%2Cproperties(key%2Cvalue))%2CnextPageToken&q=title%20%3D%20'"+celnumbr+"-invisible'%20or%20title%20%3D%20'gdrive_file_map'%20or%20title%20%3D%20'Databases%2Fmsgstore.db.crypt12'%20or%20title%20%3D%20'Databases%2Fmsgstore.db.crypt11'%20or%20title%20%3D%20'Databases%2Fmsgstore.db.crypt10'%20or%20title%20%3D%20'Databases%2Fmsgstore.db.crypt9'%20or%20title%20%3D%20'Databases%2Fmsgstore.db.crypt8'"
     request = requests.get(url, headers=header)
     return request.text
