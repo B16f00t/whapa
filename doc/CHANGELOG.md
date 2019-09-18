@@ -1,14 +1,16 @@
 Changelog
 ====
 All notable changes to this project will be documented in this file.
+
 Sep 2019 NEW
-    [+] whapa-gui.py v1.1
+
+	[+] whapa-gui.py v1.1
     	[-] whagodri tab changes, It's added option to choose an output path
     [+] whagodri.py v1.1
     	[-] It works with new google drive backup.
 
-
 Sep 2019
+
     [+] The whole project has been updated and improved to python3, now it is managed from a graphical interface.
     [+] Fix major bugs
     [+] whapa-gui.py v1.0
