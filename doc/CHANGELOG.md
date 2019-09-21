@@ -5,12 +5,12 @@ All notable changes to this project will be documented in this file.
 Sep 2019
 
     [+] whapa-gui.py v1.11
-        [-] whagodri tab changes, Add two method to download (Oficial and Alternative)
+    	[-] whagodri tab changes, Add two method to download (Oficial and Alternative)
     [+] whagodri.py v1.11
-        [-] Fixed Limit of 5000 files to download.
+    	[-] Fixed Limit of 5000 files to download.
     ------------------------------------------------------------------------------------------------------------
     [+] whapa-gui.py v1.1
-        [-] whagodri tab changes, It's added option to choose an output path
+    	[-] whagodri tab changes, It's added option to choose an output path
     [+] whagodri.py v1.1
     	[-] It works with new google drive backup.
     ------------------------------------------------------------------------------------------------------------
