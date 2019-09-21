@@ -15,8 +15,10 @@ import argparse
 
 
 # Define global variable
-version = "1.1"
+version = "1.11"
 exitFlag = 0
+nextPageToken = ""
+backups = []
 bearer = ""
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
@@ -106,18 +108,70 @@ def getGoogleDriveToken(token):
         quit(request.text)
 
 
-def gDriveFileMap(bearer):
+def gDriveFileMap(bearer, nextPageToken):
     header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
     url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
-    url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?pageSize=100000".format(celnumbr)
+    if args.method == "ALT":
+        if nextPageToken:
+            url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?{}pageSize=5000".format(celnumbr, "pageToken=" + nextPageToken + "&")
+        else:
+            url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?pageSize=5000".format(celnumbr)
+
+    elif args.method == "ORI":
+        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/gdrive_file_map?alt=media".format(celnumbr)
+
     request_data = requests.get(url_data, headers=header)
     request_files = requests.get(url_files, headers=header)
     data_data = json.loads(request_data.text)
     data_files = json.loads(request_files.text)
+    try:
+        if args.method == "ALT":
+            try:
+                nextPageToken = data_files['nextPageToken']
+            except Exception as e:
+                nextPageToken = ""
+
+            for result in data_files['files']:
+                backups.append(result['name'])
+            if nextPageToken:
+                gDriveFileMap(bearer, nextPageToken)
+
+        elif args.method == "ORI":
+            for result in data_files:
+                backups.append(result['f'])
+
+    except Exception as e:
+        if data_files:
+            print("[e] Error: ", data_files['error']['message'])
+        else:
+            print("[e] No Google Drive backup: {}".format(e))
+
+    if len(backups) == 0:
+        print("[e] Unable to locate google drive file map for: {} {}".format(pkg, request_files))
+
+    return data_data, backups
+
+
+def gDriveFileMap_copy(bearer):
+    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
+    url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
+    if args.method == "ALT":
+        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?&pageSize=1000".format(celnumbr)
+    elif args.method == "ORI":
+        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/gdrive_file_map?alt=media".format(celnumbr)
+    request_data = requests.get(url_data, headers=header)
+    request_files = requests.get(url_files, headers=header)
+    data_data = json.loads(request_data.text)
+    data_files = json.loads(request_files.text)
+
     backups = []
     try:
-        for result in data_files['files']:
-            backups.append(result['name'])
+        if args.method == "ALT":
+            for result in data_files['files']:
+                backups.append(result['name'])
+        elif args.method == "ORI":
+            for result in data_files:
+                backups.append(result['f'])
 
     except Exception as e:
         if data_files:
@@ -163,13 +217,22 @@ def getMultipleFiles(drives, bearer, files):
     n = 1
     lenfiles = len(files)
     queueLock.acquire()
+    if args.output:
+        output = args.output
+    else:
+        output = ""
+
     for entries in files:
-        local = entries.split('files/')[1].replace("/", os.path.sep)
-        if os.path.isfile(local) or local == "gdrive_file_map":
-            print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local))
+        if args.method == "ALT":
+            file = entries.split('files/')[1]
+        elif args.method == "ORI":
+            file = entries
+        local_store = (output + file).replace("/", os.path.sep)
+        if os.path.isfile(local_store):
+            print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local_store))
         else:
-            url = "https://backup.googleapis.com/v1/{}?alt=media".format(entries)
-            workQueue.put({'bearer': bearer, 'url': url, 'local': local, 'now': n, 'lenfiles': lenfiles})
+            url = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/{}?alt=media".format(celnumbr, file)
+            workQueue.put({'bearer': bearer, 'url': url, 'local': local_store, 'now': n, 'lenfiles': lenfiles})
         n += 1
 
     queueLock.release()
@@ -209,8 +272,6 @@ def process_data(threadName, q):
 
 
 def getMultipleFilesThread(bearer, url, local, now, lenfiles, threadName):
-    if args.output:
-        local = args.output + local
     os.makedirs(os.path.dirname(local), exist_ok=True)
     header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244'}
     request = requests.get(url, headers=header, stream=True)
@@ -235,7 +296,8 @@ if __name__ == "__main__":
     user_parser.add_argument("-lw", "--list_whatsapp", help="List Whatsapp backups", action="store_true")
     user_parser.add_argument("-p", "--pull", help="Pull a file from Google Drive")
     user_parser.add_argument("-s", "--sync", help="Sync all files locally", action="store_true")
-    parser.add_argument("-o", "--output", help="Ourput path to save files")
+    parser.add_argument("-m", "--method", help='Method to connect to the cloud', const='ORI', nargs='?', choices=['ORI', 'ALT'])
+    parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
     if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
         create_settings_file()
@@ -245,7 +307,7 @@ if __name__ == "__main__":
         print("[i] Searching...\n")
         getConfigs()
         bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
-        drives, files = gDriveFileMap(bearer)
+        drives, files = gDriveFileMap(bearer, nextPageToken)
 
         if args.info:  # Check if exists more backups ID
             try:
@@ -273,7 +335,11 @@ if __name__ == "__main__":
             lenfiles = len(files)
             n = 1
             for i in files:
-                print("    [-] File {}/{}  : {}".format(n, lenfiles, i))
+                if args.method == "ALT":
+                    print("    [-] File {}/{}  : {}".format(n, lenfiles, i.split('files/')[1]))
+
+                elif args.method == "ORI":
+                    print("    [-] File {}/{}  : {}".format(n, lenfiles, i))
                 n += 1
 
         if args.list_whatsapp:
@@ -281,8 +347,10 @@ if __name__ == "__main__":
             lenfiles = len(files)
             n = 1
             for i in files:
-                crypt_file = i.split('files')[1]
-                if crypt_file == "/Databases/msgstore.db.crypt12":
+                if args.method == "ALT":
+                    i = i.split('files/')[1]
+
+                if i == "Databases/msgstore.db.crypt12":
                     print("    [-] File {}/{}   : {}".format(n, lenfiles, i))
                     print("    [-] Chat DB Size : {} Bytes {}".format(json.loads(drives["metadata"])["chatdbSize"], size(int(json.loads(drives["metadata"])["chatdbSize"]))))
                     exit()
@@ -293,15 +361,16 @@ if __name__ == "__main__":
 
         if args.pull:
             try:
-                FilePath = str(args.pull)
-                local = FilePath.split('files/')[1].replace("/", os.path.sep)
+                file = str(args.pull)
+                local_store = file.replace("/", os.path.sep)
+
                 if args.output:
-                    local = args.output + local
-                if os.path.isfile(local):
+                    local_store = args.output + local_store
+                if os.path.isfile(local_store):
                     print("[+] Backup name : {}".format(drives["name"]))
-                    print("    [-] Skipped : {}".format(local))
+                    print("    [-] Skipped : {}".format(local_store))
                 else:
                     print("[+] Backup name        : {}".format(drives["name"]))
-                    downloadFileGoogleDrive(bearer, "https://backup.googleapis.com/v1/{}?alt=media".format(FilePath), local)
+                    downloadFileGoogleDrive(bearer, "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/{}?alt=media".format(celnumbr, file), local_store)
             except Exception as e:
-                print("[e] Unable to locate: {}".format(FilePath))
+                print("[e] Unable to locate: {}".format(file))
