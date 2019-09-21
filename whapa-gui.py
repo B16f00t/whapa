@@ -13,7 +13,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'Whatsapp Parser Toolset'
 contact = "http://t.me/b16f00t"
-version = '1.1'
+version = '1.11'
 system = ""
 
 class ToolTip(object):
@@ -91,6 +91,7 @@ class Whapa:
         # Variables
         """ Function that gets report config"""
         self.wagodri_box_value = StringVar()
+        self.wagodri_method_box_value = StringVar()
         self.whacipher_box_value = StringVar()
         self.label_status = StringVar()
         self.whapa_box_value = StringVar()
@@ -438,7 +439,7 @@ class Whapa:
         self.label_wagodri = Label(self.tab4, text="Whatsapp Google Drive Extractor", font=('courier', 15, 'bold'))
         self.label_wagodri.grid(row=0, column=0, sticky="we", padx=5, pady=5, columnspan=2)
 
-        self.frame_whagodri = LabelFrame(self.tab4)
+        self.frame_whagodri = LabelFrame(self.tab4, text="Options")
         self.frame_whagodri.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
 
         self.wagodri_but_info = Radiobutton(self.frame_whagodri, text='Info about account', variable=self.wagodri_box_value,  value='Info', anchor="w", compound='left')
@@ -459,6 +460,16 @@ class Whapa:
         self.entry_whagodri_down = Entry(self.frame_whagodri, width=90)
         self.entry_whagodri_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
         self.wagodri_box_value.set('Info')
+
+        self.frame_method_whagodri = LabelFrame(self.frame_whagodri, text="Method")
+        self.frame_method_whagodri.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky="nsw")
+        self.wagodri_method_or = Radiobutton(self.frame_method_whagodri, text='Original', variable=self.wagodri_method_box_value,  value='Original', anchor="w", compound='left')
+        self.wagodri_method_or.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_method_or.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_method_al = Radiobutton(self.frame_method_whagodri, text='Alternative', variable=self.wagodri_method_box_value, value='Alternative', anchor="w", compound='left')
+        self.wagodri_method_al.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_method_al.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_method_box_value.set('Original')
 
         self.frame_whagodri_out = LabelFrame(self.frame_whagodri, text="Output path")
         self.frame_whagodri_out.grid(row=5, column=0, padx=10, pady=15, sticky="nsew", columnspan=2)
@@ -932,10 +943,21 @@ class Whapa:
         elif self.wagodri_box_value.get() == "Download":
             self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
 
+        if self.wagodri_method_box_value.get() == "Original":
+            self.cmd += " -m ORI"
+        elif self.wagodri_method_box_value.get() == "Alternative":
+            self.cmd += " -m ALT"
+
+        if self.whagodri_path.get():
+            if system == "Linux":
+                self.cmd += ' -o "{}"'.format(self.whagodri_path.get()).strip("\n")
+            else:
+                self.cmd += ' -o "{}\\"'.format(self.whagodri_path.get()).strip("\n")
+
         if system == "Linux":
-            exec = "python3 ./libs/whagodri.py {} -o {}".format(self.cmd, self.whagodri_path.get())
+            exec = "python3 ./libs/whagodri.py {} ".format(self.cmd)
         else:
-            exec = "python .\\libs\\whagodri.py {} -o {}".format(self.cmd, self.whagodri_path.get())
+            exec = "python .\\libs\\whagodri.py {}".format(self.cmd)
         self.label_status.set(exec)
         os.system(exec)
 
