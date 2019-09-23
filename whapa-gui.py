@@ -92,8 +92,7 @@ class Whapa:
         # Variables
         """ Function that gets report config"""
         self.wagodri_box_value = StringVar()
-        self.whagodri_sync = StringVar(value="0")
-        self.wagodri_id = IntVar(value=0)
+        self.wagodri_method_box_value = StringVar()
         self.whacipher_box_value = StringVar()
         self.label_status = StringVar()
         self.whapa_box_value = StringVar()
@@ -108,6 +107,7 @@ class Whapa:
 
         if system == "Linux":
             self.whamerge_path = StringVar(value=os.getcwd() + "/")
+            self.whagodri_path = StringVar(value=os.getcwd() + "/")
             self.whacipher_path = StringVar(value=os.getcwd() + "/")
             self.whamerge_file = StringVar(value=os.getcwd() + "/msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.cript12")
@@ -121,6 +121,7 @@ class Whapa:
             self.whapa_wa = StringVar(value=os.getcwd() + "/wa.db")
         else:
             self.whamerge_path = StringVar(value=os.getcwd() + "\\")
+            self.whagodri_path = StringVar(value=os.getcwd() + "\\")
             self.whacipher_path = StringVar(value=os.getcwd() + "\\")
             self.whamerge_file = StringVar(value=os.getcwd() + r"\msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.cript12")
@@ -439,49 +440,48 @@ class Whapa:
         self.label_wagodri = Label(self.tab4, text="Whatsapp Google Drive Extractor", font=('courier', 15, 'bold'))
         self.label_wagodri.grid(row=0, column=0, sticky="we", padx=5, pady=5, columnspan=2)
 
-        self.notewhagodri = ttk.Notebook(self.tab4)
-        self.tabwhagodri1 = Frame(self.notewhagodri)
-        self.tabwhagodri2 = Frame(self.notewhagodri)
-        self.notewhagodri.add(self.tabwhagodri1, text="Information", compound='left', padding=20)
-        self.notewhagodri.add(self.tabwhagodri2, text="Downloads", compound='left', padding=20)
-        self.notewhagodri.grid(row=1, padx=5, pady=5, sticky="we")
+        self.frame_whagodri = LabelFrame(self.tab4, text="Options")
+        self.frame_whagodri.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
 
-            # Left
-        self.wagodri_but_info = Radiobutton(self.tabwhagodri1, text='Info about account', variable=self.wagodri_box_value,  value='Info', anchor="w", compound='left')
+        self.wagodri_but_info = Radiobutton(self.frame_whagodri, text='Info about account', variable=self.wagodri_box_value,  value='Info', anchor="w", compound='left')
         self.wagodri_but_info.config(bd=4, borderwidth=0, highlightthickness=0)
         self.wagodri_but_info.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_but_list = Radiobutton(self.tabwhagodri1, text='List all files', variable=self.wagodri_box_value, value='List', anchor="w", compound='left')
+        self.wagodri_but_list = Radiobutton(self.frame_whagodri, text='List all files', variable=self.wagodri_box_value, value='List', anchor="w", compound='left')
         self.wagodri_but_list.config(bd=4, borderwidth=0, highlightthickness=0)
         self.wagodri_but_list.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_but_listw = Radiobutton(self.tabwhagodri1, text='List Whatsapp database file', variable=self.wagodri_box_value, value='ListW', anchor="w", compound='left')
+        self.wagodri_but_listw = Radiobutton(self.frame_whagodri, text='List Whatsapp database file', variable=self.wagodri_box_value, value='ListW', anchor="w", compound='left')
         self.wagodri_but_listw.config(bd=4, borderwidth=0, highlightthickness=0)
         self.wagodri_but_listw.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_but_listw = Radiobutton(self.tabwhagodri1, text='Delete logs', variable=self.wagodri_box_value, value='Delete', anchor="w", compound='left')
-        self.wagodri_but_listw.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_but_listw.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_sync = Radiobutton(self.frame_whagodri, text='Download all', variable=self.wagodri_box_value, value='Sync', anchor="w", compound='left')
+        self.wagodri_sync.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_sync.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_file = Radiobutton(self.frame_whagodri, text='File to download', variable=self.wagodri_box_value, value='Download', anchor="w", compound='left')
+        self.wagodri_file.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_file.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
+        self.entry_whagodri_down = Entry(self.frame_whagodri, width=90)
+        self.entry_whagodri_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
         self.wagodri_box_value.set('Info')
-        self.button_whagodri_exec_info = Button(self.tabwhagodri1, image=self.iconinfowhagodri, command=self.wagodri_info, height=32, width=64)
-        self.button_whagodri_exec_info.grid(row=4, column=0, padx=3, pady=10)
-        ToolTip(self.button_whagodri_exec_info, "Click for information")
 
-            # Right
-        self.label_box_whagodri_backup = Label(self.tabwhagodri2, text="Backup ID", anchor="w")
-        self.label_box_whagodri_backup.grid(row=0, column=0, sticky="we", padx=5, pady=5)
-        self.vcmd = (self.root.register(self.checkNumberOnly), '%d', '%P')
-        self.entry_whagodri_backup = Entry(self.tabwhagodri2, validate='key', validatecommand=self.vcmd, width=3, textvariable=self.wagodri_id)
-        self.entry_whagodri_backup.grid(row=0, column=1, sticky="w", padx=5, pady=5)
+        self.frame_method_whagodri = LabelFrame(self.frame_whagodri, text="Method")
+        self.frame_method_whagodri.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky="nsw")
+        self.wagodri_method_or = Radiobutton(self.frame_method_whagodri, text='Original', variable=self.wagodri_method_box_value,  value='Original', anchor="w", compound='left')
+        self.wagodri_method_or.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_method_or.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_method_al = Radiobutton(self.frame_method_whagodri, text='Alternative', variable=self.wagodri_method_box_value, value='Alternative', anchor="w", compound='left')
+        self.wagodri_method_al.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_method_al.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_method_box_value.set('Original')
 
-        self.label_box_whagodri_down = Label(self.tabwhagodri2, text="File to download", anchor="w")
-        self.label_box_whagodri_down.grid(row=1, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whagodri_down = Entry(self.tabwhagodri2, width=98)
-        self.entry_whagodri_down.grid(row=1, column=1, sticky="w", pady=5, padx=5)
+        self.frame_whagodri_out = LabelFrame(self.frame_whagodri, text="Output path")
+        self.frame_whagodri_out.grid(row=5, column=0, padx=10, pady=15, sticky="nsew", columnspan=2)
+        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=110)
+        self.entry_whagodri_output.grid(row=0, column=0, sticky="we", padx=5, pady=5, )
+        self.whagodri_button_path = Button(self.frame_whagodri_out, image=self.iconfile, command=self.search_path_whagodri, borderwidth=0, highlightthickness=0)
+        self.whagodri_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
+        ToolTip(self.whagodri_button_path, "Output path to save files")
 
-        self.check_wagodri_sync = Checkbutton(self.tabwhagodri2, text="Download All", borderwidth=0, highlightthickness=0, variable=self.whagodri_sync)
-        self.check_wagodri_sync.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-
-        self.button_whagodri_exec_down = Button(self.tabwhagodri2, image=self.icondownwhagodri, command=self.wagodri_down, height=32, width=64)
-        self.button_whagodri_exec_down.grid(row=3, column=1, padx=3, pady=10)
-        ToolTip(self.button_whagodri_exec_down, "Click to download")
+        self.button_whagodri_exec = Button(self.frame_whagodri, image=self.icondownwhagodri, command=self.wagodri_down, height=32, width=64)
+        self.button_whagodri_exec.grid(row=6, column=1, padx=185, pady=10, sticky="w")
 
         self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
@@ -928,8 +928,16 @@ class Whapa:
         self.label_status.set(exec)
         os.system(exec)
 
-    def wagodri_info(self):
-        """Run Google Drive info command"""
+    def search_path_whagodri(self):
+        """Search a path file to merge"""
+        self.path = filedialog.askdirectory()
+        if system == "Linux":
+            self.whagodri_path.set(self.path + "/")
+        else:
+            self.whagodri_path.set((self.path + "\\").replace("/", "\\"))
+
+    def wagodri_down(self):
+        """Run Google Drive command"""
         if self.wagodri_box_value.get() == "Info":
             self.cmd = "-i"
 
@@ -939,25 +947,25 @@ class Whapa:
         elif self.wagodri_box_value.get() == "ListW":
             self.cmd = "-lw"
 
-        elif self.wagodri_box_value.get() == "Delete":
-            self.cmd = "-f"
-
-        if system == "Linux":
-            exec = "python3 ./libs/whagodri.py {}".format(self.cmd)
-        else:
-            exec = "python .\\libs\\whagodri.py {}".format(self.cmd)
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def wagodri_down(self):
-        """Run Google Drive download command"""
-        if self.whagodri_sync.get() == "0":
-            self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
-            self.cmd += " {}".format(self.wagodri_id.get()).strip("\n")
-        else:
+        elif self.wagodri_box_value.get() == "Sync":
             self.cmd = "-s"
+
+        elif self.wagodri_box_value.get() == "Download":
+            self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
+
+        if self.wagodri_method_box_value.get() == "Original":
+            self.cmd += " -m ORI"
+        elif self.wagodri_method_box_value.get() == "Alternative":
+            self.cmd += " -m ALT"
+
+        if self.whagodri_path.get():
+            if system == "Linux":
+                self.cmd += ' -o "{}"'.format(self.whagodri_path.get()).strip("\n")
+            else:
+                self.cmd += ' -o "{}\\"'.format(self.whagodri_path.get()).strip("\n")
+
         if system == "Linux":
-            exec = "python3 ./libs/whagodri.py {}".format(self.cmd)
+            exec = "python3 ./libs/whagodri.py {} ".format(self.cmd)
         else:
             exec = "python .\\libs\\whagodri.py {}".format(self.cmd)
         self.label_status.set(exec)
@@ -979,7 +987,8 @@ class Whapa:
 
 if __name__ == '__main__':
     """Initialize"""
-    if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
+    if os.path.isfile('./cfg/settings.cfg') is False:
+        """ Function that creates the settings file """
         with open('./cfg/settings.cfg', 'w') as cfg:
             cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
 
