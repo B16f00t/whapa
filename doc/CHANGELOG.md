@@ -12,7 +12,7 @@ Sep 2019
 		[-] whagodri tab changes, It's added option to choose an output path
     [+] whagodri.py v1.11    
     	[-] Fixed Limit of 5000 files to download.
-    		[-] It works with new google drive backup.
+    	[-] It works with new google drive backup.
 
 May 2019
 
