@@ -2,6 +2,14 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Oct 2019
+
+    [+] whapa-gui.py v1.13
+    	[-] whagodri tab changes, Only one download method and new options for downloading files.
+
+    [+] whagodri.py
+    	[-] Videos, images, audios, backups, documents can be recovered independently.
+	
 Sep 2019
 
     [+] The whole project has been updated and improved to python3, now it is managed from a graphical interface.
