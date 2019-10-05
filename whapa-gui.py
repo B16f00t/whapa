@@ -1,6 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
 import os
 import time
 import webbrowser
@@ -14,7 +11,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "http://t.me/b16f00t"
-version = '1.12'
+version = '1.13'
 system = ""
 
 class ToolTip(object):
@@ -92,7 +89,6 @@ class Whapa:
         # Variables
         """ Function that gets report config"""
         self.wagodri_box_value = StringVar()
-        self.wagodri_method_box_value = StringVar()
         self.whacipher_box_value = StringVar()
         self.label_status = StringVar()
         self.whapa_box_value = StringVar()
@@ -438,9 +434,9 @@ class Whapa:
 
         # Tab 4 Whagodri
         self.label_wagodri = Label(self.tab4, text="Whatsapp Google Drive Extractor", font=('courier', 15, 'bold'))
-        self.label_wagodri.grid(row=0, column=0, sticky="we", padx=5, pady=5, columnspan=2)
+        self.label_wagodri.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
 
-        self.frame_whagodri = LabelFrame(self.tab4, text="Options")
+        self.frame_whagodri = LabelFrame(self.tab4, text="Information")
         self.frame_whagodri.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
 
         self.wagodri_but_info = Radiobutton(self.frame_whagodri, text='Info about account', variable=self.wagodri_box_value,  value='Info', anchor="w", compound='left')
@@ -452,40 +448,49 @@ class Whapa:
         self.wagodri_but_listw = Radiobutton(self.frame_whagodri, text='List Whatsapp database file', variable=self.wagodri_box_value, value='ListW', anchor="w", compound='left')
         self.wagodri_but_listw.config(bd=4, borderwidth=0, highlightthickness=0)
         self.wagodri_but_listw.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_sync = Radiobutton(self.frame_whagodri, text='Download all', variable=self.wagodri_box_value, value='Sync', anchor="w", compound='left')
-        self.wagodri_sync.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_sync.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_file = Radiobutton(self.frame_whagodri, text='File to download', variable=self.wagodri_box_value, value='Download', anchor="w", compound='left')
-        self.wagodri_file.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_file.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
-        self.entry_whagodri_down = Entry(self.frame_whagodri, width=90)
-        self.entry_whagodri_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
         self.wagodri_box_value.set('Info')
 
-        self.frame_method_whagodri = LabelFrame(self.frame_whagodri, text="Method")
-        self.frame_method_whagodri.grid(row=0, column=1, rowspan=3, padx=5, pady=5, sticky="nsw")
-        self.wagodri_method_or = Radiobutton(self.frame_method_whagodri, text='Original', variable=self.wagodri_method_box_value,  value='Original', anchor="w", compound='left')
-        self.wagodri_method_or.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_method_or.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_method_al = Radiobutton(self.frame_method_whagodri, text='Alternative', variable=self.wagodri_method_box_value, value='Alternative', anchor="w", compound='left')
-        self.wagodri_method_al.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_method_al.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_method_box_value.set('Original')
+        self.frame_method_whagodri = LabelFrame(self.tab4, text="Download")
+        self.frame_method_whagodri.grid(row=1, column=1, padx=5, pady=5, sticky="nsw")
 
-        self.frame_whagodri_out = LabelFrame(self.frame_whagodri, text="Output path")
-        self.frame_whagodri_out.grid(row=5, column=0, padx=10, pady=15, sticky="nsew", columnspan=2)
-        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=110)
-        self.entry_whagodri_output.grid(row=0, column=0, sticky="we", padx=5, pady=5, )
+        self.wagodri_sync = Radiobutton(self.frame_method_whagodri, text='All', variable=self.wagodri_box_value, value='All', anchor="w", compound='left')
+        self.wagodri_sync.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_sync.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_si = Radiobutton(self.frame_method_whagodri, text='Images', variable=self.wagodri_box_value, value='Images', anchor="w", compound='left')
+        self.wagodri_si.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_si.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_vi = Radiobutton(self.frame_method_whagodri, text='Videos', variable=self.wagodri_box_value, value='Videos', anchor="w", compound='left')
+        self.wagodri_vi.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_vi.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_au = Radiobutton(self.frame_method_whagodri, text='Audios', variable=self.wagodri_box_value, value='Audios', anchor="w", compound='left')
+        self.wagodri_au.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_au.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_sx = Radiobutton(self.frame_method_whagodri, text='Documents', variable=self.wagodri_box_value, value='Documents', anchor="w", compound='left')
+        self.wagodri_sx.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_sx.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_db = Radiobutton(self.frame_method_whagodri, text='Databases', variable=self.wagodri_box_value, value='Databases', anchor="w", compound='left')
+        self.wagodri_db.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_db.grid(row=5, column=0, padx=5, pady=5, sticky="nswe")
+        self.wagodri_file = Radiobutton(self.frame_method_whagodri, text='File', variable=self.wagodri_box_value, value='File', anchor="w", compound='left')
+        self.wagodri_file.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wagodri_file.grid(row=6, column=0, padx=5, pady=5, sticky="nswe")
+        self.entry_whagodri_down = Entry(self.frame_method_whagodri, width=77)
+        self.entry_whagodri_down.grid(row=6, column=1, sticky="w", pady=5, padx=5)
+
+        self.frame_whagodri_out = LabelFrame(self.tab4, text="Output path")
+        self.frame_whagodri_out.grid(row=2, column=0, padx=5, pady=10, sticky="nsew", columnspan=2)
+        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=114)
+        self.entry_whagodri_output.grid(row=0, column=0, sticky="we", padx=5, pady=5 )
         self.whagodri_button_path = Button(self.frame_whagodri_out, image=self.iconfile, command=self.search_path_whagodri, borderwidth=0, highlightthickness=0)
         self.whagodri_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
         ToolTip(self.whagodri_button_path, "Output path to save files")
 
-        self.button_whagodri_exec = Button(self.frame_whagodri, image=self.icondownwhagodri, command=self.wagodri_down, height=32, width=64)
-        self.button_whagodri_exec.grid(row=6, column=1, padx=185, pady=10, sticky="w")
+        self.button_whagodri_exec = Button(self.frame_whagodri_out, image=self.icondownwhagodri, command=self.wagodri_down, height=32, width=64)
+        self.button_whagodri_exec.grid(row=1, column=0, columnspan=2, padx=185, pady=10)
 
         self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whagodri_info, "1. Disable 2FA in your Google Account.\n2. Install the requirements.\n3. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        devid = Device ID (optional, if specified get more information)\n        celnumbr = BackupPhoneNumber \n        (ex. 3466666666666, [Country Code] + Phone Number 'not +, nor 00'\n4. Click here (log into your browser and then allow access to your Google account).")
+        ToolTip(self.label_box_whagodri_info, "1. Disable 2FA in your Google Account.\n2. Install the requirements.\n3. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        devid = Device ID (optional)\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n4. Click here (log into your browser and then allow access to your Google account).")
 
         # Status Bar
         self.label_status.set(time.strftime("%d-%m-%Y %H:%M"))
@@ -947,16 +952,26 @@ class Whapa:
         elif self.wagodri_box_value.get() == "ListW":
             self.cmd = "-lw"
 
-        elif self.wagodri_box_value.get() == "Sync":
+        elif self.wagodri_box_value.get() == "All":
             self.cmd = "-s"
 
-        elif self.wagodri_box_value.get() == "Download":
-            self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
+        elif self.wagodri_box_value.get() == "Images":
+            self.cmd = "-si"
 
-        if self.wagodri_method_box_value.get() == "Original":
-            self.cmd += " -m ORI"
-        elif self.wagodri_method_box_value.get() == "Alternative":
-            self.cmd += " -m ALT"
+        elif self.wagodri_box_value.get() == "Videos":
+            self.cmd = "-sv"
+
+        elif self.wagodri_box_value.get() == "Audios":
+            self.cmd = "-sa"
+
+        elif self.wagodri_box_value.get() == "Documents":
+            self.cmd = "-sx"
+
+        elif self.wagodri_box_value.get() == "Databases":
+            self.cmd = "-sd"
+
+        elif self.wagodri_box_value.get() == "File":
+            self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
 
         if self.whagodri_path.get():
             if system == "Linux":
