@@ -1,6 +1,3 @@
-#!/usr/bin/python3
-# -*- coding: utf-8 -*-
-
 from gpsoauth import google
 from configparser import ConfigParser
 import json
@@ -15,7 +12,6 @@ import argparse
 
 
 # Define global variable
-version = "1.11"
 exitFlag = 0
 nextPageToken = ""
 backups = []
@@ -33,8 +29,7 @@ def banner():
       \__/\  / |___|  (____  /\______  /\____/_______  /__|  |__|
            \/       \/     \/        \/              \/          
 
-    ------------ Whatsapp Google Drive Extractor v""" + version + """ ------------
-    """)
+    -------------- Whatsapp Google Drive Extractor --------------""")
 
 
 def help():
@@ -111,67 +106,21 @@ def getGoogleDriveToken(token):
 def gDriveFileMap(bearer, nextPageToken):
     header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
     url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
-    if args.method == "ALT":
+    url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?{}pageSize=5000".format(celnumbr, "pageToken=" + nextPageToken + "&")
+    request_data = requests.get(url_data, headers=header)
+    request_files = requests.get(url_files, headers=header)
+    data_data = json.loads(request_data.text)
+    data_files = json.loads(request_files.text)
+    try:
+        try:
+            nextPageToken = data_files['nextPageToken']
+        except Exception as e:
+            nextPageToken = ""
+
+        for result in data_files['files']:
+            backups.append(result['name'])
         if nextPageToken:
-            url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?{}pageSize=5000".format(celnumbr, "pageToken=" + nextPageToken + "&")
-        else:
-            url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?pageSize=5000".format(celnumbr)
-
-    elif args.method == "ORI":
-        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/gdrive_file_map?alt=media".format(celnumbr)
-
-    request_data = requests.get(url_data, headers=header)
-    request_files = requests.get(url_files, headers=header)
-    data_data = json.loads(request_data.text)
-    data_files = json.loads(request_files.text)
-    try:
-        if args.method == "ALT":
-            try:
-                nextPageToken = data_files['nextPageToken']
-            except Exception as e:
-                nextPageToken = ""
-
-            for result in data_files['files']:
-                backups.append(result['name'])
-            if nextPageToken:
-                gDriveFileMap(bearer, nextPageToken)
-
-        elif args.method == "ORI":
-            for result in data_files:
-                backups.append(result['f'])
-
-    except Exception as e:
-        if data_files:
-            print("[e] Error: ", data_files['error']['message'])
-        else:
-            print("[e] No Google Drive backup: {}".format(e))
-
-    if len(backups) == 0:
-        print("[e] Unable to locate google drive file map for: {} {}".format(pkg, request_files))
-
-    return data_data, backups
-
-
-def gDriveFileMap_copy(bearer):
-    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
-    url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
-    if args.method == "ALT":
-        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?&pageSize=1000".format(celnumbr)
-    elif args.method == "ORI":
-        url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/gdrive_file_map?alt=media".format(celnumbr)
-    request_data = requests.get(url_data, headers=header)
-    request_files = requests.get(url_files, headers=header)
-    data_data = json.loads(request_data.text)
-    data_files = json.loads(request_files.text)
-
-    backups = []
-    try:
-        if args.method == "ALT":
-            for result in data_files['files']:
-                backups.append(result['name'])
-        elif args.method == "ORI":
-            for result in data_files:
-                backups.append(result['f'])
+            gDriveFileMap(bearer, nextPageToken)
 
     except Exception as e:
         if data_files:
@@ -223,10 +172,7 @@ def getMultipleFiles(drives, bearer, files):
         output = ""
 
     for entries in files:
-        if args.method == "ALT":
-            file = entries.split('files/')[1]
-        elif args.method == "ORI":
-            file = entries
+        file = entries.split('files/')[1]
         local_store = (output + file).replace("/", os.path.sep)
         if os.path.isfile(local_store):
             print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local_store))
@@ -296,7 +242,11 @@ if __name__ == "__main__":
     user_parser.add_argument("-lw", "--list_whatsapp", help="List Whatsapp backups", action="store_true")
     user_parser.add_argument("-p", "--pull", help="Pull a file from Google Drive")
     user_parser.add_argument("-s", "--sync", help="Sync all files locally", action="store_true")
-    parser.add_argument("-m", "--method", help='Method to connect to the cloud', const='ORI', nargs='?', choices=['ORI', 'ALT'])
+    user_parser.add_argument("-si", "--s_images", help="Sync Images files locally", action="store_true")
+    user_parser.add_argument("-sv", "--s_videos", help="Sync Videos files locally", action="store_true")
+    user_parser.add_argument("-sa", "--s_audios", help="Sync Audios files locally", action="store_true")
+    user_parser.add_argument("-sx", "--s_documents", help="Sync Documents files locally", action="store_true")
+    user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
     if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
@@ -309,7 +259,7 @@ if __name__ == "__main__":
         bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
         drives, files = gDriveFileMap(bearer, nextPageToken)
 
-        if args.info:  # Check if exists more backups ID
+        if args.info:
             try:
                 print("[-] Backup name   : {}".format(drives["name"]))
                 print("[-] Backup upload : {}".format(drives["updateTime"]))
@@ -335,11 +285,7 @@ if __name__ == "__main__":
             lenfiles = len(files)
             n = 1
             for i in files:
-                if args.method == "ALT":
-                    print("    [-] File {}/{}  : {}".format(n, lenfiles, i.split('files/')[1]))
-
-                elif args.method == "ORI":
-                    print("    [-] File {}/{}  : {}".format(n, lenfiles, i))
+                print("    [-] File {}/{}  : {}".format(n, lenfiles, i.split('files/')[1]))
                 n += 1
 
         if args.list_whatsapp:
@@ -347,9 +293,7 @@ if __name__ == "__main__":
             lenfiles = len(files)
             n = 1
             for i in files:
-                if args.method == "ALT":
-                    i = i.split('files/')[1]
-
+                i = i.split('files/')[1]
                 if i == "Databases/msgstore.db.crypt12":
                     print("    [-] File {}/{}   : {}".format(n, lenfiles, i))
                     print("    [-] Chat DB Size : {} Bytes {}".format(json.loads(drives["metadata"])["chatdbSize"], size(int(json.loads(drives["metadata"])["chatdbSize"]))))
@@ -358,6 +302,41 @@ if __name__ == "__main__":
 
         if args.sync:
             getMultipleFiles(drives, bearer, files)
+
+        if args.s_images:
+            filter = []
+            for i in files:
+                if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Images" or i.split("/")[6] == "WhatsApp Stickers" or i.split("/")[6] == "WhatsApp Profile Photos" or i.split("/")[6] == "WallPaper":
+                    filter.append(i)
+            getMultipleFiles(drives, bearer, filter)
+
+        if args.s_videos:
+            filter = []
+            for i in files:
+                if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Animated Gifs" or i.split("/")[6] == "WhatsApp Video":
+                    filter.append(i)
+            getMultipleFiles(drives, bearer, filter)
+
+        if args.s_audios:
+            filter = []
+            for i in files:
+                if i.split("/")[6] == "WhatsApp Voice Notes" or i.split("/")[6] == "WhatsApp Audio":
+                    filter.append(i)
+            getMultipleFiles(drives, bearer, filter)
+
+        if args.s_documents:
+            filter = []
+            for i in files:
+                if i.split("/")[6] == "WhatsApp Documents":
+                    filter.append(i)
+            getMultipleFiles(drives, bearer, filter)
+
+        if args.s_databases:
+            filter = []
+            for i in files:
+                if i.split("/")[5] == "Databases" or i.split("/")[5] == "Backups":
+                    filter.append(i)
+            getMultipleFiles(drives, bearer, filter)
 
         if args.pull:
             try:
