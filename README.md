@@ -93,9 +93,6 @@ Warning: Do not join restored databases with old copies, since they repeat the s
 WHAGODRI
 =====
 whagodri.py is a tool which allows WhatsApp users on Android to extract their backed up WhatsApp data from Google Drive.
-Two methods:
-* Original, As whatsapp downloads files.
-* Alternative, method when your backup have been broken.
 
 Make sure of:
 * Disable 2FA in your Google Account
