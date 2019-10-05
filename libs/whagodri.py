@@ -56,7 +56,7 @@ def getConfigs():
         gmail = config.get('auth', 'gmail')
         passw = config.get('auth', 'passw')
         devid = config.get('auth', 'devid')
-        celnumbr = config.get('auth', 'celnumbr')
+        celnumbr = config.get('auth', 'celnumbr').lstrip('+0')
         pkg = config.get('app', 'pkg')
         sig = config.get('app', 'sig')
         client_pkg = config.get('client', 'pkg')
