@@ -6,9 +6,9 @@ Oct 2019
 
     [+] whapa-gui.py v1.14
     	[-] fixed bug in downloading files individually
+	
     [+] whapa-gui.py v1.13
     	[-] whagodri tab changes, Only one download method and new options for downloading files.
-
     [+] whagodri.py
     	[-] Removed restriction from '00' or '+' in the settings file.
     	[-] Videos, images, audios, backups, documents can be recovered independently.
