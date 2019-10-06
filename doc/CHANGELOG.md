@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file.
 
 Oct 2019
 
+    [+] whapa-gui.py v1.14
+    	[-] fixed bug in downloading files individually
     [+] whapa-gui.py v1.13
     	[-] whagodri tab changes, Only one download method and new options for downloading files.
 
@@ -14,7 +16,7 @@ Oct 2019
 Sep 2019
 
     [+] The whole project has been updated and improved to python3, now it is managed from a graphical interface.
-    [+] Fix major bugs
+    [+] Fixed major bugs
     [+] whapa-gui.py v1.12
     	[-] Check at the beginning if there is any update
 		[-] whagodri tab changes, Add two method to download (Original and Alternative)
