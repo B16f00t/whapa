@@ -306,36 +306,51 @@ if __name__ == "__main__":
         if args.s_images:
             filter = []
             for i in files:
-                if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Images" or i.split("/")[6] == "WhatsApp Stickers" or i.split("/")[6] == "WhatsApp Profile Photos" or i.split("/")[6] == "WallPaper":
-                    filter.append(i)
+                try:
+                    if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Images" or i.split("/")[6] == "WhatsApp Stickers" or i.split("/")[6] == "WhatsApp Profile Photos" or i.split("/")[6] == "WallPaper":
+                        filter.append(i)
+                except Exception as e:
+                    pass
             getMultipleFiles(drives, bearer, filter)
 
         if args.s_videos:
             filter = []
             for i in files:
-                if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Animated Gifs" or i.split("/")[6] == "WhatsApp Video":
-                    filter.append(i)
+                try:
+                    if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Animated Gifs" or i.split("/")[6] == "WhatsApp Video":
+                        filter.append(i)
+                except Exception as e:
+                    pass
             getMultipleFiles(drives, bearer, filter)
 
         if args.s_audios:
             filter = []
             for i in files:
-                if i.split("/")[6] == "WhatsApp Voice Notes" or i.split("/")[6] == "WhatsApp Audio":
-                    filter.append(i)
+                try:
+                    if i.split("/")[6] == "WhatsApp Voice Notes" or i.split("/")[6] == "WhatsApp Audio":
+                        filter.append(i)
+                except Exception as e:
+                    pass
             getMultipleFiles(drives, bearer, filter)
 
         if args.s_documents:
             filter = []
             for i in files:
-                if i.split("/")[6] == "WhatsApp Documents":
-                    filter.append(i)
+                try:
+                    if i.split("/")[6] == "WhatsApp Documents":
+                        filter.append(i)
+                except Exception as e:
+                    pass
             getMultipleFiles(drives, bearer, filter)
 
         if args.s_databases:
             filter = []
             for i in files:
-                if i.split("/")[5] == "Databases" or i.split("/")[5] == "Backups":
-                    filter.append(i)
+                try:
+                    if i.split("/")[5] == "Databases" or i.split("/")[5] == "Backups" or i.split("/")[5] == "gdrive_file_map":
+                        filter.append(i)
+                except Exception as e:
+                    pass
             getMultipleFiles(drives, bearer, filter)
 
         if args.pull:
