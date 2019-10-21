@@ -351,7 +351,7 @@ class Whapa:
         self.entry_whacipher_key.grid(row=2, column=1, sticky="we", padx=5, pady=5)
         self.button_whacipher_key = Button(self.tabwhacipher1, image=self.iconfile, command=self.search_key_whacypher, borderwidth=0, highlightthickness=0)
         self.button_whacipher_key.grid(row=2, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_key, "Encription Key")
+        ToolTip(self.button_whacipher_key, "Encryption Key")
 
         self.label_cipher_out = Label(self.tabwhacipher1, text="Output")
         self.label_cipher_out.grid(row=3, column=0, sticky="we", padx=5, pady=5)
@@ -388,7 +388,7 @@ class Whapa:
         self.entry_whacipher_key_en.grid(row=2, column=1, sticky="we", padx=5, pady=5)
         self.button_whacipher_key_en = Button(self.tabwhacipher2, image=self.iconfile, command=self.search_key_whacypher_en, borderwidth=0, highlightthickness=0)
         self.button_whacipher_key_en.grid(row=2, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_key_en, "Encription Key")
+        ToolTip(self.button_whacipher_key_en, "Encryption Key")
 
         self.label_cipher_out_en = Label(self.tabwhacipher2, text="Output")
         self.label_cipher_out_en.grid(row=3, column=0, sticky="we", padx=5, pady=5)
