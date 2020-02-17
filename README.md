@@ -108,7 +108,7 @@ Edit only the values of the./cfg/settings.cfg file
 		devid = Device ID (optional, if specified get more information)
 		celnumbr = BackupPhoneNumber (ex. 3466666666666)
 * If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
-
+* If you have problems remove special characters in your password.
 
 WHACIPHER
 =====
