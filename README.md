@@ -119,8 +119,9 @@ Get in touch
 =====
 Acknowledgements, suggestions, languages, improvements...
 
-https://t.me/B16f00t
-  
+Telegram Channel and discuss group
+
+	https://t.me/bigfoot_whapa
 	
 Disclaimer
 =====
