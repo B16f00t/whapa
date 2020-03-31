@@ -2,6 +2,12 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Mar 2020
+
+    [+] whapa-gui.py v1.15
+    [+] whagodri.py
+    	[-] Fixed Google Drive crash
+
 Oct 2019
 
     [+] whapa-gui.py v1.14
