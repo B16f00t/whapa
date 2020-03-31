@@ -45,7 +45,7 @@ def help():
 def create_settings_file():
     """ Function that creates the settings file """
     with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
-        cfg.write('[report]\nlogo = ../cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000'.replace("/", os.path.sep))
+        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000'.replace("/", os.path.sep))
 
 
 def getConfigs():
@@ -63,7 +63,7 @@ def getConfigs():
         client_sig = config.get('client', 'sig')
         client_ver = config.get('client', 'ver')
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        quit('The "../cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
+        quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
 
 
 def size(obj):
@@ -85,7 +85,6 @@ def getGoogleAccountTokenFromAuth():
     header = {'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
     request = requests.post('https://android.clients.google.com/auth', data=payload, headers=header)
     token = re.search('Token=(.*?)\n', request.text)
-    
     if token:
         return token.group(1)
     else:
@@ -96,11 +95,19 @@ def getGoogleDriveToken(token):
     payload = {'Token':token, 'app':pkg, 'client_sig':sig, 'device':devid, 'google_play_services_version':client_ver, 'service':'oauth2:https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file', 'has_permission':'1'}
     header = {'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
     request = requests.post('https://android.clients.google.com/auth', data=payload, headers=header)
+    try:
+        token = request.text.split('Auth=')[1]
+    except Exception as e:
+        return str(e)
+
+    return token
+    """
     token = re.search('Auth=(.*?)\n', request.text)
     if token:
         return token.group(1)
     else:
         quit(request.text)
+    """
 
 
 def gDriveFileMap(bearer, nextPageToken):
@@ -251,12 +258,14 @@ if __name__ == "__main__":
     args = parser.parse_args()
     if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
         create_settings_file()
-    if len(sys.argv) == 1:
+
+    if len(sys.argv) == 0:
         help()
     else:
         print("[i] Searching...\n")
         getConfigs()
         bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
+        print("Your Google Access Token: {}\n".format(bearer))
         drives, files = gDriveFileMap(bearer, nextPageToken)
 
         if args.info:
