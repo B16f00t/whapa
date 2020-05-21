@@ -108,7 +108,18 @@ Edit only the values of the./cfg/settings.cfg file
 		devid = Device ID (optional, if specified get more information)
 		celnumbr = BackupPhoneNumber (ex. 3466666666666)
 * If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
-* If you have problems remove special characters in your password.
+
+
+COMMON ISSUES
+--------------
+	- Wrong email or password-> Error=BadAuthentication -> Check that your email and password are correct, if so change your google password and try again.
+	- Wrong phone number -> Requested entity not found -> Check if you put the country code.
+	- Bad backup -> Requested entity was not found-> Overwriting it will not work go to Google drive, delete manually backup and do it again via WhatsApp.
+	- 2FA activated -> Error=NeedsBrowser -> Disable two-factor authentication.
+	- Gsuite account -> Error: DeviceManagementRequiredOrSyncDisabled -> The reason for this is, that for this google-apps account, the enforcement of policies on mobil clients is enabled in admin console (enforce_android_policy). If youdisable this in admin-console, the authentication works.
+	- Bad dependencies-> No moduled name requests -> pip install requests or pip3 install requests
+	- Backup Disabled in that numberphone -> Error: Backup Api not enabled -> The phone number for that google account does not have backup enabled.
+	- Another error -> Update the gpsoauth dependency to its latest version
 
 WHACIPHER
 =====
