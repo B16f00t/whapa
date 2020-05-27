@@ -112,7 +112,7 @@ Edit only the values of the./cfg/settings.cfg file
 
 COMMON ISSUES
 --------------
-	- Wrong email or password-> Error=BadAuthentication -> Check that your email and password are correct, if so change your google password and try again.
+	- Wrong email or password-> Error=BadAuthentication -> Check that your email and password are correct, if so change your google password and try again, also maybe your are using a old python version. Only works > 3.7.7
 	- Wrong phone number -> Requested entity not found -> Check if you put the country code.
 	- Bad backup -> Requested entity was not found-> Overwriting it will not work go to Google drive, delete manually backup and do it again via WhatsApp.
 	- 2FA activated -> Error=NeedsBrowser -> Disable two-factor authentication.
