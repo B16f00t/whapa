@@ -11,8 +11,9 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "http://t.me/b16f00t"
-version = '1.15'
+version = '1.16'
 system = ""
+
 
 class ToolTip(object):
     """ Create a tooltip for a given widget """
@@ -518,9 +519,14 @@ class Whapa:
 
         """Check if there is a new version"""
         request = requests.get("https://github.com/B16f00t/whapa")
-        update = (request.text.split('itemprop="about">')[1]).split("</span>")[0].strip("\n ")
-        current_version = "{} v{}".format(title, version)
-        if update != current_version:
+        pattern = r'WhatsApp Parser Toolset v(\d.\d*)'
+        matches = re.findall(pattern, request.text)
+        for match in matches:
+            if match:
+                update = match
+                break
+
+        if update != version:
             messagebox.showinfo("Update", "New version available\n{}".format(update))
             webbrowser.open_new_tab("https://github.com/B16f00t/whapa")
 
