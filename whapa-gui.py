@@ -1,7 +1,7 @@
 import os
 import time
 import webbrowser
-import requests
+from libs import update
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -10,8 +10,8 @@ from tkinter import filedialog
 """ Global vars"""
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
-contact = "http://t.me/b16f00t"
-version = '1.16'
+contact = "https://t.me/bigfoot_whapa"
+version = '1.2'
 system = ""
 
 
@@ -78,6 +78,8 @@ class Whapa:
         self.iconcall = PhotoImage(file=self.icons[23])
         self.iconstatus = PhotoImage(file=self.icons[24])
         self.iconrequire = PhotoImage(file=self.icons[25])
+        self.iconupdate = PhotoImage(file=self.icons[26])
+
 
         # Menu Windows Property
         self.root.title(title + " v" + version)
@@ -96,6 +98,7 @@ class Whapa:
         self.whapa_user = StringVar()
         self.whapa_box_filter = StringVar()
         self.whapa_box_rep = StringVar()
+        self.whapa_text = StringVar(value="0")
         self.whapa_ts = StringVar(value="0")
         self.whapa_te = StringVar(value="0")
         self.whapa_w = StringVar(value="0")
@@ -145,16 +148,19 @@ class Whapa:
         ToolTip(self.toolbar_but3, "Configuration")
         self.toolbar_but4 = Button(self.toolbar, image=self.iconmanual, command=self.manual)
         self.toolbar_but4.grid(row=0, column=3)
-        ToolTip(self.toolbar_but4, "Manual")
+        ToolTip(self.toolbar_but4, "Readme")
         self.toolbar_but5 = Button(self.toolbar, image=self.iconrequire, command=self.requirements)
         self.toolbar_but5.grid(row=0, column=4)
         ToolTip(self.toolbar_but5, "Install requirements")
-        self.toolbar_but6 = Button(self.toolbar, image=self.iconexit, command=self.exit)
+        self.toolbar_but6 = Button(self.toolbar, image=self.iconupdate, command=self.update)
         self.toolbar_but6.grid(row=0, column=5)
-        ToolTip(self.toolbar_but6, "Exit")
+        ToolTip(self.toolbar_but6, "Update")
         self.toolbar_but7 = Button(self.toolbar, image=self.iconabout, command=self.about)
         self.toolbar_but7.grid(row=0, column=6)
         ToolTip(self.toolbar_but7, "About")
+        self.toolbar_but8 = Button(self.toolbar, image=self.iconexit, command=self.exit)
+        self.toolbar_but8.grid(row=0, column=7)
+        ToolTip(self.toolbar_but8, "Exit")
 
         # Top
         self.label_bg = Label(self.root, image=self.iconbg, bg="#A0A0A0", font=("times", "8", "normal"))
@@ -214,20 +220,24 @@ class Whapa:
 
         self.frame_whapa_filter = LabelFrame(self.tab1, text="Filters")
         self.frame_whapa_filter.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
+        self.check_whapa_text = Checkbutton(self.frame_whapa_filter, text="Text", borderwidth=0, highlightthickness=0, variable=self.whapa_text)
+        self.check_whapa_text.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.entry_whapa_text = Entry(self.frame_whapa_filter, width=20)
+        self.entry_whapa_text.grid(row=0, column=1, sticky="we", padx=5, pady=5, columnspan=1)
         self.check_whapa_ts = Checkbutton(self.frame_whapa_filter, text="Start time", borderwidth=0, highlightthickness=0, variable=self.whapa_ts)
-        self.check_whapa_ts.grid(row=0, column=0, sticky="w", padx=5, pady=5)
+        self.check_whapa_ts.grid(row=1, column=0, sticky="w", padx=5, pady=5)
         self.entry_whapa_ts = Entry(self.frame_whapa_filter, width=20)
-        self.entry_whapa_ts.grid(row=0, column=1, sticky="we", padx=5, pady=5, columnspan=1)
+        self.entry_whapa_ts.grid(row=1, column=1, sticky="we", padx=5, pady=5, columnspan=1)
         self.check_whapa_te = Checkbutton(self.frame_whapa_filter, text="End time", borderwidth=0, highlightthickness=0, variable=self.whapa_te)
-        self.check_whapa_te.grid(row=1, column=0, sticky="w", padx=5, pady=5)
+        self.check_whapa_te.grid(row=2, column=0, sticky="w", padx=5, pady=5)
         self.entry_whapa_te = Entry(self.frame_whapa_filter, width=20)
-        self.entry_whapa_te.grid(row=1, column=1, sticky="we", padx=5, pady=5, columnspan=1)
+        self.entry_whapa_te.grid(row=2, column=1, sticky="we", padx=5, pady=5, columnspan=1)
         self.check_whapa_w = Checkbutton(self.frame_whapa_filter, text="Whatsapp web", borderwidth=0, highlightthickness=0, variable=self.whapa_w)
-        self.check_whapa_w.grid(row=2, column=0, sticky="w", padx=5, pady=5)
+        self.check_whapa_w.grid(row=3, column=0, sticky="w", padx=5, pady=5)
         self.check_whapa_s = Checkbutton(self.frame_whapa_filter, text="Starred", borderwidth=0, highlightthickness=0, variable=self.whapa_s)
-        self.check_whapa_s.grid(row=3, column=0, sticky="w", padx=5, pady=5)
+        self.check_whapa_s.grid(row=4, column=0, sticky="w", padx=5, pady=5)
         self.check_whapa_b = Checkbutton(self.frame_whapa_filter, text="Broadcast", borderwidth=0, highlightthickness=0, variable=self.whapa_b)
-        self.check_whapa_b.grid(row=4, column=0, sticky="w", padx=5, pady=5)
+        self.check_whapa_b.grid(row=5, column=0, sticky="w", padx=5, pady=5)
         self.whapa_but_allme = Radiobutton(self.frame_whapa_filter, text='All', variable=self.whapa_box_filter, value='All', anchor="w", compound='left')
         self.whapa_but_allme.config(bd=4, borderwidth=0, highlightthickness=0)
         self.whapa_but_allme.grid(row=0, column=2, padx=5, pady=5, sticky="nswe")
@@ -491,7 +501,7 @@ class Whapa:
 
         self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whagodri_info, "1. Disable 2FA in your Google Account.\n2. Install the requirements.\n3. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        devid = Device ID (optional)\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n4. Click here (log into your browser and then allow access to your Google account).")
+        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
 
         # Status Bar
         self.label_status.set(time.strftime("%d-%m-%Y %H:%M"))
@@ -516,19 +526,6 @@ class Whapa:
         self.entry_whapa_te.bind('<FocusIn>', self.on_entry_click_out)
         self.entry_whapa_te.bind('<FocusOut>', self.on_focusout_out)
         self.entry_whapa_te.config(fg='grey')
-
-        """Check if there is a new version"""
-        request = requests.get("https://github.com/B16f00t/whapa")
-        pattern = r'WhatsApp Parser Toolset v(\d.\d*)'
-        matches = re.findall(pattern, request.text)
-        for match in matches:
-            if match:
-                update = match
-                break
-
-        if update != version:
-            messagebox.showinfo("Update", "New version available\n{}".format(update))
-            webbrowser.open_new_tab("https://github.com/B16f00t/whapa")
 
         self.root.mainloop()
 
@@ -585,6 +582,10 @@ class Whapa:
         """ About dialog"""
         messagebox.showinfo("About", title + " v" + version + "\nAuthor: " + author + "\nContact: " + contact)
 
+    def update(self):
+        """ About dialog"""
+        update.start(version)
+
     def exit(self):
         """Exit the App"""
         self.root.destroy()
@@ -607,6 +608,7 @@ class Whapa:
 
     def whapa_messages(self):
         """ Run whapa message command"""
+
         self.cmd = '-m "{}"'.format(self.whapa_file.get()).strip("\n")
         if self.whapa_wa.get():
             self.cmd += ' -wa "{}"'.format(self.whapa_wa.get()).strip("\n")
@@ -619,6 +621,11 @@ class Whapa:
             self.cmd += " -g {}".format(self.whapa_user.get()).strip("\n")
         elif self.whapa_box_value.get() == "User":
             self.cmd += " -u {}".format(self.whapa_user.get()).strip("\n")
+
+        if self.whapa_text.get() == "1":
+            self.cmd += ' -t "{}"'.format(self.entry_whapa_text.get()).strip("\n")
+        else:
+            pass
 
         if self.whapa_ts.get() == "1":
             self.cmd += ' -ts "{}"'.format(self.entry_whapa_ts.get()).strip("\n")
@@ -1040,7 +1047,9 @@ if __name__ == '__main__':
              img_folder + "extract.png",
              img_folder + "callslog.png",
              img_folder + "status.png",
-             img_folder + "requirements.png")
+             img_folder + "requirements.png",
+             img_folder + "update.png"
+             )
 
     for icon in icons:
         if not os.path.exists(icon):
