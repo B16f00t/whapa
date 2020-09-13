@@ -109,6 +109,8 @@ Edit only the values of the./cfg/settings.cfg file
 * If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
 
 
+If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.")
+
 WHACIPHER
 =====
 whacipher.py is a tool which allows decrypt or encrypt WhatsApp database. You must have the key of your phone to decrypt, and additionally a encrypted database as reference to encrypt a new database.
