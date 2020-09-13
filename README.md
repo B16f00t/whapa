@@ -24,7 +24,6 @@ Whapa toolset is divided in four tools:
 
 **Do you like this project? Support it by donating**
 - ![Paypal](https://raw.githubusercontent.com/reek/anti-adblock-killer/gh-pages/images/paypal.png) Paypal: [Donate](https://paypal.me/b16f00t?locale.x=es_ES)
-- ![btc](https://github.com/nullablebool/crypto-icons/blob/master/16x16/BTC-16.png) Bitcoin: 13h2rupiKBr8bFygKdCunfXrn2pAaVoaTQ
 
 
 Changelog
