@@ -12,12 +12,16 @@ import argparse
 
 
 # Define global variable
+auth_url = 'https://android.clients.google.com/auth'
+header = {'User-Agent': 'WhatsApp/2.20.200 Android/Device/Whapa'}
+devid = '1234567887654321'    # Android Device ID
 exitFlag = 0
 nextPageToken = ""
 backups = []
 bearer = ""
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
+
 
 def banner():
     """ Function Banner """
@@ -45,23 +49,18 @@ def help():
 def create_settings_file():
     """ Function that creates the settings file """
     with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
-        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000'.replace("/", os.path.sep))
+        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber')
 
 
 def getConfigs():
-    global gmail, passw, devid, pkg, sig, client_pkg, client_sig, client_ver, celnumbr
+    global gmail, passw, celnumbr
     config = ConfigParser()
     try:
         config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
         gmail = config.get('auth', 'gmail')
         passw = config.get('auth', 'passw')
-        devid = config.get('auth', 'devid')
         celnumbr = config.get('auth', 'celnumbr').lstrip('+0')
-        pkg = config.get('app', 'pkg')
-        sig = config.get('app', 'sig')
-        client_pkg = config.get('client', 'pkg')
-        client_sig = config.get('client', 'sig')
-        client_ver = config.get('client', 'ver')
+
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
 
@@ -74,44 +73,61 @@ def size(obj):
 
 
 def getGoogleAccountTokenFromAuth():
-    b64_key_7_3_29 = (b"AAAAgMom/1a/v0lblO2Ubrt60J2gcuXSljGFQXgcyZWveWLEwo6prwgi3"
-                      b"iJIZdodyhKZQrNWp5nKJ3srRXcUW+F1BD3baEVGcmEgqaLZUNBjm057pK"
-                      b"RI16kB0YppeGx5qIQ5QjKzsR8ETQbKLNWgRY0QRNVz34kMJR3P/LgHax/"
-                      b"6rmf5AAAAAwEAAQ==")
-
+    b64_key_7_3_29 = (b"AAAAgMom/1a/v0lblO2Ubrt60J2gcuXSljGFQXgcyZWveWLEwo6prwgi3iJIZdodyhKZQrNWp5nKJ3srRXcUW+F1BD3baEVGcmEgqaLZUNBjm057pKRI16kB0YppeGx5qIQ5QjKzsR8ETQbKLNWgRY0QRNVz34kMJR3P/LgHax/6rmf5AAAAAwEAAQ==")
     android_key_7_3_29 = google.key_from_b64(b64_key_7_3_29)
     encpass = google.signature(gmail, passw, android_key_7_3_29)
-    payload = {'Email':gmail, 'EncryptedPasswd':encpass, 'app':client_pkg, 'client_sig':client_sig, 'parentAndroidId':devid}
-    header = {'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
-    request = requests.post('https://android.clients.google.com/auth', data=payload, headers=header)
-    token = re.search('Token=(.*?)\n', request.text)
+    pkg = 'com.google.android.gms' 	                    # APK package name Google Play Services
+    sig = '38918a453d07199354f8b19af05ec6562ced5788'    # APK Google Play Services certificate fingerprint SHA-1
+    payload = {'Email':gmail, 'EncryptedPasswd':encpass, 'app':pkg, 'client_sig':sig, 'parentAndroidId':devid}
+    request = requests.post(auth_url, data=payload, headers=header)
+    print("Requesting Auth for Google....")
+    #print(request.text)
+    token = re.search('Token=(.*)', request.text)
     if token:
+        print("Granted\n")
         return token.group(1)
     else:
-        quit(request.text)
- 
+        print("Failed\n")
+        print(request.text)
+        if "BadAuthentication" in request.text:
+            print("\n   Workaround\n-----------------")
+            print("1. Check that your email and password are correct, if so change your google password and try again.\n"
+                  "2. Your are using a old python version. Works > 3.7.7.\n"
+                  "3. Update the gpsoauth dependency to its latest version, use in a terminal: 'pip install -U gpsoauth' or 'pip3 install -U gpsoauth'")
+
+        elif "NeedsBrowser" in request.text:
+            print("\n   Workaround\n-----------------")
+            print("1. You have double factor authentication enabled, so disable it in this URL: https://myaccount.google.com/security")
+            print("2. If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords\n"
+                  "   Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.")
+
+        elif "DeviceManagementRequiredOrSyncDisabled" in request.text:
+            print("\n   Workaround\n-----------------")
+            print("1. You are using a GSuite account.  The reason for this is, that for this google-apps account, the enforcement of policies on mobile clients is enabled in admin console (enforce_android_policy).\n"
+                  "   If you disable this in admin-console, the authentication works.")
+
+        quit()
+
 
 def getGoogleDriveToken(token):
-    payload = {'Token':token, 'app':pkg, 'client_sig':sig, 'device':devid, 'google_play_services_version':client_ver, 'service':'oauth2:https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file', 'has_permission':'1'}
-    header = {'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
-    request = requests.post('https://android.clients.google.com/auth', data=payload, headers=header)
-    try:
-        token = request.text.split('Auth=')[1]
-    except Exception as e:
-        return str(e)
-
-    return token
-    """
-    token = re.search('Auth=(.*?)\n', request.text)
+    pkg = 'com.whatsapp'                              # APK package name Whatsapp
+    sig = '38a0f7d505fe18fec64fbf343ecaaaf310dbd799'  # APK Whatsapp certificate fingerprint SHA-1
+    ver = '203315028'                                 # APK Google Play Services Version: 20.33.15
+    payload = {'Token':token, 'app':pkg, 'client_sig':sig, 'device':devid, 'google_play_services_version':ver, 'service':'oauth2:https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file', 'has_permission':'1'}
+    request = requests.post(auth_url, data=payload, headers=header)
+    print("Getting Token from Google....")
+    token = re.search('Auth=(.*)', request.text)
+    #print(request.text)
     if token:
+        print("Granted\n")
         return token.group(1)
     else:
+        print("Failed\n")
         quit(request.text)
-    """
 
 
 def gDriveFileMap(bearer, nextPageToken):
-    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/9.0 Device/Whapa'}
+    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.20.200 Android/Device/Whapa'}
     url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
     url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?{}pageSize=5000".format(celnumbr, "pageToken=" + nextPageToken + "&")
     request_data = requests.get(url_data, headers=header)
@@ -130,13 +146,21 @@ def gDriveFileMap(bearer, nextPageToken):
             gDriveFileMap(bearer, nextPageToken)
 
     except Exception as e:
-        if data_files:
-            print("[e] Error: ", data_files['error']['message'])
-        else:
-            print("[e] No Google Drive backup: {}".format(e))
+        print('[e]', data_files['error']['message'])
+        if  data_files['error']['details'][0]['resourceName'] and data_files['error']['details'][0]['description']:
+            print('[e]', data_files['error']['details'][0]['resourceName'] + ' - ' + data_files['error']['details'][0]['description'])
 
-    if len(backups) == 0:
-        print("[e] Unable to locate google drive file map for: {} {}".format(pkg, request_files))
+        if "entity was not found" in data_files['error']['message']:
+            print("\n   Workaround\n-----------------")
+            print("1. The phone number may be misspelled. Try to set country code + phone number.")
+            print("2. No backup for that phone number in that gmail account or a bad backup has been made.\n   Check your backup in this URL: https://drive.google.com/drive/backups\n"
+                  "   If there is a backup for that phone number, overwriting it may not work so manually delete the backup and do it again through WhatsApp..")
+
+        elif "Backup " in data_files['error']['message']:
+            print("\n   Workaround\n-----------------")
+            print("1. The phone number for that google account does not have backup enabled. ")
+
+        quit()
 
     return data_data, backups
 
@@ -265,7 +289,7 @@ if __name__ == "__main__":
         print("[i] Searching...\n")
         getConfigs()
         bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
-        print("Your Google Access Token: {}\n".format(bearer))
+        #print("Your Google Access Token: {}\n".format(bearer))
         drives, files = gDriveFileMap(bearer, nextPageToken)
 
         if args.info:
@@ -287,7 +311,7 @@ if __name__ == "__main__":
                 print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(drives["metadata"])["chatdbSize"], size(int(json.loads(drives["metadata"])["chatdbSize"]))))
 
             except Exception as e:
-                print("[i] Error {}".format(e))
+                print("[e] Error {}".format(e))
 
         elif args.list:
             print("[+] Backup name : {}".format(drives["name"]))
