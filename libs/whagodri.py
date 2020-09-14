@@ -146,19 +146,24 @@ def gDriveFileMap(bearer, nextPageToken):
             gDriveFileMap(bearer, nextPageToken)
 
     except Exception as e:
-        print('[e]', data_files['error']['message'])
-        if  data_files['error']['details'][0]['resourceName'] and data_files['error']['details'][0]['description']:
-            print('[e]', data_files['error']['details'][0]['resourceName'] + ' - ' + data_files['error']['details'][0]['description'])
+        if 'name' in data_data:
+            print("No files for this backup")
+            print(data_files)
 
-        if "entity was not found" in data_files['error']['message']:
-            print("\n   Workaround\n-----------------")
-            print("1. The phone number may be misspelled. Try to set country code + phone number.")
-            print("2. No backup for that phone number in that gmail account or a bad backup has been made.\n   Check your backup in this URL: https://drive.google.com/drive/backups\n"
-                  "   If there is a backup for that phone number, overwriting it may not work so manually delete the backup and do it again through WhatsApp..")
+        else:
+            print('[e]', data_data['error']['message'])
+            if data_data['error']['details'][0]['resourceName'] and data_data['error']['details'][0]['description']:
+                print('[e]', data_data['error']['details'][0]['resourceName'] + ' - ' + data_data['error']['details'][0]['description'])
 
-        elif "Backup " in data_files['error']['message']:
-            print("\n   Workaround\n-----------------")
-            print("1. The phone number for that google account does not have backup enabled. ")
+            if "entity was not found" in data_files['error']['message'].lower():
+                print("\n   Workaround\n-----------------")
+                print("1. The phone number may be misspelled. Try to set country code + phone number.")
+                print("2. No backup for that phone number in that gmail account or a bad backup has been made.\n   Check your backup in this URL: https://drive.google.com/drive/backups\n"
+                      "   If there is a backup for that phone number, overwriting it may not work so manually delete the backup and do it again through WhatsApp..")
+
+            elif "backup" in data_data['error']['message'].lower():
+                print("\n   Workaround\n-----------------")
+                print("1. The phone number for that google account does not have backup enabled. ")
 
         quit()
 
