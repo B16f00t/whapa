@@ -11,7 +11,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.2'
+version = '1.21'
 system = ""
 
 
