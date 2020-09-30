@@ -54,7 +54,7 @@ def create_settings_file():
 
 def getConfigs():
     global gmail, passw, celnumbr
-    config = ConfigParser()
+    config = ConfigParser(interpolation=None)
     try:
         config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
         gmail = config.get('auth', 'gmail')
@@ -97,8 +97,9 @@ def getGoogleAccountTokenFromAuth():
 
         elif "NeedsBrowser" in request.text:
             print("\n   Workaround\n-----------------")
-            print("1. You have double factor authentication enabled, so disable it in this URL: https://myaccount.google.com/security")
-            print("2. If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords\n"
+            print("1. Maybe you need unlock captcha in your account, If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.")
+            print("2. Or you have double factor authentication enabled, so disable it in this URL: https://myaccount.google.com/security")
+            print("3. If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords\n"
                   "   Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.")
 
         elif "DeviceManagementRequiredOrSyncDisabled" in request.text:
