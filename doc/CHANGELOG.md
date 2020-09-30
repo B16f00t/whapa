@@ -3,19 +3,19 @@ Changelog
 All notable changes to this project will be documented in this file.
 
 Sep 2020
-	
-    [+] whapa-gui.py v1.21
-    [+] whagodri.py
-    	[-] More debugs and workaround messages
-	[-] Fix interpolated by configparser by RMHogervorst
 
-    [+] whapa-gui.py v1.2
-	[-] Fix problem with requests library, now there is a button to update
-	[-] You can search for a text string inside whapa tab
-    [+] whagodri.py
-    	[-] Enabled two factor authentication
-	[-] More debugs and workaround messages
-	[-] settings.cfg file easier
+	[+] whapa-gui.py v1.21
+	[+] whagodri.py
+		[-] More debugs and workaround messages
+		[-] Fix interpolated by configparser by RMHogervorst
+	
+	[+] whapa-gui.py v1.2
+		[-] Fix problem with requests library, now there is a button to update
+		[-] You can search for a text string inside whapa tab
+	[+] whagodri.py
+		[-] Enabled two factor authentication
+		[-] More debugs and workaround messages
+		[-] settings.cfg file easier
 		
 Jun 2020
 
