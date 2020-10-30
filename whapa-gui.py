@@ -1,4 +1,5 @@
 import os
+import sys
 import time
 import webbrowser
 from libs import update
