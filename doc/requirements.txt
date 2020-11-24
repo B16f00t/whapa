@@ -2,4 +2,5 @@ pycryptodome
 colorama
 configparser
 gpsoauth
-requests
+requests==2.21.0
+sys
