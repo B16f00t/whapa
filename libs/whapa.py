@@ -1,4 +1,4 @@
-﻿    #!/usr/bin/python3
+﻿#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
 from colorama import init, Fore
@@ -7,9 +7,10 @@ import html
 import distutils.dir_util
 import argparse
 import sqlite3
-import os
 import time
 import sys
+import os
+import shutil
 import random
 
 # Define global variable
@@ -19,7 +20,7 @@ message = ""
 report_var = "None"
 report_html = ""
 report_group = ""
-version = "1.0"
+version = "1.30"
 names_dict = {}            # names wa.db
 color = {}                 # participants color
 current_color = "#5586e5"  # default participant color
@@ -34,7 +35,7 @@ def banner():
      \        /|   Y  \/ __ \|    |     / __ \_
       \__/\  / |___|  (____  /____|    (____  /
            \/       \/     \/               \/ 
-    ---------- Whatsapp Parser v""" + version + """ -----------
+    ------------- Whatsapp Parser -------------
     """)
 
 
@@ -211,8 +212,16 @@ def participants(obj):
     return report_group, color
 
 
-def report(obj, html):
+def report(obj, html, local):
     """ Function that makes the report """
+
+    # Copia los estilos
+    os.makedirs(local + "cfg", exist_ok=True)
+    shutil.copy("./cfg/chat.css", local + "cfg/chat.css")
+    shutil.copy("./cfg/logo.png", local + "cfg/logo.png")
+    shutil.copy("./images/background.png", local + "cfg/background.png")
+    shutil.copy("./images/background-index.png", local + "cfg/background-index.png")
+
     if report_var == 'EN':
         rep_ini = """<!DOCTYPE html>
 <html lang='""" + report_var + """'>
@@ -223,14 +232,14 @@ def report(obj, html):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Report makes with Whatsapp Parser Tool">
     <meta name="author" content="B16f00t">
-    <link rel="shortcut icon" href="../images/logo.png">
+    <link rel="shortcut icon" href="./cfg/logo.png">
     <title>Whatsapp Parser Tool v""" + version + """ Report</title>
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.css" rel="stylesheet">
     <!-- Bootstrap theme -->
     <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
-    <link href="../cfg/chat.css" rel="stylesheet">
+    <link href="./cfg/chat.css" rel="stylesheet">
 </head>
 
 <style>
@@ -253,12 +262,12 @@ background-color: #cdcdcd;
 }
 </style>
 
-<body background="../images/background.png">
+<body background="./cfg/background.png">
 <!-- Fixed navbar -->
     <div class="container theme-showcase">
         <div class="header">
             <table style="width:100%">
-                <h1 align="left"><img src='.""" + logo + """' height=128 width=128 align="center">&nbsp;""" + company + """</h1>
+                <h1 align="left"><img src="./cfg/logo.png" height=128 width=128 align="center">&nbsp;""" + company + """</h1>
                 <tr>
                     <th>Record</th>
                     <th>Unit / Company</th> 
@@ -294,14 +303,14 @@ background-color: #cdcdcd;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe creado por WhatsApp Parser Tool">
     <meta name="author" content="B16f00t">
-    <link rel="shortcut icon" href="../images/logo.png">
+    <link rel="shortcut icon" href="./cfg/logo.png">
     <title>Whatsapp Parser Tool v""" + version + """ Report</title>
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.css" rel="stylesheet">
     <!-- Bootstrap theme -->
     <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
-    <link href="../cfg/chat.css" rel="stylesheet">
+    <link href="./cfg/chat.css" rel="stylesheet">
 </head>
 
 <style>
@@ -324,12 +333,12 @@ background-color: #cdcdcd;
 }
 </style>
 
-<body  background="../images/background.png">
+<body  background="./cfg/background.png">
 <!-- Fixed navbar -->
     <div class="container theme-showcase">
         <div class="header">
             <table style="width:100%">
-                <h1 align="left"><img src='.""" + logo + """' height=128 width=128 align="center">&nbsp;""" + company + """</h1>
+                <h1 align="left"><img src="./cfg/logo.png" height=128 width=128 align="center">&nbsp;""" + company + """</h1>
                 <tr>
                     <th>Registro</th>
                     <th>Unidad / Compañia</th> 
@@ -373,12 +382,9 @@ background-color: #cdcdcd;
 </html>
     """
 
-    if os.path.isfile("./reports") is False:
-        distutils.dir_util.mkpath("./reports")
-
-    f = open(html, 'w', encoding="utf-8")
-    f.write(rep_ini + obj + rep_end)
-    f.close()
+    os.makedirs(os.path.dirname(local), exist_ok=True)
+    with open(local + html, 'w', encoding="utf-8", errors="ignore") as f:
+        f.write(rep_ini + obj + rep_end)
 
 
 def index_report(obj, html):
@@ -393,14 +399,14 @@ def index_report(obj, html):
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Informe realizado con Whatsapp Parser Tool">
     <meta name="author" content="B16f00t">
-    <link rel="shortcut icon" href="../cfg/logo.png">
+    <link rel="shortcut icon" href="./cfg/logo.png">
     <title>Whatsapp Parser Tool v""" + version + """ Report Index</title>
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.css" rel="stylesheet">
     <!-- Bootstrap theme -->
     <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
-    <link href="../cfg/chat.css" rel="stylesheet">
+    <link href="./cfg/chat.css" rel="stylesheet">
 </head>
     
 <style>
@@ -423,10 +429,10 @@ background-color: #dddddd;
 }
 </style>
     
-<body  background="../images/background-index.png">
+<body  background="./cfg/background-index.png">
     <!-- Fixed navbar -->
         <div class="containerindex theme-showcase">
-            <h1 align="left"><img src='.""" + logo + """' height=128 width=128 align="center">&nbsp;""" + company + """</h1>
+            <h1 align="left"><img src="./cfg/logo.png" height=128 width=128 align="center">&nbsp;""" + company + """</h1>
             <h2 align=center> Listado de conversaciones </h2>
             <div class="header">
                 <table style="width:100%">
@@ -454,14 +460,14 @@ background-color: #dddddd;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Report makes with Whatsapp Parser Tool">
     <meta name="author" content="B16f00t">
-    <link rel="shortcut icon" href="../images/logo.png">
+    <link rel="shortcut icon" href="./cfg/logo.png">
     <title>Whatsapp Parser Tool v""" + version + """ Report Index</title>
     <!-- Bootstrap core CSS -->
     <link href="dist/css/bootstrap.css" rel="stylesheet">
     <!-- Bootstrap theme -->
     <link href="dist/css/bootstrap-theme.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
-    <link href="../cfg/chat.css" rel="stylesheet">
+    <link href="./cfg/chat.css" rel="stylesheet">
 </head>
 
 <style>
@@ -485,9 +491,11 @@ background-color: #dddddd;
 </style>
 
 <body>
+
+<body  background="./cfg/background-index.png">
 <!-- Fixed navbar -->
     <div class="containerindex theme-showcase">
-        <h1 align="left"><img src=.""" + logo + """ height=128 width=128 align="center">&nbsp;""" + company + """</h1>
+        <h1 align="left"><img src="./cfg/logo.png" height=128 width=128 align="center">&nbsp;""" + company + """</h1>
         <h2 align=center>  Chats list </h2>
         <div class="header">
             <table style="width:100%">
@@ -513,7 +521,7 @@ background-color: #dddddd;
     f.close()
 
 
-def reply(id):
+def reply(id, local):
     """ Function look out answer messages """
     sql_reply_str = "SELECT key_remote_jid, key_from_me, key_id, status, data, timestamp, media_url, media_mime_type, media_wa_type, media_size, media_name, media_caption, media_duration, latitude, longitude, " \
                 "remote_resource, edit_version, thumb_image, recipient_count, raw_data, starred, quoted_row_id, forwarded FROM messages_quotes WHERE _id = " + str(id)
@@ -549,8 +557,8 @@ def reply(id):
                 else:
                     ans = (str(rep[0]).split('@'))[0] + gets_name(rep[0])
         elif str(rep[0]) == "status@broadcast":
-            if os.path.isfile("./Media/.Statuses") is False:
-                distutils.dir_util.mkpath("./Media/.Statuses")
+            if os.path.isfile(local + "Media/.Statuses") is False:
+                distutils.dir_util.mkpath(local + "Media/.Statuses")
                 if int(rep[1]) == 1:  # I post a Status
                     if report_var == 'EN':
                         reply_msj = "<font color=\"#FF0000\" > Me </font>"
@@ -583,11 +591,15 @@ def reply(id):
             i = chain.rfind(b"Media/")
             b = len(chain)
             if i == -1:  # Image doesn't exist
-                thumb = "./Media/WhatsApp Images/IMG-" + str(rep[2]) + "-NotDownloaded.jpg"
+                thumb = local + "Media/WhatsApp Images/IMG-" + str(rep[2]) + "-NotDownloaded.jpg"
             else:
                 thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
+
+                if thumb != "Not downloaded":
+                    thumb = local + thumb[2:]
+
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath("./Media/WhatsApp Images")
+                    distutils.dir_util.mkpath(local + "Media/WhatsApp Images")
                     if rep[19]:  # raw_data exists
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -623,13 +635,16 @@ def reply(id):
             i = chain.rfind(b"Media/")
             b = len(chain)
             if i == -1:  # Video doesn't exist
-                thumb = "./Media/WhatsApp Video/VID-" + str(rep[2]) + "-NotDownloaded.mp4"
+                thumb = local + "Media/WhatsApp Video/VID-" + str(rep[2]) + "-NotDownloaded.mp4"
             else:
                 thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
 
                 if rep[19]:  # raw_data exists
+                    if thumb != "Not downloaded":
+                        thumb = local + thumb[2:]
+
                     if os.path.isfile(thumb) is False:
-                        distutils.dir_util.mkpath("./Media/WhatsApp Video")
+                        distutils.dir_util.mkpath(local + "Media/WhatsApp Video")
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
             if rep[11]:  # media_caption
@@ -690,11 +705,15 @@ def reply(id):
             i = chain.rfind(b"Media/")
             b = len(chain)
             if i == -1:  # App doesn't exist
-                thumb = "./Media/WhatsApp Documents/DOC-" + str(rep[2]) + "-NotDownloaded"
+                thumb = local + "Media/WhatsApp Documents/DOC-" + str(rep[2]) + "-NotDownloaded"
             else:
                 thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
+
+                if thumb != "Not downloaded":
+                    thumb = local + thumb[2:]
+
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath("./Media/WhatsApp Documents")
+                    distutils.dir_util.mkpath(local + "Media/WhatsApp Documents")
                     if rep[19]:  # raw_data exists
                         with open(thumb +"jpg", 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -736,11 +755,15 @@ def reply(id):
             i = chain.rfind(b"Media/")
             b = len(chain)
             if i == -1:  # GIF doesn't exist
-                thumb = "./Media/WhatsApp Animated Gifs/VID-" + str(rep[2]) + "-NotDownloaded.mp4"
+                thumb = local + "Media/WhatsApp Animated Gifs/VID-" + str(rep[2]) + "-NotDownloaded.mp4"
             else:
                 thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
+
+                if thumb != "Not downloaded":
+                    thumb = local + thumb[2:]
+
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath("./Media/WhatsApp Animated Gifs")
+                    distutils.dir_util.mkpath(local + "Media/WhatsApp Animated Gifs")
                     if rep[19]:  # raw_data exists
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -829,7 +852,7 @@ def reply(id):
     return ans, reply_msj
 
 
-def messages(consult, rows, report_html):
+def messages(consult, rows, report_html, local):
     """ Function that show database messages """
     try:
         n_mes = 0
@@ -922,8 +945,8 @@ def messages(consult, rows, report_html):
                     elif (str(data[0]).split('@'))[1] == "broadcast":
                         # Status
                         if str(data[0]) == "status@broadcast":
-                            if os.path.isfile("./Media/.Statuses") is False:
-                                distutils.dir_util.mkpath("./Media/.Statuses")
+                            if os.path.isfile(local + "Media/.Statuses") is False:
+                                distutils.dir_util.mkpath(local + "Media/.Statuses")
                             if int(data[1]) == 1:  # I post a Status
                                 if report_var == 'EN':
                                     report_name = "Me"
@@ -1002,9 +1025,9 @@ def messages(consult, rows, report_html):
                                     message += "The last picture is stored on the phone path '/data/data/com.whatsapp/cache/Profile Pictures/" + (data[0].split('@'))[0] + ".jpg'\n"
 
                                 if data[17]:
-                                    file_created = "./Media/WhatsApp Profile Pictures/" + (data[0].split('@'))[0] + "-" + str(data[2]) + ".jpg"
+                                    file_created = local + "Media/WhatsApp Profile Pictures/" + (data[0].split('@'))[0] + "-" + str(data[2]) + ".jpg"
                                     if os.path.isfile(file_created) is False:
-                                        distutils.dir_util.mkpath("./Media/WhatsApp Profile Pictures")
+                                        distutils.dir_util.mkpath(local + "Media/WhatsApp Profile Pictures")
                                         thumb = data[17].split(b'\xFF\xD8\xFF\xE0')[1]
                                         with open(file_created, 'wb') as profile_file:
                                             profile_file.write(b'\xFF\xD8\xFF\xE0' + thumb)
@@ -1180,9 +1203,9 @@ def messages(consult, rows, report_html):
                             if data[21] and int(data[21]) > 0:  # Reply
                                 if (report_var == 'EN') or (report_var == 'ES'):
                                     report_msj = "<p style=\"border-left: 6px solid blue; background-color: lightgrey;border-radius:5px;\"; > " + \
-                                                 reply(data[21])[1] + "</p>"
+                                                 reply(data[21], local)[1] + "</p>"
                                 else:
-                                    message += Fore.RED + "Replying to: " + Fore.RESET + reply(data[21])[0] + "\n"
+                                    message += Fore.RED + "Replying to: " + Fore.RESET + reply(data[21], local)[0] + "\n"
 
                             if (report_var == 'EN') or (report_var == 'ES'):
                                 report_msj += html.escape(data[4])
@@ -1214,13 +1237,16 @@ def messages(consult, rows, report_html):
                         else:
                             message += Fore.GREEN + "Type: " + Fore.RESET + "image/jpeg" + Fore.GREEN + " - Size: " + Fore.RESET + str(data[9]) + " bytes " + size_file(data[9]) + "\n"
 
+                        if thumb != "Not downloaded":
+                            thumb = local + thumb[2:]
+
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath("./Media/WhatsApp Images/Sent")
+                            distutils.dir_util.mkpath(local + "Media/WhatsApp Images/Sent")
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
-                                    thumb = "./Media/WhatsApp Images/Sent/IMG-" + str(data[2]) + "-NotDownloaded.jpg"
+                                    thumb = local + "Media/WhatsApp Images/Sent/IMG-" + str(data[2]) + "-NotDownloaded.jpg"
                                 else:
-                                    thumb = "./Media/WhatsApp Images/IMG-" + str(data[2]) + "-NotDownloaded.jpg"
+                                    thumb = local + "Media/WhatsApp Images/IMG-" + str(data[2]) + "-NotDownloaded.jpg"
 
                             with open(thumb, 'wb') as profile_file:
                                 if data[19]:    # raw_data exists
@@ -1276,13 +1302,16 @@ def messages(consult, rows, report_html):
                         else:
                             message += Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size: " + Fore.RESET + str(data[9]) + " bytes " + size_file(data[9]) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(data[12]) + "\n"
 
+                        if thumb != "Not downloaded":
+                            thumb = local + thumb[2:]
+
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath("./Media/WhatsApp Video/Sent")
+                            distutils.dir_util.mkpath(local + "Media/WhatsApp Video/Sent")
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
-                                    thumb = "./Media/WhatsApp Video/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
+                                    thumb = local + "Media/WhatsApp Video/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
                                 else:
-                                    thumb = "./Media/WhatsApp Video/VID-" + str(data[2]) + "-NotDownloaded.mp4"
+                                    thumb = local + "Media/WhatsApp Video/VID-" + str(data[2]) + "-NotDownloaded.mp4"
 
                             with open(thumb, 'wb') as profile_file:
                                 if data[19]:  # raw_data exists
@@ -1369,13 +1398,16 @@ def messages(consult, rows, report_html):
                             else:
                                 message += Fore.GREEN + "Type: " + Fore.RESET + data[7] + Fore.GREEN + " - Size: " + Fore.RESET + str(data[9]) + " bytes " + size_file(data[9]) + "\n"
 
+                        if thumb != "Not downloaded":
+                            thumb = local + thumb[2:]
+
                         if os.path.isfile(thumb + ".jpg") is False:
-                            distutils.dir_util.mkpath("./Media/WhatsApp Documents/Sent")
+                            distutils.dir_util.mkpath(local + "Media/WhatsApp Documents/Sent")
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
-                                    thumb = "./Media/WhatsApp Documents/Sent/DOC-" + str(data[2]) + "-NotDownloaded"
+                                    thumb = local + "Media/WhatsApp Documents/Sent/DOC-" + str(data[2]) + "-NotDownloaded"
                                 else:
-                                    thumb = "./Media/WhatsApp Documents/DOC-" + str(data[2]) + "-NotDownloaded"
+                                    thumb = local + "Media/WhatsApp Documents/DOC-" + str(data[2]) + "-NotDownloaded"
 
                             with open(thumb + ".jpg", 'wb') as profile_file:
                                 if data[19]:
@@ -1432,13 +1464,16 @@ def messages(consult, rows, report_html):
                         else:
                             message += Fore.GREEN + "Type: " + Fore.RESET + "Gif" + Fore.GREEN + " - Size: " + Fore.RESET + str(data[9]) + " bytes " + size_file(data[9]) + Fore.GREEN + " - Duration: " + Fore.RESET + duration_file(data[12]) + "\n"
 
+                        if thumb != "Not downloaded":
+                            thumb = local + thumb[2:]
+
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath("./Media/WhatsApp Animated Gifs/Sent")
+                            distutils.dir_util.mkpath(local + "Media/WhatsApp Animated Gifs/Sent")
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
-                                    thumb = "./Media/WhatsApp Animated Gifs/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
+                                    thumb = local + "Media/WhatsApp Animated Gifs/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
                                 else:
-                                    thumb = "./Media/WhatsApp Animated Gifs/VID-" + str(data[2]) + "-NotDownloaded.mp4"
+                                    thumb = local + "Media/WhatsApp Animated Gifs/VID-" + str(data[2]) + "-NotDownloaded.mp4"
 
                             with open(thumb, 'wb') as profile_file:
                                 if data[19]:  # raw_data exists
@@ -1560,7 +1595,7 @@ def messages(consult, rows, report_html):
                 continue
 
         if report_var != "None":
-            report(rep_med, report_html)
+            report(rep_med, report_html, local)
 
     except Exception as e:
         print("\nAn error occurred connecting to the database", e)
@@ -1581,8 +1616,8 @@ def info(opt):
         result = cursor.fetchone()
         print("Number of messages: {}".format(str(result[0])))
         sql_consult = cursor.execute(sql_string)
-        report_html = "./reports/report_status.html"
-        messages(sql_consult, result[0], report_html)
+        report_html = "report_status.html"
+        messages(sql_consult, result[0], report_html, local)
         print("[i] Finished")
 
     elif opt == '2':  # Calls
@@ -1690,9 +1725,9 @@ def info(opt):
                 print(message)
 
         if report_var != "None":
-            report_html = "./reports/report_calls.html"
+            report_html = "report_calls.html"
             print("[+] Creating report ...")
-            report(rep_med, report_html)
+            report(rep_med, report_html, local)
         print("\n[i] Finished")
 
     elif opt == '3':  # Chat list
@@ -1709,11 +1744,10 @@ def info(opt):
 
 def get_configs():
     """ Function that gets report config"""
-    global logo, company, record, unit, examiner, notes
+    global company, record, unit, examiner, notes
     config_report = ConfigParser()
     try:
         config_report.read('./cfg/settings.cfg')
-        logo = config_report.get('report', 'logo')
         company = config_report.get('report', 'company')
         record = config_report.get('report', 'record')
         unit = config_report.get('report', 'unit')
@@ -1736,6 +1770,9 @@ def extract(obj, total):
                 a = chain.rfind("/")
                 b = len(chain)
                 thumb = "./thumbnails" + (str(data[2]))[a:b]
+
+            if thumb != "Not downloaded":
+                thumb = local + thumb[2:]
 
             if os.path.isfile(thumb) is False:
                 distutils.dir_util.mkpath("./thumbnails")
@@ -1786,6 +1823,8 @@ if __name__ == "__main__":
     parser.add_argument("-ts", "--time_start", help="Show messages by start time (dd-mm-yyyy HH:MM)")
     parser.add_argument("-te", "--time_end", help="Show messages by end time (dd-mm-yyyy HH:MM)")
     parser.add_argument("-r", "--report", help='Make an html report in \'EN\' English or \'ES\' Spanish. If specified together with flag -a, makes a report for each chat', const='EN', nargs='?', choices=['EN', 'ES'])
+    parser.add_argument("-c", "--carving", help="Carving in the database", action="store_true")
+    parser.add_argument("-o", "--output", help="Output path")
     filter_parser = parser.add_mutually_exclusive_group()
     filter_parser.add_argument("-tt", "--type_text", help="Show text messages", action="store_true")
     filter_parser.add_argument("-ti", "--type_image", help="Show image messages", action="store_true")
@@ -1800,11 +1839,13 @@ if __name__ == "__main__":
     filter_parser.add_argument("-tr", "--type_share", help="Show Real time location messages", action="store_true")
     filter_parser.add_argument("-tk", "--type_stickers", help="Show Stickers messages", action="store_true")
     filter_parser.add_argument("-tm", "--type_system", help="Show system messages", action="store_true")
+
     args = parser.parse_args()
     init()
 
     if len(sys.argv) == 1:
         help()
+
     else:
         if args.messages:
             if args.wa_file:
@@ -1826,6 +1867,11 @@ if __name__ == "__main__":
                     epoch_end = 1000 * int(time.mktime(time.strptime(args.time_end, '%d-%m-%Y %H:%M')))
                 sql_string += str(epoch_start) + "' AND '" + str(epoch_end) + "'"
                 sql_count += str(epoch_start) + "' AND '" + str(epoch_end) + "'"
+
+                if args.output:
+                    local = args.output
+                else:
+                    local = os.getcwd() + "/"
 
                 if args.text:
                     sql_string += " AND messages.data LIKE '%" + str(args.text) + "%'"
@@ -1886,12 +1932,12 @@ if __name__ == "__main__":
                     sql_string += " AND (messages.key_remote_jid LIKE '%" + str(args.user_all) + "%@s.whatsapp.net' OR messages.remote_resource LIKE '%" + str(args.user_all) + "%')"
                     sql_count += " AND (messages.key_remote_jid LIKE '%" + str(args.user_all) + "%@s.whatsapp.net' OR messages.remote_resource LIKE '%" + str(args.user_all) + "%')"
                     arg_user = args.user_all
-                    report_html = "./reports/report_user_all_" + args.user_all + ".html"
+                    report_html = "report_user_all_" + args.user_all + ".html"
 
                 elif args.user:
                     sql_string += " AND messages.key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net'"
                     sql_count += " AND messages.key_remote_jid LIKE '%" + str(args.user) + "%@s.whatsapp.net'"
-                    report_html = "./reports/report_user_chat_" + args.user + ".html"
+                    report_html = "report_user_chat_" + args.user + ".html"
                     arg_user = args.user
 
                 elif args.group:
@@ -1899,10 +1945,10 @@ if __name__ == "__main__":
                     sql_count += " AND messages.key_remote_jid LIKE '%" + str(args.group) + "%'"
                     arg_group = args.group
                     if arg_group.split("@")[1] == "g.us":
-                        report_html = "./reports/report_group_chat_" + args.group + ".html"
+                        report_html = "report_group_chat_" + args.group + ".html"
                         report_group, color = participants(args.group)
                     else:
-                        report_html = "./reports/report_broadcast_chat_" + args.group + ".html"
+                        report_html = "report_broadcast_chat_" + args.group + ".html"
                         report_group, color = participants(args.group)
 
                 elif args.all:
@@ -1920,10 +1966,10 @@ if __name__ == "__main__":
 
                         if i.split('@')[1] == "g.us":
                             if report_var == 'EN':
-                                report_html = "./reports/report_group_chat_" + i + ".html"
+                                report_html = "report_group_chat_" + i + ".html"
                                 report_med += "<tr><th>Group</th><th><a href=\"report_group_chat_" + i + ".html" + "\" target=\"_blank\"> " + i + gets_name(i) + "</a></th></tr>"
                             elif report_var == 'ES':
-                                report_html = "./reports/report_group_chat_" + i + ".html"
+                                report_html = "report_group_chat_" + i + ".html"
                                 report_med += "<tr><th>Grupo</th><th><a href=\"report_group_chat_" + i + ".html" + "\" target=\"_blank\"> " + i + gets_name(i) + "</a></th></tr>"
                             sql_string_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
                             sql_count_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
@@ -1939,10 +1985,10 @@ if __name__ == "__main__":
                         elif i.split('@')[1] == "s.whatsapp.net":
                             if report_var == 'EN':
                                 report_med += "<tr><th>User</th><th><a href=\"report_user_chat_" + i.split('@')[0] + ".html" + "\" target=\"_blank\"> " + i.split('@')[0] + gets_name(i) + "</a></th></tr>"
-                                report_html = "./reports/report_user_chat_" + i.split('@')[0] + ".html"
+                                report_html = "report_user_chat_" + i.split('@')[0] + ".html"
                             elif report_var == 'ES':
                                 report_med += "<tr><th>Usuario</th><th><a href=\"report_user_chat_" + i.split('@')[0] + ".html" + "\" target=\"_blank\"> " + i.split('@')[0] + gets_name(i) + "</a></th></tr>"
-                                report_html = "./reports/report_user_chat_" + i.split('@')[0] + ".html"
+                                report_html = "report_user_chat_" + i.split('@')[0] + ".html"
                             sql_string_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
                             sql_count_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
                             arg_group = ""
@@ -1957,10 +2003,10 @@ if __name__ == "__main__":
                         elif i.split('@')[1] == "broadcast":
                             if report_var == 'EN':
                                 report_med += "<tr><th>Broadcast</th><th><a href=\"report_broadcast_chat_" + i.split('@')[0] + ".html" + "\" target=\"_blank\"> " + i + gets_name(i) + "</a></th></tr>"
-                                report_html = "./reports/report_broadcast_chat_" + i.split('@')[0] + ".html"
+                                report_html = "report_broadcast_chat_" + i.split('@')[0] + ".html"
                             elif report_var == 'ES':
                                 report_med += "<tr><th>Difusión</th><th><a href=\"report_broadcast_chat_" + i.split('@')[0] + ".html" + "\" target=\"_blank\"> " + i + gets_name(i) + "</a></th></tr>"
-                                report_html = "./reports/report_broadcast_chat_" + i.split('@')[0] + ".html"
+                                report_html = "report_broadcast_chat_" + i.split('@')[0] + ".html"
                             sql_string_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
                             sql_count_copy += " AND messages.key_remote_jid LIKE '%" + i + "%'"
                             arg_group = ""
@@ -1973,11 +2019,11 @@ if __name__ == "__main__":
                             report_group, color = participants(arg_user)
 
                         sql_consult = cursor.execute(sql_string_copy)
-                        messages(sql_consult, result[0], report_html)
+                        messages(sql_consult, result[0], report_html, local)
                         print()
 
                     if args.report:
-                        index_report(report_med, "./reports/index.html")
+                        index_report(report_med, local + "index.html")
                     print("\n[i] Finished")
                     exit()
 
@@ -1986,7 +2032,7 @@ if __name__ == "__main__":
                 result = cursor.fetchone()
                 print("Number of messages: {}".format(str(result[0])))
                 sql_consult = cursor.execute(sql_string)
-                messages(sql_consult, result[0], report_html)
+                messages(sql_consult, result[0], report_html, local)
                 print("\n[i] Finished")
 
             except Exception as e:
@@ -2040,6 +2086,10 @@ if __name__ == "__main__":
             if args.wa_file:
                 names(args.wa_file)
                 db_connect(args.database)
+
+
+
+
 
 
 
