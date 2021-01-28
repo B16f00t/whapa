@@ -1,8 +1,8 @@
 import os
-import sys
 import time
+import re
+import sys
 import webbrowser
-from libs import update
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -12,7 +12,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.21'
+version = '1.3'
 system = ""
 
 
@@ -80,6 +80,8 @@ class Whapa:
         self.iconstatus = PhotoImage(file=self.icons[24])
         self.iconrequire = PhotoImage(file=self.icons[25])
         self.iconupdate = PhotoImage(file=self.icons[26])
+        self.iconcarving = PhotoImage(file=self.icons[27])
+        self.icontabwhacloud = PhotoImage(file=self.icons[28])
 
 
         # Menu Windows Property
@@ -94,6 +96,7 @@ class Whapa:
         """ Function that gets report config"""
         self.wagodri_box_value = StringVar()
         self.whacipher_box_value = StringVar()
+        self.wacloud_box_value = StringVar()
         self.label_status = StringVar()
         self.whapa_box_value = StringVar()
         self.whapa_user = StringVar()
@@ -109,7 +112,9 @@ class Whapa:
         if system == "Linux":
             self.whamerge_path = StringVar(value=os.getcwd() + "/")
             self.whagodri_path = StringVar(value=os.getcwd() + "/")
+            self.whacloud_path = StringVar(value=os.getcwd() + "/")
             self.whacipher_path = StringVar(value=os.getcwd() + "/")
+            self.whapa_out = StringVar(value=os.getcwd() + "/report/")
             self.whamerge_file = StringVar(value=os.getcwd() + "/msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.cript12")
             self.whacipher_key = StringVar(value=os.getcwd() + "/key")
@@ -120,10 +125,13 @@ class Whapa:
             self.whacipher_key_en = StringVar(value=os.getcwd() + "/key")
             self.whapa_file = StringVar(value=os.getcwd() + "/msgstore.db")
             self.whapa_wa = StringVar(value=os.getcwd() + "/wa.db")
+
         else:
             self.whamerge_path = StringVar(value=os.getcwd() + "\\")
             self.whagodri_path = StringVar(value=os.getcwd() + "\\")
+            self.whacloud_path = StringVar(value=os.getcwd() + "\\")
             self.whacipher_path = StringVar(value=os.getcwd() + "\\")
+            self.whapa_out = StringVar(value=os.getcwd() + "\\report\\")
             self.whamerge_file = StringVar(value=os.getcwd() + r"\msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.cript12")
             self.whacipher_key = StringVar(value=os.getcwd() + r"\key")
@@ -177,10 +185,12 @@ class Whapa:
         self.tab2 = Frame(self.note)
         self.tab3 = Frame(self.note)
         self.tab4 = Frame(self.note)
+        self.tab5 = Frame(self.note)
         self.note.add(self.tab1, text="Whapa", image=self.icontabwhapa, compound='left', padding=20)
         self.note.add(self.tab2, text="Whacipher", image=self.icontabcipher, compound='left', padding=20)
         self.note.add(self.tab3, text="Whamerge", image=self.icontabmerge, compound='left', padding=20)
         self.note.add(self.tab4, text="Whagodri", image=self.icontabdrive, compound='left', padding=20)
+        self.note.add(self.tab5, text="Whacloud", image=self.icontabwhacloud, compound='left', padding=20)
         self.note.grid(row=2, padx=15, pady=15, sticky="we")
 
         # Tab 1 Whapa
@@ -206,11 +216,19 @@ class Whapa:
         self.button_whapa_wa.grid(row=1, column=2, sticky="w", padx=5, pady=5, columnspan=1)
         ToolTip(self.button_whapa_wa, "Wa file, optionally to get names")
 
+        self.label_whapa_out = Label(self.frame_whapa_db, text="Output path")
+        self.label_whapa_out.grid(row=2, column=0, sticky="we", padx=5, pady=15, columnspan=1)
+        self.entry_whapa_out = Entry(self.frame_whapa_db, textvariable=self.whapa_out, width=70)
+        self.entry_whapa_out.grid(row=2, column=1, sticky="we", padx=5, pady=5, columnspan=1)
+        self.button_whapa_out = Button(self.frame_whapa_db, image=self.iconfile, command=self.search_whapa_out, borderwidth=0, highlightthickness=0)
+        self.button_whapa_out.grid(row=2, column=2, sticky="w", padx=5, pady=5, columnspan=1)
+        ToolTip(self.button_whapa_out, "Output path to save the information")
+
         self.frame_whapa_repo = LabelFrame(self.tab1, text="Report")
         self.frame_whapa_repo.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
         self.whapa_but_rep_none = Radiobutton(self.frame_whapa_repo, text='  Terminal', image=self.iconone, variable=self.whapa_box_rep, value='None', anchor="w", compound='left')
         self.whapa_but_rep_none.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_rep_none.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.whapa_but_rep_none.grid(row=0, column=0, padx=5, pady=(15,5), sticky="nswe")
         self.whapa_but_rep_es = Radiobutton(self.frame_whapa_repo, text='  Spanish', image=self.icones, variable=self.whapa_box_rep, value='ES', anchor="w", compound='left')
         self.whapa_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
         self.whapa_but_rep_es.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
@@ -311,7 +329,7 @@ class Whapa:
         self.frame_whapa_info = LabelFrame(self.tab1, text="Options")
         self.frame_whapa_info.grid(row=3, column=0, padx=5, pady=5, sticky="we", columnspan="2")
 
-        self.label_whapa_sep = Label(self.frame_whapa_info, width=35)
+        self.label_whapa_sep = Label(self.frame_whapa_info, width=25)
         self.label_whapa_sep.grid(row=0, column=0, padx=5, pady=5)
         self.button_whapa_parser = Button(self.frame_whapa_info, image=self.iconparser, command=self.whapa_messages, height=32, width=64)
         self.button_whapa_parser.grid(row=0, column=1, padx=5, pady=5)
@@ -325,6 +343,10 @@ class Whapa:
         self.button_whapa_extract = Button(self.frame_whapa_info, image=self.iconextract, command=self.whapa_extract, height=32, width=64)
         self.button_whapa_extract.grid(row=0, column=4, padx=5, pady=5)
         ToolTip(self.button_whapa_extract, "Extract Thumbnails")
+        self.button_whapa_carv = Button(self.frame_whapa_info, image=self.iconcarving, command=self.whapa_carving, height=32, width=64)
+        self.button_whapa_carv.grid(row=0, column=5, padx=5, pady=5)
+        ToolTip(self.button_whapa_carv, "Database Carving")
+
 
         # Tab 2 Whacipher
         self.label_whacipher = Label(self.tab2, text="Whatsapp Encryption and Decryption", font=('courier', 15, 'bold'))
@@ -504,6 +526,45 @@ class Whapa:
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
         ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
 
+        # Tab 5 WhaCloud
+        self.label_wacloud = Label(self.tab5, text="Whatsapp ICloud Extractor", font=('courier', 15, 'bold'))
+        self.label_wacloud.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
+
+        self.frame_whacloud = LabelFrame(self.tab5, text="Download")
+        self.frame_whacloud.grid(row=1, padx=5, pady=5, sticky="nsew", columnspan=3)
+
+        self.wacloud_list = Radiobutton(self.frame_whacloud, text='List all files', variable=self.wacloud_box_value, value='List', anchor="w", compound='left')
+        self.wacloud_list.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wacloud_list.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.wacloud_box_value.set("List")
+        self.wacloud_sync = Radiobutton(self.frame_whacloud, text='Sync', variable=self.wacloud_box_value, value='Sync', anchor="w", compound='left')
+        self.wacloud_sync.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wacloud_sync.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.wacloud_img = Radiobutton(self.frame_whacloud, text='Images', variable=self.wacloud_box_value, value='Images', anchor="w", compound='left')
+        self.wacloud_img.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wacloud_img.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
+        self.wacloud_vid = Radiobutton(self.frame_whacloud, text='Videos / Audios', variable=self.wacloud_box_value, value='Videos', anchor="w", compound='left')
+        self.wacloud_vid.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wacloud_vid.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
+        self.wacloud_file = Radiobutton(self.frame_whacloud, text='File', variable=self.wacloud_box_value, value='File', anchor="w", compound='left')
+        self.wacloud_file.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.wacloud_file.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
+        self.entry_whacloud_down = Entry(self.frame_whacloud, width=77)
+        self.entry_whacloud_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
+
+        self.frame_whacloud_out = LabelFrame(self.tab5, text="Output path")
+        self.frame_whacloud_out.grid(row=2, padx=5, pady=10, sticky="nsew", columnspan=2)
+
+        self.entry_whacloud_output = Entry(self.frame_whacloud_out, textvariable=self.whacloud_path, width=114)
+        self.entry_whacloud_output.grid(row=0, column=0, sticky="we", padx=5, pady=(15,5))
+        self.whacloud_button_path = Button(self.frame_whacloud_out, image=self.iconfile, command=self.search_path_whacloud, borderwidth=0, highlightthickness=0)
+        self.whacloud_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
+        ToolTip(self.whacloud_button_path, "Output path to save files")
+
+        self.button_whacloud_exec = Button(self.frame_whacloud_out, image=self.icondownwhagodri, command=self.wacloud_down, height=32, width=64)
+        self.button_whacloud_exec.grid(row=1, column=0, columnspan=2, padx=185, pady=10)
+
+
         # Status Bar
         self.label_status.set(time.strftime("%d-%m-%Y %H:%M"))
         self.statusbar = Frame(self.root, bd=1, relief="sunken")
@@ -572,7 +633,10 @@ class Whapa:
 
     def report(self):
         """Open the report"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("html files", "*.html"), ), initialdir = "reports")
+        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("html files", "*.html"), ), initialdir = "report")
+        if not self.path:
+            return
+        
         if system == "Linux":
             os.system('xdg-open ' + re.escape(self.path))
         else:
@@ -585,7 +649,12 @@ class Whapa:
 
     def update(self):
         """ About dialog"""
-        update.start(version)
+        if system == "Linux":
+            exec = "python3 ./libs/update.py {}".format(version)
+        else:
+            exec = "python .\\libs\\update.py {}".format(version)
+        self.label_status.set(exec)
+        os.system(exec)
 
     def exit(self):
         """Exit the App"""
@@ -593,6 +662,7 @@ class Whapa:
 
     def search_whapa_file(self):
         """Search a file"""
+
         self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db files", "*.db"),))
         if system == "Linux":
             self.whapa_file.set(self.path)
@@ -601,11 +671,21 @@ class Whapa:
 
     def search_whapa_wa(self):
         """Search a file"""
+
         self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db files", "*.db"),))
         if system == "Linux":
             self.whapa_wa.set(self.path)
         else:
             self.whapa_wa.set(self.path.replace("/", "\\"))
+
+    def search_whapa_out(self):
+        """Search a path"""
+
+        self.path = filedialog.askdirectory()
+        if system == "Linux":
+            self.whapa_out.set(self.path + '/report/')
+        else:
+            self.whapa_out.set((self.path + "\\report\\").replace("/", "\\"))
 
     def whapa_messages(self):
         """ Run whapa message command"""
@@ -678,6 +758,11 @@ class Whapa:
             self.cmd += " -r EN"
         else:
             pass
+
+        if self.whapa_out.get():
+            self.cmd += " -o {}".format(self.whapa_out.get())
+        else:
+            self.cmd += " -o {}".format(os.getcwd())
 
         if system == "Linux":
             exec = "python3 ./libs/whapa.py {}".format(self.cmd)
@@ -783,6 +868,26 @@ class Whapa:
         self.label_status.set(exec)
         os.system(exec)
 
+    def whapa_carving(self):
+        """ Run whapa carving database"""
+
+        self.cmd = '"{}"'.format
+        print("[i] Database carving starts...")
+        print("[i] The process can be slow, be patient!")
+        if self.whapa_out.get():
+            local = self.whapa_out.get()
+        else:
+            local = os.getcwd()
+
+        os.makedirs(os.path.dirname(local), exist_ok=True)
+        if system == "Linux":
+            exec = "./libs/undark -i {} --no-blobs --freespace > {}".format((self.whapa_file.get()).strip("\n"), (local + "/msgstore.csv"))
+        else:
+            exec = ".\\libs\\undark -i {} --no-blobs --freespace > {}".format((self.whapa_file.get()).strip("\n"), (local + "\\msgstore.csv"))
+        self.label_status.set(exec)
+        os.system(exec)
+        print("[i] Finished")
+
     def estate_assets_whacipher(self):
         """Check that radiobutton is marked"""
         if self.whacipher_box_value.get() == "File":
@@ -823,7 +928,7 @@ class Whapa:
             return False
 
     def search_path_whacypher(self):
-        """Search a file"""
+        """Search a path"""
         self.path = filedialog.askdirectory()
         if system == "Linux":
             self.whacipher_path.set(self.path + '/')
@@ -948,7 +1053,8 @@ class Whapa:
         os.system(exec)
 
     def search_path_whagodri(self):
-        """Search a path file to merge"""
+        """Search a output path """
+
         self.path = filedialog.askdirectory()
         if system == "Linux":
             self.whagodri_path.set(self.path + "/")
@@ -989,7 +1095,7 @@ class Whapa:
 
         if self.whagodri_path.get():
             if system == "Linux":
-                self.cmd += ' -o "{}"'.format(self.whagodri_path.get()).strip("\n")
+                self.cmd += ' -o "{}/"'.format(self.whagodri_path.get()).strip("\n")
             else:
                 self.cmd += ' -o "{}\\"'.format(self.whagodri_path.get()).strip("\n")
 
@@ -997,6 +1103,46 @@ class Whapa:
             exec = "python3 ./libs/whagodri.py {} ".format(self.cmd)
         else:
             exec = "python .\\libs\\whagodri.py {}".format(self.cmd)
+        self.label_status.set(exec)
+        os.system(exec)
+
+    def search_path_whacloud(self):
+        """Search a output path """
+
+        self.path = filedialog.askdirectory()
+        if system == "Linux":
+            self.whacloud_path.set(self.path + "/")
+        else:
+            self.whacloud_path.set((self.path + "\\").replace("/", "\\"))
+
+    def wacloud_down(self):
+        """ Run Icloud command"""
+
+        if self.wacloud_box_value.get() == "List":
+            self.cmd = " -l"
+
+        elif self.wacloud_box_value.get() == "Sync":
+            self.cmd = " -s"
+
+        elif self.wacloud_box_value.get() == "Images":
+            self.cmd = " -si"
+
+        elif self.wacloud_box_value.get() == "Videos":
+            self.cmd = " -sv"
+
+        elif self.wacloud_box_value.get() == "File":
+            self.cmd = " -p {}".format(self.entry_whacloud_down.get()).strip("\n")
+
+        if self.whacloud_path.get():
+            if system == "Linux":
+                self.cmd += ' -o "{}/"'.format(self.whacloud_path.get()).strip("\n")
+            else:
+                self.cmd += ' -o "{}\\"'.format(self.whacloud_path.get()).strip("\n")
+
+        if system == "Linux":
+            exec = "python3 ./libs/whacloud.py {} ".format(self.cmd)
+        else:
+            exec = "python .\\libs\\whacloud.py {}".format(self.cmd)
         self.label_status.set(exec)
         os.system(exec)
 
@@ -1035,9 +1181,9 @@ if __name__ == '__main__':
              img_folder + "tabwhapa.png",
              img_folder + "tabwhagodri.png",
              img_folder + "tabwhacipher.png",
-             img_folder + "tabwamerge.png",
-             img_folder + "infowagodri.png",
-             img_folder + "downwagodri.png",
+             img_folder + "tabwhamerge.png",
+             img_folder + "infowhagodri.png",
+             img_folder + "downwhagodri.png",
              img_folder + "merge.png",
              img_folder + "decrypt.png",
              img_folder + "encrypt.png",
@@ -1049,7 +1195,9 @@ if __name__ == '__main__':
              img_folder + "callslog.png",
              img_folder + "status.png",
              img_folder + "requirements.png",
-             img_folder + "update.png"
+             img_folder + "update.png",
+             img_folder + "carving.png",
+             img_folder + "tabwhacloud.png"
              )
 
     for icon in icons:
