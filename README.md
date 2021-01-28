@@ -4,7 +4,7 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: September 2020
+Updated: December 2020
 
 WhatsApp Messenger Version 2.20
 
@@ -14,12 +14,17 @@ Note: Whapa provides 10x more performance and fewer bugs on linux systems than o
 
 Whapa is included as standard in distributions such as Tsurugi Linux (Digital Forensics) and BlackArch Linux (Penetration Testing).
 
-Whapa toolset is divided in four tools:
+Whapa toolset is divided in five tools:
 
+* **Android**
 * **Whapa**     (Whatsapp Parser)
-* **Whamerge**  (Whatsapp Merger)
-* **Whagodri**  (Whataspp Google Drive Extractor)
 * **Whacipher** (Whatsapp Encryption/Decryption)
+* **Whagodri**  (Whataspp Google Drive Extractor)
+* **Whamerge**  (Whatsapp Merger)
+
+* **IPhone**
+* **Whacloud**  (Whatsapp ICloud Extractor) NEW BETA TOOL FOR IPHONE
+
 
 
 **Do you like this project? Support it by donating**
@@ -65,21 +70,26 @@ Reports
 To create reports the first thing we need to do is to configure the file"./cfg/settings.cfg". For example:
 
 	[report]
-	logo =./cfg/logo.png
 	company = Foo S.L
 	record = 1337
 	unit = Research group
 	examiner = B16f00t
 	notes = Chat maintained between the murderer and the victim
 	
-Here we must put our company logo, company or unit name, as well as the assigned registration number, unit or group where we belong, who is the examiner and we can also specify notes on the report.
+If we want to put the logo of our company, we must replace the file './cfg/logo.png' by the one of our choice.
+In the file './cfg/settings.cfg', the name of the company or unit must be specified, as well as the assigned registration number, the unit or group we belong to, who the examiner is and we can also specify notes in the report.
 
 To generate the report we must specify the option "English" whether we want the report in English, as well as "ES" whether we want the report in Spanish.
 
-If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
-For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the whapa directory, otherwise the program will generate thumbnails.
+If you specify the "wa.db" database, the phone number will be displayed along with the name.
+For the report to contains the images, videos, documents... you must copy the "WhatsApp/Media" folder of your phone to the report directory, otherwise the program will generate thumbnails.
 
 If we want to print the document or create the report in pdf, It recommends in the print option -> scale the view <= 60% or 70%, otherwise the report will be displayed too large.
+
+
+WHACIPHER
+=====
+whacipher.py is a tool which allows decrypt or encrypt WhatsApp database. You must have the key of your phone to decrypt, and additionally a encrypted database as reference to encrypt a new database.
 
 
 WHAMERGE
@@ -100,20 +110,31 @@ Make sure of:
 
 Edit only the values of the./cfg/settings.cfg file
 
-		[auth]
+		[google-auth]
 		gmail = alias@gmail.com
 		passw = yourpassword
-		devid = Device ID (optional, if specified get more information)
 		celnumbr = BackupPhoneNumber -> Country code + phonenumber (ex. 3466666666666)
 * If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
 
 
 If you want to use 2FA (Two Factor Authentication), you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.
 
-WHACIPHER
+WHACLOUD
 =====
-whacipher.py is a tool which allows decrypt or encrypt WhatsApp database. You must have the key of your phone to decrypt, and additionally a encrypted database as reference to encrypt a new database.
+whacloud.py is a tool which allows WhatsApp users on Iphone to extract their backed up WhatsApp data from ICloud.
 
+Make sure of:
+* Download the latest version of whapa
+* Install the requirements
+* Settings:
+
+Edit only the values of the./cfg/settings.cfg file
+
+		[icloud-auth]
+		icloud = alias@icloud.com
+		passw = yourpassword
+		celnumbr = BackupPhoneNumber -> Country code + phonenumber (ex. 3466666666666)
+		
 
 Get in touch
 =====
