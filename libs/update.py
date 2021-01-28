@@ -1,7 +1,7 @@
 ﻿import requests
 import re
 import webbrowser
-from tkinter import messagebox
+import sys
 
 
 def start(version):
@@ -15,7 +15,15 @@ def start(version):
             break
 
     if float(update) > float(version):
-        messagebox.showinfo("Update", "New version available\n{}".format(update))
+        print("New version available: {}".format(update))
         webbrowser.open_new_tab("https://github.com/B16f00t/whapa")
     else:
-        messagebox.showinfo("Update", "You have the latest version")
+        print("You have the latest version")
+
+
+# Initializing
+if __name__ == "__main__":
+    if len(sys.argv) == 1:
+        print("[i] Whapa Updater")
+    else:
+        start(sys.argv[1])
