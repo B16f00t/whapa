@@ -2,18 +2,30 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Jan 2021
+
+    [+] whapa-gui.py v1.3
+		[-] New tool WhaCloud
+		
+	[+] whacloud.py
+		[-] New tool to download your backup from ICloud
+		
+	[+] whapa.py
+		[-] New SQLite data carving option
+		[-] You can choose the report output file
+			
+    [+] update.py
+    	[-] Bug Fixed
+
+		
 Sep 2020
 
-	[+] whapa-gui.py v1.21
-	[+] whagodri.py
-		[-] More debugs and workaround messages
-		[-] Fix interpolated by configparser by RMHogervorst
-	
-	[+] whapa-gui.py v1.2
+    [+] whapa-gui.py v1.2
 		[-] Fix problem with requests library, now there is a button to update
 		[-] You can search for a text string inside whapa tab
-	[+] whagodri.py
-		[-] Enabled two factor authentication
+
+    [+] whagodri.py
+    	[-] Enabled two factor authentication
 		[-] More debugs and workaround messages
 		[-] settings.cfg file easier
 		
@@ -22,7 +34,6 @@ Jun 2020
     [+] whapa-gui.py v1.16
     [+] whagodri.py
     	[-] Fixed Google Drive crash when check update
-    
 Mar 2020
 
     [+] whapa-gui.py v1.15
@@ -32,7 +43,7 @@ Mar 2020
 Oct 2019
 
     [+] whapa-gui.py v1.14
-    	[-] fixed bug in downloading files individually
+    	[-] Fixed bug in downloading files individually
 	
     [+] whapa-gui.py v1.13
     	[-] whagodri tab changes, Only one download method and new options for downloading files.
@@ -97,6 +108,6 @@ March 2018
     
 February 2018
 
-    [+] whapa.py v0.1
+    [i] whapa.py v0.1
     	[-] Fixed minor bugs
     	[-] Added whapas.py
