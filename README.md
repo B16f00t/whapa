@@ -57,7 +57,7 @@ if you use Windows system:
 * click on whapa-gui.bat
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/B16f00t/whapa/master/doc/software.jpg" width="720" height="576">
+  <img src="https://raw.githubusercontent.com/B16f00t/whapa/master/doc/software.png" width="720" height="576">
 </p>
 
 WHAPA
