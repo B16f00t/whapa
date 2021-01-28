@@ -4,9 +4,9 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: December 2020
+Updated: January 2021
 
-WhatsApp Messenger Version 2.20
+WhatsApp Messenger Version 2.21.2.14
 
 Whapa is a forensic graphical toolset for analyzing whatsapp in android. All the tools have been written in Python 3.X and have been tested on linux and windows 10 systems.
 
