@@ -16,13 +16,15 @@ Whapa is included as standard in distributions such as Tsurugi Linux (Digital Fo
 
 Whapa toolset is divided in five tools:
 
-* **Android**
+**Android**
+======
 * **Whapa**     (Whatsapp Parser)
 * **Whacipher** (Whatsapp Encryption/Decryption)
 * **Whagodri**  (Whataspp Google Drive Extractor)
 * **Whamerge**  (Whatsapp Merger)
 
-* **IPhone**
+**IPhone**
+====
 * **Whacloud**  (Whatsapp ICloud Extractor) NEW BETA TOOL FOR IPHONE
 
 
@@ -122,6 +124,7 @@ If you want to use 2FA (Two Factor Authentication), you will have to go to the U
 WHACLOUD
 =====
 whacloud.py is a tool which allows WhatsApp users on Iphone to extract their backed up WhatsApp data from ICloud.
+BETA TOOL May contain bugs.
 
 Make sure of:
 * Download the latest version of whapa
