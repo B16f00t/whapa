@@ -49,7 +49,7 @@ def help():
 def create_settings_file():
     """ Function that creates the settings file """
     with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
-        cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber')
+        cfg.write('[report]\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[google-auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber\n\n[icloud-auth]\nicloud  = alias@icloud.com\npassw = yourpassword')
 
 
 def getConfigs():
@@ -57,9 +57,9 @@ def getConfigs():
     config = ConfigParser(interpolation=None)
     try:
         config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
-        gmail = config.get('auth', 'gmail')
-        passw = config.get('auth', 'passw')
-        celnumbr = config.get('auth', 'celnumbr').lstrip('+0')
+        gmail = config.get('google-auth', 'gmail')
+        passw = config.get('google-auth', 'passw')
+        celnumbr = config.get('google-auth', 'celnumbr').lstrip('+0')
 
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
@@ -91,9 +91,9 @@ def getGoogleAccountTokenFromAuth():
         print(request.text)
         if "BadAuthentication" in request.text:
             print("\n   Workaround\n-----------------")
-            print("1. Check that your email and password are correct, if so change your google password and try again.\n"
+            print("1. Check that your email and password are correct in the settings file, if so change your google password and try again.\n"
                   "2. Your are using a old python version. Works > 3.7.7.\n"
-                  "3. You have the wrong version of the requirements, use in a terminal: 'pip install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt")
+                  "3. Update the gpsoauth dependency to its latest version, use in a terminal: 'pip install -U gpsoauth' or 'pip3 install -U gpsoauth'")
 
         elif "NeedsBrowser" in request.text:
             print("\n   Workaround\n-----------------")
@@ -185,6 +185,22 @@ def downloadFileGoogleDrive(bearer, url, local):
         print("    [-] Not downloaded : {}".format(local))
 
 
+def uploadFileGoogleDrive(bearer, url):
+    try:
+        header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
+        payload = {'uploadType': 'resumable', 'mode': 'backup', 'transaction_i': 'W5a'}
+
+        print("Inicia el request")
+        request = requests.get(url, headers=header, params=payload,  stream=True)
+        if request.status_code == 200:
+            print(request.content)
+        else:
+            print(request.url)
+
+    except Exception as e:
+        print(e)
+
+
 def getMultipleFiles(drives, bearer, files):
     threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
                   "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
@@ -260,10 +276,15 @@ def getMultipleFilesThread(bearer, url, local, now, lenfiles, threadName):
     request = requests.get(url, headers=header, stream=True)
     request.raw.decode_content = True
     if request.status_code == 200:
-        with open(local, 'wb') as asset:
-            for chunk in request.iter_content(1024):
-                asset.write(chunk)
-        print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles,  threadName, local))
+        if not os.path.isfile(local):
+            with open(local, 'wb') as asset:
+                for chunk in request.iter_content(1024):
+                    asset.write(chunk)
+            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles,  threadName, local))
+        else:
+
+            print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles,  threadName, local))
+
 
     else:
         print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles,  threadName, local))
@@ -327,7 +348,7 @@ if __name__ == "__main__":
                 print("    [-] File {}/{}  : {}".format(n, lenfiles, i.split('files/')[1]))
                 n += 1
 
-        if args.list_whatsapp:
+        elif args.list_whatsapp:
             print("[+] Backup name : {}".format(drives["name"]))
             lenfiles = len(files)
             n = 1
@@ -339,10 +360,10 @@ if __name__ == "__main__":
                     exit()
                 n += 1
 
-        if args.sync:
+        elif args.sync:
             getMultipleFiles(drives, bearer, files)
 
-        if args.s_images:
+        elif args.s_images:
             filter = []
             for i in files:
                 try:
@@ -352,7 +373,7 @@ if __name__ == "__main__":
                     pass
             getMultipleFiles(drives, bearer, filter)
 
-        if args.s_videos:
+        elif args.s_videos:
             filter = []
             for i in files:
                 try:
@@ -362,7 +383,7 @@ if __name__ == "__main__":
                     pass
             getMultipleFiles(drives, bearer, filter)
 
-        if args.s_audios:
+        elif args.s_audios:
             filter = []
             for i in files:
                 try:
@@ -372,7 +393,7 @@ if __name__ == "__main__":
                     pass
             getMultipleFiles(drives, bearer, filter)
 
-        if args.s_documents:
+        elif args.s_documents:
             filter = []
             for i in files:
                 try:
@@ -382,7 +403,7 @@ if __name__ == "__main__":
                     pass
             getMultipleFiles(drives, bearer, filter)
 
-        if args.s_databases:
+        elif args.s_databases:
             filter = []
             for i in files:
                 try:
@@ -392,7 +413,7 @@ if __name__ == "__main__":
                     pass
             getMultipleFiles(drives, bearer, filter)
 
-        if args.pull:
+        elif args.pull:
             try:
                 file = str(args.pull)
                 local_store = file.replace("/", os.path.sep)
