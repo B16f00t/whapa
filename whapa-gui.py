@@ -93,7 +93,7 @@ class Whapa:
         self.root.option_add("*Font", "Helvetica 10")
         self.root.option_add('*tearOff', False)
         self.root.geometry('930x630+' + str(int((self.root.winfo_screenwidth()/2) - (975/2))) + '+' + str(int(self.root.winfo_screenheight()/2 - (810/2))))
-        self.root.resizable(0, 0)
+        #self.root.resizable(0, 0)
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
