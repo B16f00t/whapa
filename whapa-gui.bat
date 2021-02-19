@@ -1,1 +1,0 @@
-python whapa-gui.py
