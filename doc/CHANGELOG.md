@@ -11,7 +11,7 @@ Feb 2021
 		[-] New minimal design
 		[-] New tool WhaChat
 	[+] whachat.py
-		[-] New tool to export chat in IOs and Android
+		[-] New tool to export chat from IOs and Android
 	[+] whapa.py
 		[-] Many bugs Fixed
 					
