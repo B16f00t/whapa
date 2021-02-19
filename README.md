@@ -4,7 +4,7 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: January 2021
+Updated: February 2021
 
 WhatsApp Messenger Version 2.21.2.14
 
