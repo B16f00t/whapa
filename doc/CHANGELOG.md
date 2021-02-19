@@ -4,35 +4,34 @@ All notable changes to this project will be documented in this file.
 
 Feb 2021
 
-    [+] whapa-gui.py v1.41
-	[-] Settings file fixed
-
-    [+] whapa-gui.py v1.40
-	[-] New minimal design
-	[-] New tool WhaChat
-    [+] whachat.py
-	[-] New tool to export chat in IOs and Android
-    [+] whapa.py
-     	[-] Many bugs Fixed
+	[+] whapa-gui.py v1.41
+		[-] Settings file fixed
+	
+	[+] whapa-gui.py v1.40
+		[-] New minimal design
+		[-] New tool WhaChat
+	[+] whachat.py
+		[-] New tool to export chat in IOs and Android
+	[+] whapa.py
+		[-] Many bugs Fixed
 					
 Jan 2021
 
-    [+] whapa-gui.py v1.3
-	[-] New tool WhaCloud	
-    [+] whacloud.py
-	[-] New tool to download your backup from ICloud
-    [+] whapa.py
-	[-] New SQLite data carving option
-	[-] You can choose the report output file
-			
-    [+] update.py
-    	[-] Bug Fixed
+	[+] whapa-gui.py v1.3
+		[-] New tool WhaCloud
+	[+] whacloud.py
+		[-] New tool to download your backup from ICloud
+	[+] whapa.py
+		[-] New SQLite data carving option
+		[-] You can choose the report output file
+	[+] update.py
+		[-] Bug Fixed
 		
 Sep 2020
 
-    [+] whapa-gui.py v1.2
-        [-] Fix problem with requests library, now there is a button to update
-	[-] You can search for a text string inside whapa tab
+	[+] whapa-gui.py v1.2
+		[-] Fix problem with requests library, now there is a button to update
+		[-] You can search for a text string inside whapa tab
 
     [+] whagodri.py
     	[-] Enabled two factor authentication
