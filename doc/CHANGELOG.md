@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file.
 Feb 2021
 
     [+] whapa-gui.py v1.41
+		[-] Settings file fixed
+
+    [+] whapa-gui.py v1.40
 		[-] New minimal design
 		[-] New tool WhaChat
-		[-] Settings file fixed
 		
 	[+] whachat.py
 		[-] New tool to export chat in IOs and Android
