@@ -10,7 +10,6 @@ import sys
 
 # Define global variable
 
-version = "1.0"
 message_columns = [
     '_id', 'key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type',
     'media_wa_type','media_size','media_name','media_caption','media_hash','media_duration','origin','latitude',
@@ -48,7 +47,7 @@ def banner():
      \        /|   Y  \/ __ \|  Y Y  \  ___/|  | \/ /_/  >  ___/ 
       \__/\  / |___|  (____  /__|_|  /\___  >__|  \___  / \___  >
            \/       \/     \/      \/     \/     /_____/      \/ 
-    ------------------- Whatsapp Merger v""" + version + """ -----------------
+    ------------------------ Whatsapp Merger -----------------------
     """)
 
 def help():

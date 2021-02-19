@@ -10,7 +10,7 @@ header, footer, nav, aside {
  	display: none;
 }
 
-li, img, table {
+li, img, div, table {
 	page-break-inside: avoid;
 }
 
@@ -43,8 +43,8 @@ li, img, table {
 .personName {  float: left; padding-left:0px; color:#5586e5; font-weight:400; font-weight:bold; }
 .personSay {   padding-left:0px; color:#000; font-weight:400; }
 
-.personName2 { float: right;  padding-left:0px; color:#5586e5; font-weight:400; font-weight:bold; }
-.personSay2 {  float: right; padding-left:0px; color:#000; font-weight:400; }
+.personName2 { float: left;  padding-left:0px; color:#5586e5; font-weight:400; font-weight:bold; }
+.personSay2 {  padding-left:0px; color:#000; font-weight:400; }
 
 .person-System {   padding-left:0px; color:#000; font-weight:400; }
 
@@ -110,7 +110,8 @@ chat bubble css
 	vertical-align: top;
 	margin: 10px 10px;
 	border-color: #cdecb0;
-	width: 47%;
+	width: 60%;
+	text-align: justify;
 	}
 
 
@@ -160,7 +161,8 @@ bubble2{
 	vertical-align: top;
 	margin: 10px 10px;
 	border-color: #cdecb0;
-	width: 47%;
+	width: 60%;
+	text-align: justify;
 	}
 
 

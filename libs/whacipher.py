@@ -9,7 +9,6 @@ import os
 
 
 # Define global variable
-version = "1.0"
 output = ""
 
 def banner():
@@ -22,7 +21,7 @@ def banner():
      \        /|   Y  \/ __ \\\\  \___|  |  |_> >   Y  \  ___/|  | \/
       \__/\  / |___|  (____  /\___  >__|   __/|___|  /\___  >__|   
            \/       \/     \/     \/   |__|        \/     \/               
-    ---------- Whatsapp Encryption and Decryption v""" + version + """ ----------
+    --------------- Whatsapp Encryption and Decryption -----------------
     """)
 
 

@@ -2,6 +2,21 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Feb 2021
+
+    [+] whapa-gui.py v1.4
+		[-] New minimal design
+		[-] New tool WhaChat
+		
+	[+] whachat.py
+		[-] New tool to export chat in IOs and Android
+		
+	[+] whapa.py
+		[-] Many bugs Fixed
+			
+
+		
+		
 Jan 2021
 
     [+] whapa-gui.py v1.3
@@ -16,7 +31,6 @@ Jan 2021
 			
     [+] update.py
     	[-] Bug Fixed
-
 		
 Sep 2020
 

@@ -22,11 +22,12 @@ Whapa toolset is divided in five tools:
 * **Whacipher** (Whatsapp Encryption/Decryption)
 * **Whagodri**  (Whataspp Google Drive Extractor)
 * **Whamerge**  (Whatsapp Merger)
+* **Whachat**   (Whatsapp Chat Exporter)
 
 **IPhone**
 ====
 * **Whacloud**  (Whatsapp ICloud Extractor) NEW BETA TOOL FOR IPHONE
-
+* **Whachat**   (Whatsapp Chat Exporter)
 
 
 **Do you like this project? Support it by donating**
@@ -137,8 +138,27 @@ Edit only the values of the./cfg/settings.cfg file
 		icloud = alias@icloud.com
 		passw = yourpassword
 		celnumbr = BackupPhoneNumber -> Country code + phonenumber (ex. 3466666666666)
-		
+	
+	
+WHACHAT
+=====
+whachat.py is a tool to make an interactive report from whatsapp's export chat functionality.
 
+To export chats on an Android phone, here are the steps:
+   1. Open the individual or group chat.
+   2. Press the Menu button.
+   3. Press More.
+   4. Select Export chat.
+   5. Choose Include or Exclude files.
+   
+To export chats on an iOS phone, here are the steps:
+   1. Open the individual or group chat.
+   2. Press on the name (Chat information).
+   3. Slide down.
+   4. Select Export chat.
+   5. Choose Include or Exclude files.
+   
+		
 Get in touch
 =====
 Acknowledgements, suggestions, languages, improvements...

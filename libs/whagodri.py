@@ -93,7 +93,7 @@ def getGoogleAccountTokenFromAuth():
             print("\n   Workaround\n-----------------")
             print("1. Check that your email and password are correct in the settings file, if so change your google password and try again.\n"
                   "2. Your are using a old python version. Works > 3.7.7.\n"
-                  "3. Update the gpsoauth dependency to its latest version, use in a terminal: 'pip install -U gpsoauth' or 'pip3 install -U gpsoauth'")
+                  "3. Update requirements, use in a terminal: 'pip3 install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt")
 
         elif "NeedsBrowser" in request.text:
             print("\n   Workaround\n-----------------")

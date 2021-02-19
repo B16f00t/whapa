@@ -12,7 +12,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.3'
+version = '1.40'
 system = ""
 
 
@@ -82,6 +82,9 @@ class Whapa:
         self.iconupdate = PhotoImage(file=self.icons[26])
         self.iconcarving = PhotoImage(file=self.icons[27])
         self.icontabwhacloud = PhotoImage(file=self.icons[28])
+        self.icontabwhachat = PhotoImage(file=self.icons[29])
+        self.iconandroid = PhotoImage(file=self.icons[30])
+        self.iconios = PhotoImage(file=self.icons[31])
 
 
         # Menu Windows Property
@@ -89,8 +92,11 @@ class Whapa:
         self.root.iconphoto(self.root, self.iconlogo)
         self.root.option_add("*Font", "Helvetica 10")
         self.root.option_add('*tearOff', False)
-        self.root.geometry('975x810+' + str(int((self.root.winfo_screenwidth()/2) - (975/2))) + '+' + str(int(self.root.winfo_screenheight()/2 - (810/2))))
+        self.root.geometry('930x630+' + str(int((self.root.winfo_screenwidth()/2) - (975/2))) + '+' + str(int(self.root.winfo_screenheight()/2 - (810/2))))
         self.root.resizable(0, 0)
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=1)
+
 
         # Variables
         """ Function that gets report config"""
@@ -102,6 +108,8 @@ class Whapa:
         self.whapa_user = StringVar()
         self.whapa_box_filter = StringVar()
         self.whapa_box_rep = StringVar()
+        self.whachat_box_rep = StringVar()
+        self.whachat_box_os = StringVar()
         self.whapa_text = StringVar(value="0")
         self.whapa_ts = StringVar(value="0")
         self.whapa_te = StringVar(value="0")
@@ -118,6 +126,7 @@ class Whapa:
             self.whamerge_file = StringVar(value=os.getcwd() + "/msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.cript12")
             self.whacipher_key = StringVar(value=os.getcwd() + "/key")
+            self.whachat_file = StringVar(value=os.getcwd() + "/chat.txt")
             self.whacipher_out = StringVar(value=os.getcwd() + "/msgstore.db")
             self.whacipher_out_en = StringVar(value=os.getcwd() + "/msgstore.db.cript12")
             self.whacipher_file_en = StringVar(value=os.getcwd() + "/msgstore.db")
@@ -135,6 +144,7 @@ class Whapa:
             self.whamerge_file = StringVar(value=os.getcwd() + r"\msgstore_merge.db")
             self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.cript12")
             self.whacipher_key = StringVar(value=os.getcwd() + r"\key")
+            self.whachat_file = StringVar(value=os.getcwd() + "\\chat.txt")
             self.whacipher_out = StringVar(value=os.getcwd() + r"\msgstore.db")
             self.whacipher_out_en = StringVar(value=os.getcwd() + r"\msgstore.db.cript12")
             self.whacipher_file_en = StringVar(value=os.getcwd() + r"\msgstore.db")
@@ -143,8 +153,23 @@ class Whapa:
             self.whapa_file = StringVar(value=os.getcwd() + r"\msgstore.db")
             self.whapa_wa = StringVar(value=os.getcwd() + r"\wa.db")
 
+        self.instructions_wachat = StringVar(value="""To export chats on an Android phone, here are the steps:
+   1. Open the individual or group chat.
+   2. Press the Menu button.
+   3. Press More.
+   4. Select Export chat.
+   5. Choose Include or Exclude files.
+   
+To export chats on an iOS phone, here are the steps:
+   1. Open the individual or group chat.
+   2. Press on the name (Chat information).
+   3. Slide down.
+   4. Select Export chat.
+   5. Choose Include or Exclude files.
+        """)
+
         # Toolbar
-        self.toolbar = Frame(self.root, relief=RAISED, bd=2, height=50)
+        self.toolbar = Frame(self.root, relief=RAISED, bd=2)
         self.toolbar.grid(row=0, sticky="ew", columnspan=5)
         self.toolbar_but1 = Button(self.toolbar, image=self.iconsearh, command=self.open_folder)
         self.toolbar_but1.grid(row=0, column=0)
@@ -172,12 +197,12 @@ class Whapa:
         ToolTip(self.toolbar_but8, "Exit")
 
         # Top
-        self.label_bg = Label(self.root, image=self.iconbg, bg="#A0A0A0", font=("times", "8", "normal"))
-        self.label_bg.grid(row=1, padx=5, pady=5)
+        #self.label_bg = Label(self.root, image=self.iconbg, bg="#A0A0A0", font=("times", "8", "normal"))
+        #self.label_bg.grid(row=1, padx=5, pady=5)
 
         # Main Frame
         self.frame_main = Frame(self.root)
-        self.frame_main.grid(row=2, sticky="ewsn")
+        self.frame_main.grid(row=1, sticky="ewn")
 
         # Tab Panel
         self.note = ttk.Notebook(self.root)
@@ -186,12 +211,14 @@ class Whapa:
         self.tab3 = Frame(self.note)
         self.tab4 = Frame(self.note)
         self.tab5 = Frame(self.note)
-        self.note.add(self.tab1, text="Whapa", image=self.icontabwhapa, compound='left', padding=20)
-        self.note.add(self.tab2, text="Whacipher", image=self.icontabcipher, compound='left', padding=20)
-        self.note.add(self.tab3, text="Whamerge", image=self.icontabmerge, compound='left', padding=20)
-        self.note.add(self.tab4, text="Whagodri", image=self.icontabdrive, compound='left', padding=20)
-        self.note.add(self.tab5, text="Whacloud", image=self.icontabwhacloud, compound='left', padding=20)
-        self.note.grid(row=2, padx=15, pady=15, sticky="we")
+        self.tab6 = Frame(self.note)
+        self.note.add(self.tab1, text="WhaPa", image=self.icontabwhapa, compound='left', padding=0)
+        self.note.add(self.tab2, text="WhaCipher", image=self.icontabcipher, compound='left', padding=0)
+        self.note.add(self.tab3, text="WhaMerge", image=self.icontabmerge, compound='left', padding=0)
+        self.note.add(self.tab4, text="WhaGoDri", image=self.icontabdrive, compound='left', padding=0)
+        self.note.add(self.tab5, text="WhaChat", image=self.icontabwhachat, compound='left', padding=0)
+        self.note.add(self.tab6, text="WhaCloud", image=self.icontabwhacloud, compound='left', padding=0)
+        self.note.grid(row=2, padx=10, pady=0, sticky="nwes")
 
         # Tab 1 Whapa
         self.label_whapa = Label(self.tab1, text="Whatsapp Parser", font=('courier', 15, 'bold'))
@@ -343,9 +370,10 @@ class Whapa:
         self.button_whapa_extract = Button(self.frame_whapa_info, image=self.iconextract, command=self.whapa_extract, height=32, width=64)
         self.button_whapa_extract.grid(row=0, column=4, padx=5, pady=5)
         ToolTip(self.button_whapa_extract, "Extract Thumbnails")
-        self.button_whapa_carv = Button(self.frame_whapa_info, image=self.iconcarving, command=self.whapa_carving, height=32, width=64)
-        self.button_whapa_carv.grid(row=0, column=5, padx=5, pady=5)
-        ToolTip(self.button_whapa_carv, "Database Carving")
+        if system == "Windows":
+            self.button_whapa_carv = Button(self.frame_whapa_info, image=self.iconcarving, command=self.whapa_carving, height=32, width=64)
+            self.button_whapa_carv.grid(row=0, column=5, padx=5, pady=5)
+            ToolTip(self.button_whapa_carv, "Database Carving")
 
 
         # Tab 2 Whacipher
@@ -355,8 +383,8 @@ class Whapa:
         self.notewhacipher = ttk.Notebook(self.tab2)
         self.tabwhacipher1 = Frame(self.notewhacipher)
         self.tabwhacipher2 = Frame(self.notewhacipher)
-        self.notewhacipher.add(self.tabwhacipher1, text="Decrypt", compound='left', padding=20)
-        self.notewhacipher.add(self.tabwhacipher2, text="Encrypt", compound='left', padding=20)
+        self.notewhacipher.add(self.tabwhacipher1, text="Decrypt", compound='left', padding=0)
+        self.notewhacipher.add(self.tabwhacipher2, text="Encrypt", compound='left', padding=0)
         self.notewhacipher.grid(row=1, padx=5, pady=5, sticky="we")
 
             # Decrypt
@@ -524,13 +552,76 @@ class Whapa:
 
         self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
+        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [google-auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
+
+        # Tab 5 WhaChat
+        self.label_wachat = Label(self.tab5, text="Whatsapp Chat Exporter", font=('courier', 15, 'bold'))
+        self.label_wachat.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
+
+        self.label_box_whachat_info = Label(self.tab5, image=self.iconabout)
+        self.label_box_whachat_info.grid(row=0, column=3, padx=5, pady=5)
+        ToolTip(self.label_box_whachat_info,self.instructions_wachat.get())
+        self.frame_whachat = LabelFrame(self.tab5, text="Chat")
+        self.frame_whachat.grid(row=1, column=0, padx=5, pady=5, rowspan=2, sticky="nsew")
+        self.label_whachat_file = Label(self.frame_whachat, text="Chat file")
+        self.label_whachat_file.grid(row=0, column=0, sticky="we", padx=5, pady=(15,5))
+        self.entry_whachat_output = Entry(self.frame_whachat, textvariable=self.whachat_file, width=70)
+        self.entry_whachat_output.grid(row=0, column=1, sticky="we", padx=5, pady=5)
+        self.whachat_button_path = Button(self.frame_whachat, image=self.iconfile, command=self.search_file_whachat, borderwidth=0, highlightthickness=0)
+        self.whachat_button_path.grid(row=0, column=2, sticky="w", padx=5, pady=5)
+        ToolTip(self.whachat_button_path, "Chat file to parser")
+        self.label_whachat_user = Label(self.frame_whachat, text="Recipient")
+        self.label_whachat_user.grid(row=1, column=0, sticky="we", padx=5, pady=5)
+        self.combo_whachat_user = ttk.Combobox(self.frame_whachat, width=50, state="readonly")
+        self.combo_whachat_user.grid(row=1, column=1, sticky="w", padx=5, pady=5)
+        self.label_whachat_user = Label(self.frame_whachat, text="Start time")
+        self.label_whachat_user.grid(row=2, column=0, sticky="we", padx=5, pady=5)
+        self.entry_whachat_ts = Entry(self.frame_whachat, width=20)
+        self.entry_whachat_ts.grid(row=2, column=1, sticky="w", padx=5, pady=5, columnspan=1)
+        self.label_whachat_user = Label(self.frame_whachat, text="End time")
+        self.label_whachat_user.grid(row=3, column=0, sticky="we", padx=5, pady=5)
+        self.entry_whachat_te = Entry(self.frame_whachat, width=20)
+        self.entry_whachat_te.grid(row=3, column=1, sticky="w", padx=5, pady=5, columnspan=1)
+
+        self.frame_whacha_repo = LabelFrame(self.tab5, text="Report")
+        self.frame_whacha_repo.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
+        self.whacha_but_rep_none = Radiobutton(self.frame_whacha_repo, text='  Terminal', image=self.iconone, variable=self.whachat_box_rep, value='None', anchor="w", compound='left')
+        self.whacha_but_rep_none.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.whacha_but_rep_none.grid(row=0, column=0, padx=5, pady=(15,5), sticky="nswe")
+        self.whacha_but_rep_es = Radiobutton(self.frame_whacha_repo, text='  Spanish', image=self.icones, variable=self.whachat_box_rep, value='ES', anchor="w", compound='left')
+        self.whacha_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.whacha_but_rep_es.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.whacha_but_rep_en = Radiobutton(self.frame_whacha_repo, text='  English', image=self.iconen, variable=self.whachat_box_rep, value='EN', anchor="w", compound='left')
+        self.whacha_but_rep_en.config(bd=4, borderwidth=0, highlightthickness=0,)
+        self.whacha_but_rep_en.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
+        self.whachat_box_rep.set("None")
+
+        self.frame_whacha_os = LabelFrame(self.tab5, text="Operating System")
+        self.frame_whacha_os.grid(row=2, column=1, padx=5, pady=5, sticky="nsew")
+        self.whacha_but_rep_es = Radiobutton(self.frame_whacha_os, text='  Android', image=self.iconandroid, variable=self.whachat_box_os, value='android', anchor="w", compound='left', command=self.estate_assets_whachat)
+        self.whacha_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
+        self.whacha_but_rep_es.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
+        self.whacha_but_rep_en = Radiobutton(self.frame_whacha_os, text='  iOS', image=self.iconios, variable=self.whachat_box_os, value='ios', anchor="w", compound='left', command=self.estate_assets_whachat)
+        self.whacha_but_rep_en.config(bd=4, borderwidth=0, highlightthickness=0,)
+        self.whacha_but_rep_en.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
+        self.whachat_box_os.set("android")
+
+        self.label_whachat_format = Label(self.frame_whachat, text="Time format")
+        self.label_whachat_format.grid(row=4, column=0, sticky="we", padx=5, pady=5)
+        self.combo_whachat_format = ttk.Combobox(self.frame_whachat, width=25, state="readonly")
+        self.combo_whachat_format["values"] = ["%d/%m/%y %H:%M:%S", "%d/%m/%Y %H:%M:%S", "%d/%m/%y %H:%M", "%d/%m/%Y %H:%M",
+                                               "%m/%d/%y %H:%M:%S", "%m/%d/%Y %H:%M:%S", "%m/%d/%y %H:%M", "%m/%d/%Y %H:%M"]
+        self.combo_whachat_format.current(2)
+        self.combo_whachat_format.grid(row=4, column=1, sticky="w", padx=5, pady=5)
+
+        self.button_whachat_exec = Button(self.frame_whachat, image=self.iconparser, command=self.whachat_run, height=32, width=64)
+        self.button_whachat_exec.grid(row=5, column=1, columnspan=2, padx=185, pady=10)
 
         # Tab 5 WhaCloud
-        self.label_wacloud = Label(self.tab5, text="Whatsapp ICloud Extractor", font=('courier', 15, 'bold'))
+        self.label_wacloud = Label(self.tab6, text="Whatsapp ICloud Extractor", font=('courier', 15, 'bold'))
         self.label_wacloud.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
 
-        self.frame_whacloud = LabelFrame(self.tab5, text="Download")
+        self.frame_whacloud = LabelFrame(self.tab6, text="Download")
         self.frame_whacloud.grid(row=1, padx=5, pady=5, sticky="nsew", columnspan=3)
 
         self.wacloud_list = Radiobutton(self.frame_whacloud, text='List all files', variable=self.wacloud_box_value, value='List', anchor="w", compound='left')
@@ -552,7 +643,7 @@ class Whapa:
         self.entry_whacloud_down = Entry(self.frame_whacloud, width=77)
         self.entry_whacloud_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
 
-        self.frame_whacloud_out = LabelFrame(self.tab5, text="Output path")
+        self.frame_whacloud_out = LabelFrame(self.tab6, text="Output path")
         self.frame_whacloud_out.grid(row=2, padx=5, pady=10, sticky="nsew", columnspan=2)
 
         self.entry_whacloud_output = Entry(self.frame_whacloud_out, textvariable=self.whacloud_path, width=114)
@@ -574,48 +665,84 @@ class Whapa:
 
         # Define Shortcut keys
         self.root.bind("<Control-q>", lambda event: self.exit())
-        self.label_bg.bind("<Button-1>", lambda event: webbrowser.open_new_tab("https://github.com/B16f00t/whapa"))
+        #self.label_bg.bind("<Button-1>", lambda event: webbrowser.open_new_tab("https://github.com/B16f00t/whapa"))
         self.label_box_whagodri_info.bind("<Button-1>", lambda event: webbrowser.open_new_tab("https://accounts.google.com/DisplayUnlockCaptcha"))
 
         # Run GUI
         self.button_whacipher_path.config(state=DISABLED)
         self.entry_whacipher_path.config(state=DISABLED)
         self.entry_whapa_ts.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whapa_ts.bind('<FocusIn>', self.on_entry_click)
-        self.entry_whapa_ts.bind('<FocusOut>', self.on_focusout)
+        self.entry_whapa_ts.bind('<FocusIn>', self.on_entry_click_whapa)
+        self.entry_whapa_ts.bind('<FocusOut>', self.on_focusout_whapa)
         self.entry_whapa_ts.config(fg='grey')
         self.entry_whapa_te.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whapa_te.bind('<FocusIn>', self.on_entry_click_out)
-        self.entry_whapa_te.bind('<FocusOut>', self.on_focusout_out)
+        self.entry_whapa_te.bind('<FocusIn>', self.on_entry_click_out_whapa)
+        self.entry_whapa_te.bind('<FocusOut>', self.on_focusout_out_whapa)
         self.entry_whapa_te.config(fg='grey')
+
+        self.entry_whachat_ts.insert(0, 'dd-mm-yyyy HH:MM')
+        self.entry_whachat_ts.bind('<FocusIn>', self.on_entry_click_whachat)
+        self.entry_whachat_ts.bind('<FocusOut>', self.on_focusout_whachat)
+        self.entry_whachat_ts.config(fg='grey')
+        self.entry_whachat_te.insert(0, 'dd-mm-yyyy HH:MM')
+        self.entry_whachat_te.bind('<FocusIn>', self.on_entry_click_out_whachat)
+        self.entry_whachat_te.bind('<FocusOut>', self.on_focusout_out_whachat)
+        self.entry_whachat_te.config(fg='grey')
 
         self.root.mainloop()
 
-    def on_entry_click(self, event):
+
+    def on_entry_click_whapa(self, event):
         """function that gets called whenever entry is clicked"""
         if self.entry_whapa_ts.get() == "dd-mm-yyyy HH:MM":
             self.entry_whapa_ts.delete(0, "end")  # delete all the text in the entry
             self.entry_whapa_ts.insert(0, '')  # Insert blank for user input
             self.entry_whapa_ts.config(fg='black')
 
-    def on_entry_click_out(self, event):
+    def on_entry_click_out_whapa(self, event):
         """function that gets called whenever entry is clicked"""
         if self.entry_whapa_te.get() == "dd-mm-yyyy HH:MM":
             self.entry_whapa_te.delete(0, "end")  # delete all the text in the entry
             self.entry_whapa_te.insert(0, '')  # Insert blank for user input
             self.entry_whapa_te.config(fg='black')
 
-    def on_focusout(self, event):
+    def on_focusout_whapa(self, event):
         """Function that's called every time the focus is lost"""
         if self.entry_whapa_ts.get() == '':
             self.entry_whapa_ts.insert(0, "dd-mm-yyyy HH:MM")
             self.entry_whapa_ts.config(fg='grey')
 
-    def on_focusout_out(self, event):
+    def on_focusout_out_whapa(self, event):
         """Function that's called every time the focus is lost"""
         if self.entry_whapa_te.get() == '':
             self.entry_whapa_te.insert(0, "dd-mm-yyyy HH:MM")
             self.entry_whapa_te.config(fg='grey')
+
+    def on_entry_click_whachat(self, event):
+        """function that gets called whenever entry is clicked"""
+        if self.entry_whachat_ts.get() == "dd-mm-yyyy HH:MM":
+            self.entry_whachat_ts.delete(0, "end")  # delete all the text in the entry
+            self.entry_whachat_ts.insert(0, '')  # Insert blank for user input
+            self.entry_whachat_ts.config(fg='black')
+
+    def on_entry_click_out_whachat(self, event):
+        """function that gets called whenever entry is clicked"""
+        if self.entry_whachat_te.get() == "dd-mm-yyyy HH:MM":
+            self.entry_whachat_te.delete(0, "end")  # delete all the text in the entry
+            self.entry_whachat_te.insert(0, '')  # Insert blank for user input
+            self.entry_whachat_te.config(fg='black')
+
+    def on_focusout_whachat(self, event):
+        """Function that's called every time the focus is lost"""
+        if self.entry_whachat_ts.get() == '':
+            self.entry_whachat_ts.insert(0, "dd-mm-yyyy HH:MM")
+            self.entry_whachat_ts.config(fg='grey')
+
+    def on_focusout_out_whachat(self, event):
+        """Function that's called every time the focus is lost"""
+        if self.entry_whachat_te.get() == '':
+            self.entry_whachat_te.insert(0, "dd-mm-yyyy HH:MM")
+            self.entry_whachat_te.config(fg='grey')
 
     def api(self):
         """Open settings file"""
@@ -636,12 +763,10 @@ class Whapa:
         self.path = filedialog.askopenfilename(title="Select file", filetypes=(("html files", "*.html"), ), initialdir = "report")
         if not self.path:
             return
-        
         if system == "Linux":
-            os.system('xdg-open ' + re.escape(self.path))
+            os.system('xdg-open "' + self.path + '"')
         else:
-            if self.path:
-                os.system('start ' + self.path)
+            os.system('"' + self.path + '"')
 
     def about(self):
         """ About dialog"""
@@ -792,6 +917,12 @@ class Whapa:
         elif self.whapa_box_value.get() == "User":
             self.cmd += " -u {}".format(self.whapa_user.get()).strip("\n")
 
+        if self.whapa_out.get():
+            self.cmd += " -o {}".format(self.whapa_out.get())
+        else:
+            self.cmd += " -o {}".format(os.getcwd())
+
+
         if system == "Linux":
             exec = "python3 ./libs/whapa.py {}".format(self.cmd)
         else:
@@ -811,6 +942,11 @@ class Whapa:
             self.cmd += " -r EN"
         else:
             pass
+
+        if self.whapa_out.get():
+            self.cmd += " -o {}".format(self.whapa_out.get())
+        else:
+            self.cmd += " -o {}".format(os.getcwd())
 
         if system == "Linux":
             exec = "python3 ./libs/whapa.py {}".format(self.cmd)
@@ -840,6 +976,11 @@ class Whapa:
             self.cmd += " -r EN"
         else:
             pass
+
+        if self.whapa_out.get():
+            self.cmd += " -o {}".format(self.whapa_out.get())
+        else:
+            self.cmd += " -o {}".format(os.getcwd())
 
         if system == "Linux":
             exec = "python3 ./libs/whapa.py {}".format(self.cmd)
@@ -1034,6 +1175,7 @@ class Whapa:
         else:
             self.whamerge_path.set((self.path + "\\").replace("/", "\\"))
 
+
     def search_file_whamerge(self):
         """Search a output file to merge"""
         self.path = filedialog.askdirectory()
@@ -1049,6 +1191,96 @@ class Whapa:
             exec = 'python3 ./libs/whamerge.py "{}" {} "{}"'.format(self.whamerge_path.get(), self.cmd, self.whamerge_file.get())
         else:
             exec = 'python .\\libs\\whamerge.py  "{}\\" {} "{}"'.format(self.whamerge_path.get(), self.cmd, self.whamerge_file.get())
+        self.label_status.set(exec)
+        os.system(exec)
+
+    def search_file_whachat(self):
+        """Search a file """
+        try:
+            self.path = filedialog.askopenfilename(title="Select file", filetypes=(("txt files", "*.txt"),))
+            if system == "Linux":
+                self.whachat_file.set(self.path)
+            else:
+                self.whachat_file.set(self.path.replace("/", "\\"))
+
+            if system == "Linux":
+                exec = 'python3 ./libs/whachat.py "{}" -p -s {}'.format(self.whachat_file.get(), self.whachat_box_os.get())
+            else:
+                exec = 'python .\\libs\\whachat.py "{}" -p -s {}'.format(self.whachat_file.get(), self.whachat_box_os.get())
+
+            self.label_status.set(exec)
+            os.system(exec)
+            path, file = os.path.split(self.whachat_file.get())
+            participants = path + "/participants.txt"
+            with open(participants, "r", errors="ignore") as file_r:
+                list_participant = []
+                for i in file_r:
+                    list_participant.append(i)
+                self.combo_whachat_user["values"] = list_participant
+                self.combo_whachat_user.current(0)
+        except Exception as e:
+            self.label_status.set("Did not get the list of participants choose another operating system and load the file back")
+            print("Could not load the list of participants, choose another operating system and load the file back")
+
+
+    def on_entry_click(self, event):
+        """function that gets called whenever entry is clicked"""
+        if self.entry_whachat_ts.get() == "dd-mm-yyyy HH:MM":
+            self.entry_whachat_ts.delete(0, "end")  # delete all the text in the entry
+            self.entry_whachat_ts.insert(0, '')  # Insert blank for user input
+            self.entry_whachat_ts.config(fg='black')
+
+    def on_entry_click_out(self, event):
+        """function that gets called whenever entry is clicked"""
+        if self.entry_whachat_te.get() == "dd-mm-yyyy HH:MM":
+            self.entry_whachat_te.delete(0, "end")  # delete all the text in the entry
+            self.entry_whachat_te.insert(0, '')  # Insert blank for user input
+            self.entry_whachat_te.config(fg='black')
+
+    def on_focusout(self, event):
+        """Function that's called every time the focus is lost"""
+        if self.entry_whachat_ts.get() == '':
+            self.entry_whachat_ts.insert(0, "dd-mm-yyyy HH:MM")
+            self.entry_whachat_ts.config(fg='grey')
+
+    def on_focusout_out(self, event):
+        """Function that's called every time the focus is lost"""
+        if self.entry_whachat_te.get() == '':
+            self.entry_whachat_te.insert(0, "dd-mm-yyyy HH:MM")
+            self.entry_whachat_te.config(fg='grey')
+
+    def estate_assets_whachat(self):
+        """Check that radiobutton is marked"""
+
+        if self.whachat_box_os.get() == "android":
+            self.combo_whachat_format.current(2)
+        else:
+            self.combo_whachat_format.current(0)
+
+    def whachat_run(self):
+        """Run WhaChat command"""
+
+        self.cmd = '"{}" -s {} -f "{}"'.format(self.whachat_file.get(), self.whachat_box_os.get(), self.combo_whachat_format.get())
+        if self.entry_whachat_ts.get() != "dd-mm-yyyy HH:MM":
+            self.cmd += ' -ts "{}"'.format(self.entry_whachat_ts.get())
+
+        if self.entry_whachat_te.get() != "dd-mm-yyyy HH:MM":
+            self.cmd += ' -te "{}"'.format(self.entry_whachat_te.get())
+
+        if self.whachat_box_rep.get() == "ES":
+            self.cmd += " -r ES"
+
+        elif self.whachat_box_rep.get() == "EN":
+            self.cmd += " -r EN"
+
+        if self.combo_whachat_user.get():
+            self.cmd += ' -u "{}"'.format(self.combo_whachat_user.get().rstrip("\n"))
+
+        if system == "Linux":
+            exec = "python3 ./libs/whachat.py {}".format(self.cmd)
+        else:
+            exec = "python .\\libs\\whachat.py {}".format(self.cmd)
+
         self.label_status.set(exec)
         os.system(exec)
 
@@ -1153,9 +1385,9 @@ class Whapa:
     def requirements(self):
         """Install dependencies"""
         if system == "Linux":
-            exec = "sudo pip3 install -r ./doc/requirements.txt"
+            exec = "sudo pip3 install --upgrade -r ./doc/requirements.txt"
         else:
-            exec = "pip install -r ./doc/requirements.txt"
+            exec = "pip install --upgrade -r ./doc/requirements.txt"
         self.label_status.set(exec)
         os.system(exec)
 
@@ -1197,7 +1429,10 @@ if __name__ == '__main__':
              img_folder + "requirements.png",
              img_folder + "update.png",
              img_folder + "carving.png",
-             img_folder + "tabwhacloud.png"
+             img_folder + "tabwhacloud.png",
+             img_folder + "tabwhachat.png",
+             img_folder + "android.png",
+             img_folder + "ios.png"
              )
 
     for icon in icons:
