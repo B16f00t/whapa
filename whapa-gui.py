@@ -93,7 +93,7 @@ class Whapa:
         self.root.option_add("*Font", "Helvetica 10")
         self.root.option_add('*tearOff', False)
         self.root.geometry('930x630+' + str(int((self.root.winfo_screenwidth()/2) - (975/2))) + '+' + str(int(self.root.winfo_screenheight()/2 - (810/2))))
-        #self.root.resizable(0, 0)
+        self.root.resizable(0, 0)
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=1)
 
@@ -1397,7 +1397,7 @@ if __name__ == '__main__':
     if os.path.isfile('./cfg/settings.cfg') is False:
         """ Function that creates the settings file """
         with open('./cfg/settings.cfg', 'w') as cfg:
-            cfg.write('[report]\nlogo = ./cfg/logo.png\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[auth]\ngmail = alias@gmail.com\npassw = yourpassword\ndevid = 1234567887654321\ncelnumbr = BackupPhoneNunmber\n\n[app]\npkg = com.whatsapp\nsig = 38a0f7d505fe18fec64fbf343ecaaaf310dbd799\n\n[client]\npkg = com.google.android.gms\nsig = 38918a453d07199354f8b19af05ec6562ced5788\nver = 9877000')
+            cfg.write("[report]\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[google-auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber\n\n[icloud-auth]\nicloud = alias@icloud.com\npassw  = yourpassword")
 
     error_icon = False
     img_folder = os.getcwd() + os.sep + "images" + os.sep
