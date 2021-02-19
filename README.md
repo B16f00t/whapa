@@ -46,6 +46,9 @@ You can download the latest version of whapa by cloning the GitHub repository:
 then:
 
 	pip3 install --upgrade -r ./doc/requirements.txt
+or (Windows)
+	pip install --upgrade -r ./doc/requirements.txt
+
 
 Start
 ====
