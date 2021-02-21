@@ -259,13 +259,8 @@ def startsWithAuthor(s):
         '([\w]+[\s]+[\w]+):',  # First Name + Last Name
         '([\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name
         '([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing
-        '([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):', # First Name + Middle Name + Last Name + other thing + pufff
-        '([+]\d{2} \d{5} \d{5}):',  # Mobile Number (India)
-        '([+]\d{2} \d{3} \d{3} \d{4}):',  # Mobile Number (US)
-        '([+]\d{2} \d{4} \d{7}):',  # Mobile Number (Europe)
-        '([+]\d{2} \d{3} \d{2} \d{4}):', #Mobile Number (+34 666 66 6666)
-        '([+]\d{2} \d{3} \d{2} \d{2} \d{2}):',  # Mobile Number (+34 666 66 66 66)
-        '([+]\d{2} \d{9}):',  # Mobile Number (+34 666666666)
+        '([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing + pufff
+        '(\W.*):'  # PhoneNumber
     ]
     pattern = '^' + '|'.join(patterns)
     result = re.match(pattern, s)
