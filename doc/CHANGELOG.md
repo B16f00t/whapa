@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 Feb 2021
 
+
+	[+] whapa-gui.py v1.42
+	[+] whachat.py
+		[-] Error parsing phonenumber fixed.
+		
 	[+] whapa-gui.py v1.41
 		[-] Settings file fixed
 	
