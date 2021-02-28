@@ -1096,17 +1096,17 @@ To export chats on an iOS phone, here are the steps:
         """Search a output file or path"""
         self.path = filedialog.askdirectory()
         if system == "Linux":
-            self.whacipher_out.set(self.path + '/')
+            self.whacipher_out.set(self.path + '/msgstore.db')
         else:
-            self.whacipher_out.set((self.path + "\\").replace("/", "\\"))
+            self.whacipher_out.set((self.path + "\\msgstore.db").replace("/", "\\"))
 
     def search_out_whacypher_en(self):
         """Search a output file or path"""
         self.path = filedialog.askdirectory()
         if system == "Linux":
-            self.whacipher_out_en.set(self.path + "/")
+            self.whacipher_out_en.set((self.path + "/msgstore.db.crypt12"))
         else:
-            self.whacipher_out_en.set((self.path + '/').replace("/", "\\"))
+            self.whacipher_out_en.set((self.path + "\\msgstore.db.crypt12").replace("/", "\\"))
 
     def search_criptofile_whacypher_en(self):
         """Search a file"""
