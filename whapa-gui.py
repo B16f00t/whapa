@@ -1094,11 +1094,18 @@ To export chats on an iOS phone, here are the steps:
 
     def search_out_whacypher(self):
         """Search a output file or path"""
+
         self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whacipher_out.set(self.path + '/msgstore.db')
+        if self.whacipher_box_value.get() == "File":
+            if system == "Linux":
+                self.whacipher_out.set(self.path + '/msgstore.db')
+            else:
+                self.whacipher_out.set((self.path + "\\msgstore.db").replace("/", "\\"))
         else:
-            self.whacipher_out.set((self.path + "\\msgstore.db").replace("/", "\\"))
+            if system == "Linux":
+                self.whacipher_out_en.set((self.path + "/"))
+            else:
+                self.whacipher_out_en.set((self.path + "\\").replace("/", "\\"))
 
     def search_out_whacypher_en(self):
         """Search a output file or path"""
@@ -1106,7 +1113,9 @@ To export chats on an iOS phone, here are the steps:
         if system == "Linux":
             self.whacipher_out_en.set((self.path + "/msgstore.db.crypt12"))
         else:
+
             self.whacipher_out_en.set((self.path + "\\msgstore.db.crypt12").replace("/", "\\"))
+
 
     def search_criptofile_whacypher_en(self):
         """Search a file"""
