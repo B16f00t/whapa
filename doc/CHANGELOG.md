@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 Feb 2021
 
 
+	[+] whapa-gui.py v1.43
+		[+] Media not mapped correctly in the HTML report fixed
+
 	[+] whapa-gui.py v1.42
 	[+] whachat.py
 		[-] Error parsing phonenumber fixed.
