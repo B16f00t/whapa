@@ -20,7 +20,7 @@ message = ""
 report_var = "None"
 report_html = ""
 report_group = ""
-version = "1.40"
+version = "1.43"
 names_dict = {}            # names wa.db
 color = {}                 # participants color
 current_color = "#5586e5"  # default participant color
@@ -615,8 +615,8 @@ def reply(id, local):
                 else:
                     ans += Fore.RED + " - Name: " + Fore.RESET + thumb + "\n"
             if (report_var == 'EN') or (report_var == 'ES'):
-                number = thumb.rfind("/Media/WhatsApp Images/")
-                thumb = thumb[number:]
+                number = thumb.rfind("Media/WhatsApp Images/")
+                thumb = thumb[number - 1:].replace("\\", "/")
                 reply_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 2:  # media_wa_type 2, Audio
@@ -661,8 +661,8 @@ def reply(id, local):
                 else:
                     ans += Fore.RED + " - Name: " + Fore.RESET + thumb + "\n"
             if (report_var == 'EN') or (report_var == 'ES'):
-                number = thumb.rfind("/Media/WhatsApp Video/")
-                thumb = thumb[number:]
+                number = thumb.rfind("Media/WhatsApp Video/")
+                thumb = thumb[number - 1:].replace("\\", "/")
                 reply_msj += " " + size_file(rep[9]) + " - " + duration_file(rep[12])
                 reply_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
             else:
@@ -745,8 +745,8 @@ def reply(id, local):
                 else:
                     ans += Fore.RED + "Type: " + Fore.RESET + rep[7] + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(rep[9]) + "\n"
             if (report_var == 'EN') or (report_var == 'ES'):
-                number = thumb.rfind("/Media/WhatsApp Documents/")
-                thumb = thumb[number:]
+                number = thumb.rfind("Media/WhatsApp Documents/")
+                thumb = thumb[number - 1:].replace("\\", "/")
                 reply_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + ".jpg' width=\"100\" height=\"100\"/></a>"
 
         elif int(rep[8]) == 10:  # media_wa_type 10, Video/Audio call lost
@@ -787,8 +787,8 @@ def reply(id, local):
                     ans += Fore.RED + " - Name: " + Fore.RESET + thumb + "\n"
 
             if (report_var == 'EN') or (report_var == 'ES'):
-                number = thumb.rfind("/Media/WhatsApp Animated Gifs/")
-                thumb = thumb[number:]
+                number = thumb.rfind("Media/WhatsApp Animated Gifs/")
+                thumb = thumb[number - 1:].replace("\\", "/")
                 reply_msj += " - Gif - " + size_file(rep[9]) + " " + duration_file(rep[12]) + "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
             else:
                 ans += Fore.RED + "Type: " + Fore.RESET + "Gif" + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(rep[9]) + Fore.RED + " - Duration: " + Fore.RESET + duration_file(rep[12]) + "\n"
@@ -846,8 +846,8 @@ def reply(id, local):
                 thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
 
             if (report_var == 'EN') or (report_var == 'ES'):
-                number = thumb.rfind("/Media/WhatsApp Stickers/")
-                thumb = thumb[number:]
+                number = thumb.rfind("Media/WhatsApp Stickers/")
+                thumb = thumb[number - 1:].replace("\\", "/")
                 reply_msj += "<br>" + "Sticker - " + size_file(rep[9]) + "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
             else:
                 ans += Fore.RED + " - Type: " + Fore.RESET + "Sticker" + Fore.RED + " - Size: " + Fore.RESET + str(rep[9]) + " bytes " + size_file(rep[9]) + Fore.RED + "\n"
@@ -1124,12 +1124,20 @@ def messages(consult, rows, report_html, local):
                                     message += Fore.GREEN + "Message: " + Fore.RESET + data[15].strip("@s.whatsapp.net") + Fore.YELLOW + gets_name(data[15]) + Fore.RESET + " eliminated " + (data[17][60:].decode('UTF-8', 'ignore').split('@'))[0] + Fore.YELLOW + gets_name((data[17][60:].decode('UTF-8', 'ignore').split('@'))[0] + "@s.whatsapp.net") + Fore.RESET + " from the group\n"
 
                             elif data[9] == 15:
-                                if report_var == 'EN':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + gets_name(data[15]) + " made you administrator"
-                                elif report_var == 'ES':
-                                    report_msj += data[15].strip("@s.whatsapp.net") + gets_name(data[15]) + " te hizo administrador"
+                                if data[15]:
+                                    if report_var == 'EN':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + gets_name(data[15]) + " made you administrator"
+                                    elif report_var == 'ES':
+                                        report_msj += data[15].strip("@s.whatsapp.net") + gets_name(data[15]) + " te hizo administrador"
+                                    else:
+                                        message += Fore.GREEN + "Message: " + Fore.RESET + data[15].strip("@s.whatsapp.net") + Fore.YELLOW + gets_name(data[15]) + Fore.RESET + "made you administrator\n"
                                 else:
-                                    message += Fore.GREEN + "Message: " + Fore.RESET + data[15].strip("@s.whatsapp.net") + Fore.YELLOW + gets_name(data[15]) + Fore.RESET + "made you administrator\n"
+                                    if report_var == 'EN':
+                                        report_msj += "They made you administrator"
+                                    elif report_var == 'ES':
+                                        report_msj += "Te hicieron administrador"
+                                    else:
+                                        message += Fore.GREEN + "Message: They made you administrator\n"
 
                             elif data[9] == 18:
                                 if data[15]:
@@ -1188,6 +1196,7 @@ def messages(consult, rows, report_html, local):
                                         report_msj += data[15].strip("@s.whatsapp.net") + gets_name(data[15]) + " borró la descripción del grupo"
                                     else:
                                         message += Fore.GREEN + "Message: " + Fore.RESET + data[15].strip("@s.whatsapp.net") + Fore.YELLOW + gets_name(data[15]) + Fore.RESET + " deleted the group description\n"
+
                             elif data[9] == 28:
                                 if report_var == 'EN':
                                     report_msj += data[0].strip("@s.whatsapp.net") + gets_name(data[0]) + " changed his phone number"
@@ -1195,6 +1204,7 @@ def messages(consult, rows, report_html, local):
                                     report_msj += data[0].strip("@s.whatsapp.net") + gets_name(data[0]) + " cambió su número de teléfono"
                                 else:
                                     message += Fore.GREEN + "Message: " + Fore.RESET + data[0].strip("@s.whatsapp.net") + Fore.YELLOW + gets_name(data[0]) + Fore.RESET + " changed his phone number\n"
+
                             elif data[9] == 46:
                                 if report_var == 'EN':
                                     report_msj += "This chat is with a company account"
@@ -1202,6 +1212,11 @@ def messages(consult, rows, report_html, local):
                                     report_msj += "Este chat es con una cuenta de empresa"
                                 else:
                                     message += Fore.GREEN + "Message: " + Fore.RESET + "This chat is with a company account\n"
+
+                            else:
+                                print("\nUnknow system message: {}, Message ID {}, Timestamp {}".format(e, str(data[23]), time.strftime('%d-%m-%Y %H:%M', time.localtime(data[5] / 1000))))
+                                print("Contact the creator of Whapa to include this new type of identified control messaging.")
+
                         else:
                             if data[24] and int(data[24]) > 0:  # Forwarded
                                 if int(data[24]) < 5:
@@ -1280,9 +1295,9 @@ def messages(consult, rows, report_html, local):
                                     profile_file.write(b"")
 
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            number = thumb.rfind("/Media/WhatsApp Images/")
-                            thumb = thumb[number:]
-                            report_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
+                            number = thumb.rfind("Media/WhatsApp Images/")
+                            thumb = thumb[number-1:].replace("\\", "/")
+                            report_msj += " <br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + " 'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 2:  # media_wa_type 2, Audio
                         chain = data[17].split(b'\x77\x02')[0]
@@ -1347,10 +1362,9 @@ def messages(consult, rows, report_html, local):
                                 else:
                                     profile_file.write(b"")
 
-
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            number = thumb.rfind("/Media/WhatsApp Video/")
-                            thumb = thumb[number:]
+                            number = thumb.rfind("Media/WhatsApp Video/")
+                            thumb = thumb[number-1:].replace("\\", "/")
                             report_msj += "<br/> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 4:  # media_wa_type 4, Contact
@@ -1448,8 +1462,8 @@ def messages(consult, rows, report_html, local):
                                     profile_file.write(b"")
 
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            number = thumb.rfind("/Media/WhatsApp Documents/")
-                            thumb = thumb[number:]
+                            number = thumb.rfind("Media/WhatsApp Documents/")
+                            thumb = thumb[number-1:].replace("\\", "/")
                             report_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + ".jpg' width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 10:  # media_wa_type 10, Video/Audio call lost
@@ -1517,8 +1531,8 @@ def messages(consult, rows, report_html, local):
                                     profile_file.write(b"")
 
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            number = thumb.rfind("/Media/WhatsApp Animated Gifs/")
-                            thumb = thumb[number:]
+                            number = thumb.rfind("Media/WhatsApp Animated Gifs/")
+                            thumb = thumb[number-1:].replace("\\", "/")
                             report_msj += "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
 
                     elif int(data[8]) == 14:  # media_wa_type 14  Vcard multiples
@@ -1576,8 +1590,8 @@ def messages(consult, rows, report_html, local):
                             thumb = (b"./" + chain[i:b]).decode('UTF-8', 'ignore')
 
                         if (report_var == 'EN') or (report_var == 'ES'):
-                            number = thumb.rfind("/Media/WhatsApp Stickers/")
-                            thumb = thumb[number:]
+                            number = thumb.rfind("Media/WhatsApp Stickers/")
+                            thumb = thumb[number-1:].replace("\\", "/")
                             report_msj += " Sticker - " + size_file(data[9]) + "<br> <a href=\"." + thumb + "\" target=\"_blank\"> <IMG SRC='." + thumb + "'width=\"100\" height=\"100\"/></a>"
                         else:
                             message += Fore.GREEN + "Type: " + Fore.RESET + "Sticker" + Fore.GREEN + " - Size: " + Fore.RESET + str(data[9]) + " bytes " + size_file(data[9]) + Fore.GREEN + "\n"
@@ -1618,9 +1632,11 @@ def messages(consult, rows, report_html, local):
                     <span class="time round">""" + report_time + "&nbsp" + report_status + """</span><br>
                 </div>
             </li>"""
+
                     elif report_var == 'None':
                         message += Fore.GREEN + "Timestamp: " + Fore.RESET + time.strftime('%d-%m-%Y %H:%M', time.localtime(data[5] / 1000)) + Fore.GREEN + " - Status: " + Fore.RESET + main_status + "\n"
                         print(message)
+
                 n_mes += 1
 
             except Exception as e:
