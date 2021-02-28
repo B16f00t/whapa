@@ -6,11 +6,13 @@ Feb 2021
 
 
 	[+] whapa-gui.py v1.43
-		[+] Media not mapped correctly in the HTML report fixed
-
+		[-] Media not mapped correctly in the HTML report fixed
+	[+] whacipher.py
+		[-] script improved
+		
 	[+] whapa-gui.py v1.42
 	[+] whachat.py
-		[-] Error parsing phonenumber fixed.
+		[-] Error parsing phonenumber fixed
 		
 	[+] whapa-gui.py v1.41
 		[-] Settings file fixed
