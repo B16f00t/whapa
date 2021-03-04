@@ -8,7 +8,7 @@ Updated: February 2021
 
 WhatsApp Messenger Version 2.21.2.14
 
-Whapa is a forensic graphical toolset for analyzing whatsapp in android. All the tools have been written in Python 3.X and have been tested on linux and windows 10 systems.
+Whapa is a set of graphical forensic tools to analyze whatsapp from android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on linux, windows and OSX systems.
 
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
@@ -43,22 +43,44 @@ Installation
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
-then:
+then (Linux or OSX):
 
 	pip3 install --upgrade -r ./doc/requirements.txt
-or (Windows)
+	
+or (Windows):
+	
 	pip install --upgrade -r ./doc/requirements.txt
 
 
 Start
 ====
 if you use Linux system:
-* python3 whapa-gui.py
+
+	python3 whapa-gui.py
 
 if you use Windows system:
-* python whapa-gui.py
+	
+	python whapa-gui.py
 	or 
-* click on whapa-gui.bat
+	click on whapa-gui.bat
+
+if you use OSX system (Thanks to FetchFast):
+* Install a later version of TK
+		
+		brew install tcl-tk
+    
+* Uninstall python3 and then download and reinstall python 3.9x from python.org
+
+		brew uninstall python3
+		https://www.python.org/downloads/
+	
+* Install requirements
+	
+		pip3 install --upgrade -r ./doc/requirements.txt
+	
+* Run with python3.9x whapa-gui.py
+
+And a window like this will be displayed on the screen:
 
 <p align="center">
   <img src="https://raw.githubusercontent.com/B16f00t/whapa/master/doc/software.png" width="720" height="576">
