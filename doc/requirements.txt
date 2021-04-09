@@ -1,7 +1,7 @@
 pycryptodome
 colorama
 configparser
-gpsoauth
+gpsoauth==0.4.3
 requests==2.21.0
 pyicloud
 pandas
