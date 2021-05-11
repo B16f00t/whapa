@@ -19,7 +19,7 @@ Whapa toolset is divided in five tools:
 **Android**
 ======
 * **Whapa**     (Whatsapp Parser)
-* **Whacipher** (Whatsapp Encryption/Decryption)
+* **Whacipher** (Whatsapp Encryption/Decryption) ** NEW Crypt14
 * **Whagodri**  (Whataspp Google Drive Extractor)
 * **Whamerge**  (Whatsapp Merger)
 * **Whachat**   (Whatsapp Chat Exporter)
