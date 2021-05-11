@@ -64,7 +64,7 @@ def encrypt(db_file, key_file, db_cript, output):
 
 
 def decrypt(db_file, key_file, path):
-    """ Function decrypt Crypt12 Database """
+    """ Function decrypt Crypt14 Database """
     try:
         if os.path.getsize(key_file) != 158:
             quit('[e] The specified input key file is invalid.')
@@ -76,8 +76,8 @@ def decrypt(db_file, key_file, path):
         with open(db_file, "rb") as fh:
             db_data = fh.read()
 
-        data = db_data[67:-20]
-        iv = db_data[51:67]
+        data = db_data[99:]
+        iv = db_data[66:82]
         aes = AES.new(key, mode=AES.MODE_GCM, nonce=iv)
         with open(path, "wb") as fh:
             fh.write(zlib.decompress(aes.decrypt(data)))
@@ -94,7 +94,7 @@ if __name__ == "__main__":
     mode_parser.add_argument("-f", "--file", help="Database file to encrypt o decrypt", nargs='?')
     mode_parser.add_argument("-p", "--path", help="Database path to decrypt", nargs='?')
     parser.add_argument("-d", "--decrypt", help="Whatsapp Key path (Decrypt database)")
-    parser.add_argument("-e", "--encrypt", help="'Whatsapp Key path' + 'msgstore.db.crypt12' (Encrypt database)", nargs=2)
+    parser.add_argument("-e", "--encrypt", help="'Whatsapp Key path' + 'msgstore.db.crypt14' (Encrypt database)", nargs=2)
     parser.add_argument("-o", "--output", help="Database output file or path")
     args = parser.parse_args()
 
@@ -130,7 +130,7 @@ if __name__ == "__main__":
                     print("[i] Starting to decrypt...")
                     dir, subdirs, files = next(os.walk(args.path))
                     for crypt_file in files:
-                        if ".crypt12" == os.path.splitext(crypt_file)[1]:
+                        if ".crypt14" == os.path.splitext(crypt_file)[1]:
                             output = args.output + os.path.splitext(crypt_file)[0]
                             decrypt(dir + crypt_file, args.decrypt, output)
 
