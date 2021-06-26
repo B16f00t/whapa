@@ -8,7 +8,7 @@ Updated: June 2021
 
 WhatsApp Messenger Version 2.21.9.14
 
-Whapa is a set of graphical forensic tools to analyze whatsapp from Android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on linux, windows and macOS systems.
+Whapa is a set of graphical forensic tools to analyze whatsapp from Android and soon iOS devices. All the tools have been written in Python 3.8 and have been tested on linux, windows and macOS systems.
 
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
