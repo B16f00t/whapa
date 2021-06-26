@@ -76,8 +76,8 @@ def decrypt(db_file, key_file, path):
         with open(db_file, "rb") as fh:
             db_data = fh.read()
 
-        data = db_data[99:]
-        iv = db_data[66:82]
+        data = db_data[191:]
+        iv = db_data[67:83]
         aes = AES.new(key, mode=AES.MODE_GCM, nonce=iv)
         with open(path, "wb") as fh:
             fh.write(zlib.decompress(aes.decrypt(data)))
