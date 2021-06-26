@@ -1,35 +1,24 @@
-from gpsoauth import google
 from configparser import ConfigParser
+from base64 import b64decode
+from getpass import getpass
+from multiprocessing.pool import ThreadPool
+from textwrap import dedent
 import json
 import os
-import re
 import requests
 import sys
-import queue as queue
-import threading
-import time
 import argparse
-
-
-# Define global variable
-auth_url = 'https://android.clients.google.com/auth'
-header = {'User-Agent': 'WhatsApp/2.20.200 Android/Device/Whapa'}
-devid = '1234567887654321'    # Android Device ID
-exitFlag = 0
-nextPageToken = ""
-backups = []
-bearer = ""
-queueLock = threading.Lock()
-workQueue = queue.Queue(9999999)
+import gpsoauth
+import hashlib
 
 
 def banner():
     """ Function Banner """
-    print("""
+    print(r"""
      __      __.__             ________      ________        .__ 
     /  \    /  \  |__ _____   /  _____/  ____\______ \_______|__|
-    \   \/\/   /  |  \\\\__  \ /   \  ___ /  _ \|    |  \_  __ \  |
-     \        /|   Y  \/ __ \\\\    \_\  (  <_> )    `   \  | \/  |
+    \   \/\/   /  |  \\__  \ /   \  ___ /  _ \|    |  \_  __ \  |
+     \        /|   Y  \/ __ \\    \_\  (  <_> )    `   \  | \/  |
       \__/\  / |___|  (____  /\______  /\____/_______  /__|  |__|
            \/       \/     \/        \/              \/          
 
@@ -38,256 +27,286 @@ def banner():
 
 def help():
     """ Function show help """
+
     print("""    ** Author: Ivan Moreno a.k.a B16f00t
     ** Github: https://github.com/B16f00t
     ** Fork from WhatsAppGDExtract by TripCode and forum.xda-developers.com
-    
+    ** Fork from WhatsAppGDExtract by YuriCosta
     Usage: python3 whagodri.py -h (for help)
     """)
 
 
-def create_settings_file():
+def createSettingsFile():
     """ Function that creates the settings file """
+
     with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
-        cfg.write('[report]\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[google-auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber\n\n[icloud-auth]\nicloud  = alias@icloud.com\npassw = yourpassword')
+        cfg.write(dedent("""
+            [report]
+            company =
+            record =
+            unit =
+            examiner =
+            notes =
+            
+            [google-auth]
+            gmail = alias@gmail.com
+            # Optional. The account password or app password when using 2FA.
+            password  = 
+            # Optional. The result of "adb shell settings get secure android_id".
+            android_id = 0000000000000000
+            # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
+            # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
+            celnumbr = 
+            
+            [icloud-auth] 
+            icloud  = alias@icloud.com
+            passw = yourpassword
+            """).lstrip())
 
 
 def getConfigs():
-    global gmail, passw, celnumbr
     config = ConfigParser(interpolation=None)
     try:
         config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
         gmail = config.get('google-auth', 'gmail')
-        passw = config.get('google-auth', 'passw')
+        password = config.get('google-auth', 'password', fallback="")
         celnumbr = config.get('google-auth', 'celnumbr').lstrip('+0')
+        if not password:
+            try:
+                password = getpass("Enter your password for {}: ".format(gmail))
+            except KeyboardInterrupt:
+                quit('\nCancelled!')
+
+        android_id = config.get("google-auth", "android_id")
+        return {
+            "gmail": gmail,
+            "password": password,
+            "android_id": android_id,
+            "celnumbr": celnumbr,
+        }
 
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
         quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
 
 
-def size(obj):
-    if obj > 1048576:
-        return "(" + "{0:.2f}".format(obj / float(1048576)) + " MB)"
-    else:
-        return "(" + "{0:.2f}".format(obj / float(1024)) + " KB)"
+def human_size(size):
+    for s in ["B", "kB", "MB", "GB", "TB", "PB", "EB", "ZB", "YB"]:
+        if abs(size) < 1024:
+            break
+        size = int(size / 1024)
+    return "({} {})".format(size, s)
 
 
-def getGoogleAccountTokenFromAuth():
-    b64_key_7_3_29 = (b"AAAAgMom/1a/v0lblO2Ubrt60J2gcuXSljGFQXgcyZWveWLEwo6prwgi3iJIZdodyhKZQrNWp5nKJ3srRXcUW+F1BD3baEVGcmEgqaLZUNBjm057pKRI16kB0YppeGx5qIQ5QjKzsR8ETQbKLNWgRY0QRNVz34kMJR3P/LgHax/6rmf5AAAAAwEAAQ==")
-    android_key_7_3_29 = google.key_from_b64(b64_key_7_3_29)
-    encpass = google.signature(gmail, passw, android_key_7_3_29)
-    pkg = 'com.google.android.gms' 	                    # APK package name Google Play Services
-    sig = '38918a453d07199354f8b19af05ec6562ced5788'    # APK Google Play Services certificate fingerprint SHA-1
-    payload = {'Email':gmail, 'EncryptedPasswd':encpass, 'app':pkg, 'client_sig':sig, 'parentAndroidId':devid}
-    request = requests.post(auth_url, data=payload, headers=header)
-    print("Requesting Auth for Google....")
-    #print(request.text)
-    token = re.search('Token=(.*)', request.text)
-    if token:
-        print("Granted\n")
-        return token.group(1)
-    else:
-        print("Failed\n")
-        print(request.text)
-        if "BadAuthentication" in request.text:
-            print("\n   Workaround\n-----------------")
-            print("1. Check that your email and password are correct in the settings file, if so change your google password and try again.\n"
-                  "2. Your are using a old python version. Works > 3.7.7.\n"
-                  "3. Update requirements, use in a terminal: 'pip3 install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt")
+def have_file(file, size, md5):
+    """
+    Determine whether the named file's contents have the given size and hash.
+    """
 
-        elif "NeedsBrowser" in request.text:
-            print("\n   Workaround\n-----------------")
-            print("1. Maybe you need unlock captcha in your account, If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.")
-            print("2. Or you have double factor authentication enabled, so disable it in this URL: https://myaccount.google.com/security")
-            print("3. If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords\n"
-                  "   Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.")
+    if not os.path.exists(file) or size != os.path.getsize(file):
+        return False
 
-        elif "DeviceManagementRequiredOrSyncDisabled" in request.text:
-            print("\n   Workaround\n-----------------")
-            print("1. You are using a GSuite account.  The reason for this is, that for this google-apps account, the enforcement of policies on mobile clients is enabled in admin console (enforce_android_policy).\n"
-                  "   If you disable this in admin-console, the authentication works.")
+    digest = hashlib.md5()
+    with open(file, "br") as input:
+        while True:
+            b = input.read(8 * 1024)
+            if not b:
+                break
+            digest.update(b)
 
-        quit()
+    return md5 == digest.digest()
 
 
-def getGoogleDriveToken(token):
-    pkg = 'com.whatsapp'                              # APK package name Whatsapp
-    sig = '38a0f7d505fe18fec64fbf343ecaaaf310dbd799'  # APK Whatsapp certificate fingerprint SHA-1
-    ver = '203315028'                                 # APK Google Play Services Version: 20.33.15
-    payload = {'Token':token, 'app':pkg, 'client_sig':sig, 'device':devid, 'google_play_services_version':ver, 'service':'oauth2:https://www.googleapis.com/auth/drive.appdata https://www.googleapis.com/auth/drive.file', 'has_permission':'1'}
-    request = requests.post(auth_url, data=payload, headers=header)
-    print("Getting Token from Google....")
-    token = re.search('Auth=(.*)', request.text)
-    #print(request.text)
-    if token:
-        print("Granted\n")
-        return token.group(1)
-    else:
-        print("Failed\n")
-        quit(request.text)
+def download_file(file, stream):
+    """
+    Download a file from the given stream.
+    """
+
+    file = output + file
+    os.makedirs(os.path.dirname(file), exist_ok=True)
+    with open(file, "bw") as dest:
+        for chunk in stream.iter_content(chunk_size=None):
+            dest.write(chunk)
 
 
-def gDriveFileMap(bearer, nextPageToken):
-    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.20.200 Android/Device/Whapa'}
-    url_data = "https://backup.googleapis.com/v1/clients/wa/backups/{}".format(celnumbr)
-    url_files = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files?{}pageSize=5000".format(celnumbr, "pageToken=" + nextPageToken + "&")
-    request_data = requests.get(url_data, headers=header)
-    request_files = requests.get(url_files, headers=header)
-    data_data = json.loads(request_data.text)
-    data_files = json.loads(request_files.text)
+def backup_info(backup):
+
+    print("[i] Backup name     : {}".format(backup["name"]))
+    print("[-] Whatsapp version: {}".format(json.loads(backup["metadata"])["versionOfAppWhenBackup"]))
     try:
-        try:
-            nextPageToken = data_files['nextPageToken']
-        except Exception as e:
-            nextPageToken = ""
-
-        for result in data_files['files']:
-            backups.append(result['name'])
-        if nextPageToken:
-            gDriveFileMap(bearer, nextPageToken)
-
-    except Exception as e:
-        if 'name' in data_data:
-            print("No files for this backup")
-            print(data_files)
-
-        else:
-            print('[e]', data_data['error']['message'])
-            if data_data['error']['details'][0]['resourceName'] and data_data['error']['details'][0]['description']:
-                print('[e]', data_data['error']['details'][0]['resourceName'] + ' - ' + data_data['error']['details'][0]['description'])
-
-            if "entity was not found" in data_files['error']['message'].lower():
-                print("\n   Workaround\n-----------------")
-                print("1. The phone number may be misspelled. Try to set country code + phone number.")
-                print("2. No backup for that phone number in that gmail account or a bad backup has been made.\n   Check your backup in this URL: https://drive.google.com/drive/backups\n"
-                      "   If there is a backup for that phone number, overwriting it may not work so manually delete the backup and do it again through WhatsApp..")
-
-            elif "backup" in data_data['error']['message'].lower():
-                print("\n   Workaround\n-----------------")
-                print("1. The phone number for that google account does not have backup enabled. ")
-
-        quit()
-
-    return data_data, backups
-
-
-def downloadFileGoogleDrive(bearer, url, local):
-    os.makedirs(os.path.dirname(local), exist_ok=True)
-    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
-    request = requests.get(url, headers=header, stream=True)
-    request.raw.decode_content = True
-    if request.status_code == 200:
-        with open(local, 'wb') as asset:
-            for chunk in request.iter_content(1024):
-                asset.write(chunk)
-        print("    [-] Downloaded     : {}".format(local))
-    else:
-        print("    [-] Not downloaded : {}".format(local))
-
-
-def uploadFileGoogleDrive(bearer, url):
-    try:
-        header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
-        payload = {'uploadType': 'resumable', 'mode': 'backup', 'transaction_i': 'W5a'}
-
-        print("Inicia el request")
-        request = requests.get(url, headers=header, params=payload,  stream=True)
-        if request.status_code == 200:
-            print(request.content)
-        else:
-            print(request.url)
-
-    except Exception as e:
-        print(e)
-
-
-def getMultipleFiles(drives, bearer, files):
-    threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
-                  "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
-                  "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27", "Thread-28", "Thread-29", "Thread-30",
-                  "Thread-31", "Thread-32", "Thread-33", "Thread-34", "Thread-35", "Thread-36", "Thread-37", "Thread-38", "Thread-39", "Thread-40"]
-    threads = []
-    threadID = 1
-    print("[i] Generating threads...")
-    print("[+] Backup name : {}".format(drives["name"]))
-    for tName in threadList:
-        thread = myThread(threadID, tName, workQueue)
-        thread.start()
-        threads.append(thread)
-        threadID += 1
-
-    n = 1
-    lenfiles = len(files)
-    queueLock.acquire()
-    if args.output:
-        output = args.output
-    else:
-        output = ""
-
-    for entries in files:
-        file = entries.split('files/')[1]
-        local_store = (output + file).replace("/", os.path.sep)
-        if os.path.isfile(local_store):
-            print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local_store))
-        else:
-            url = "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/{}?alt=media".format(celnumbr, file)
-            workQueue.put({'bearer': bearer, 'url': url, 'local': local_store, 'now': n, 'lenfiles': lenfiles})
-        n += 1
-
-    queueLock.release()
-    while not workQueue.empty():
+        print("[-] Backup protected: {}".format(json.loads(backup["metadata"])["passwordProtectedBackupEnabled"]))
+    except:
         pass
 
-    global exitFlag
-    exitFlag = 1
-    for t in threads:
-        t.join()
-    print("[i] Downloads finished")
+    print("[-] Backup upload   : {}".format(backup["updateTime"]))
+    print("[-] Backup size     : {} Bytes {}".format(backup["sizeBytes"], human_size(int(backup["sizeBytes"]))))
+    print("[+] Backup metadata")
+    print("    [-] Backup Frequency         : {} ".format(json.loads(backup["metadata"])["backupFrequency"]))
+    print("    [-] Backup Network Settings  : {} ".format(json.loads(backup["metadata"])["backupNetworkSettings"]))
+    print("    [-] Backup Version           : {} ".format(json.loads(backup["metadata"])["backupVersion"]))
+    print("    [-] Include Videos In Backup : {} ".format(json.loads(backup["metadata"])["includeVideosInBackup"]))
+    print("    [-] Num Of Photos            : {}".format(json.loads(backup["metadata"])["numOfPhotos"]))
+    print("    [-] Num Of Media Files       : {}".format(json.loads(backup["metadata"])["numOfMediaFiles"]))
+    print("    [-] Num Of Messages          : {}".format(json.loads(backup["metadata"])["numOfMessages"]))
+    print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"])["videoSize"], human_size(int(json.loads(backup["metadata"])["videoSize"]))))
+    print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"])["backupSize"], human_size(int(json.loads(backup["metadata"])["backupSize"]))))
+    print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"])["mediaSize"], human_size(int(json.loads(backup["metadata"])["mediaSize"]))))
+    print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"])["chatdbSize"], human_size(int(json.loads(backup["metadata"])["chatdbSize"]))))
 
 
-class myThread(threading.Thread):
-    def __init__(self, threadID, name, q):
-        threading.Thread.__init__(self)
-        self.threadID = threadID
-        self.name = name
-        self.q = q
+def error(token):
+    print("Failed\n")
+    print(token)
+    failed = token.get("Error")
+    if "BadAuthentication" in failed:
+        print("\n   Workaround\n-----------------")
+        print(
+            "1. Check that your email and password are correct in the settings file.\n"
+            "2. Your are using a old python version. Works >= 3.8.\n"
+            "3. Update requirements, use in a terminal: 'pip3 install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt")
 
-    def run(self):
-        process_data(self.name, self.q)
+    elif "NeedsBrowser" in failed:
+        print("\n   Workaround\n-----------------")
+        print(
+            "1. Maybe you need unlock captcha in your account, If you request it, log in to your browser and then click here, https://accounts.google.com/b/0/DisplayUnlockCaptcha")
+        print(
+            "2. Or you have double factor authentication enabled, so disable it in this URL: https://myaccount.google.com/security")
+        print("3. If you want to use 2FA, you will have to go to the URL: https://myaccount.google.com/apppasswords\n"
+              "   Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.")
 
+    elif "DeviceManagementRequiredOrSyncDisabled" in failed:
+        print("\n   Workaround\n-----------------")
+        print(
+            "1. You are using a GSuite account.  The reason for this is, that for this google-apps account, the enforcement of policies on mobile clients is enabled in admin console (enforce_android_policy).\n"
+            "   If you disable this in admin-console, the authentication works.")
 
-def process_data(threadName, q):
-    while not exitFlag:
-        queueLock.acquire()
-        if not workQueue.empty():
-            data = q.get()
-            queueLock.release()
-            getMultipleFilesThread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'], threadName)
-            time.sleep(1)
-
-        else:
-            queueLock.release()
-            time.sleep(1)
-
-
-def getMultipleFilesThread(bearer, url, local, now, lenfiles, threadName):
-    os.makedirs(os.path.dirname(local), exist_ok=True)
-    header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244'}
-    request = requests.get(url, headers=header, stream=True)
-    request.raw.decode_content = True
-    if request.status_code == 200:
-        if not os.path.isfile(local):
-            with open(local, 'wb') as asset:
-                for chunk in request.iter_content(1024):
-                    asset.write(chunk)
-            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles,  threadName, local))
-        else:
-
-            print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles,  threadName, local))
+    quit()
 
 
+class WaBackup:
+    """
+    Provide access to WhatsApp backups stored in Google drive.
+    """
+
+    def __init__(self, gmail, password, android_id, celnumbr):
+        print("Requesting Auth for Google Drive....")
+        token = gpsoauth.perform_master_login(gmail, password, android_id)
+        if "Token" not in token:
+            error(token)
+        print("Granted\n")
+        self.auth = gpsoauth.perform_oauth(
+            gmail,
+            token["Token"],
+            android_id,
+            "oauth2:https://www.googleapis.com/auth/drive.appdata",
+            "com.whatsapp",
+            "38a0f7d505fe18fec64fbf343ecaaaf310dbd799",
+        )
+        global Auth, phone
+        Auth = self.auth
+        phone = celnumbr
+
+    def get(self, path, params=None, **kwargs):
+        response = requests.get(
+            "https://backup.googleapis.com/v1/{}".format(path),
+            headers={"Authorization": "Bearer {}".format(self.auth["Auth"])},
+            params=params,
+            **kwargs,
+        )
+        response.raise_for_status()
+        return response
+
+    def get_page(self, path, page_token=None):
+        return self.get(
+            path,
+            None if page_token is None else {"pageToken": page_token},
+        ).json()
+
+    def list_path(self, path):
+        last_component = path.split("/")[-1]
+        page_token = None
+        while True:
+            page = self.get_page(path, page_token)
+            for item in page[last_component]:
+                yield item
+            if "nextPageToken" not in page:
+                break
+            page_token = page["nextPageToken"]
+
+    def backups(self):
+        return self.list_path("clients/wa/backups")
+
+    def backup_files(self, backup):
+        return self.list_path("{}/files".format(backup["name"]))
+
+    def fetch(self, file):
+        name = os.path.sep.join(file["name"].split("/")[3:])
+        md5Hash = b64decode(file["md5Hash"], validate=True)
+        if not have_file(name, int(file["sizeBytes"]), md5Hash):
+            download_file(
+                name,
+                self.get(file["name"].replace("%", "%25").replace("+", "%2B"), {"alt": "media"}, stream=True)
+            )
+
+        return name, int(file["sizeBytes"]), md5Hash
+
+    def fetch_all(self, backup, cksums):
+        num_files = 0
+        total_size = 0
+        with ThreadPool(10) as pool:
+            downloads = pool.imap_unordered(
+                lambda file: self.fetch(file),
+                self.backup_files(backup)
+            )
+            for name, size, md5Hash in downloads:
+                num_files += 1
+                total_size += size
+                print(
+                    "\rProgress: {:7.2f}% {:60}".format(
+                        100 * total_size / int(backup["sizeBytes"]),
+                        os.path.basename(name)[-60:]
+                    ),
+                    end="",
+                    flush=True,
+                )
+
+                cksums.write("{md5Hash} *{name}\n".format(
+                    name=name,
+                    md5Hash=md5Hash.hex(),
+                ))
+
+        print("\n{} files {}".format(num_files, human_size(total_size)))
+
+
+def download_partial(filter):
+    """ Sync by category """
+
+    output = args.output
+    if not output:
+        output = os.getcwd()
     else:
-        print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles,  threadName, local))
+        output = args.output
+
+    for file in filter:
+        file_short = os.path.sep.join(file.split("/")[3:])
+        response = requests.get(
+            "https://backup.googleapis.com/v1/{}?alt=media".format(file),
+            headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
+            stream=True
+        )
+        if response.status_code == 200:
+            file = output + file_short
+            if not os.path.isfile(file):
+                os.makedirs(os.path.dirname(file), exist_ok=True)
+                with open(file, "bw") as dest:
+                    for chunk in response.iter_content(chunk_size=None):
+                        dest.write(chunk)
+                print("    [-] Downloaded: {}".format(file))
+
+            else:
+                print("    [-] Skipped: {}".format(file))
+
+        else:
+            print("    [-] Not downloaded: {}".format(file))
 
 
 # Initializing
@@ -307,124 +326,167 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
-    if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
-        create_settings_file()
+    if not os.path.isfile('./cfg/settings.cfg'):
+        createSettingsFile()
 
     if len(sys.argv) == 0:
         help()
+
     else:
         print("[i] Searching...\n")
-        getConfigs()
-        bearer = getGoogleDriveToken(getGoogleAccountTokenFromAuth())
-        #print("Your Google Access Token: {}\n".format(bearer))
-        drives, files = gDriveFileMap(bearer, nextPageToken)
+        wa_backup = WaBackup(**getConfigs())
+        backups = wa_backup.backups()
 
         if args.info:
             try:
-                print("[-] Backup name   : {}".format(drives["name"]))
-                print("[-] Backup upload : {}".format(drives["updateTime"]))
-                print("[-] Backup size   : {} Bytes {}".format(drives["sizeBytes"], size(int(drives["sizeBytes"]))))
-                print("[+] Backup metadata")
-                print("    [-] Backup Frequency         : {} ".format(json.loads(drives["metadata"])["backupFrequency"]))
-                print("    [-] Backup Network Settings  : {} ".format(json.loads(drives["metadata"])["backupNetworkSettings"]))
-                print("    [-] Backup Version           : {} ".format(json.loads(drives["metadata"])["backupVersion"]))
-                print("    [-] Include Videos In Backup : {} ".format(json.loads(drives["metadata"])["includeVideosInBackup"]))
-                print("    [-] Num Of Photos            : {}".format(json.loads(drives["metadata"])["numOfPhotos"]))
-                print("    [-] Num Of Media Files       : {}".format(json.loads(drives["metadata"])["numOfMediaFiles"]))
-                print("    [-] Num Of Messages          : {}".format(json.loads(drives["metadata"])["numOfMessages"]))
-                print("    [-] Video Size               : {} Bytes {}".format(json.loads(drives["metadata"])["videoSize"], size(int(json.loads(drives["metadata"])["videoSize"]))))
-                print("    [-] Backup Size              : {} Bytes {}".format(json.loads(drives["metadata"])["backupSize"], size(int(json.loads(drives["metadata"])["backupSize"]))))
-                print("    [-] Media Size               : {} Bytes {}".format(json.loads(drives["metadata"])["mediaSize"], size(int(json.loads(drives["metadata"])["mediaSize"]))))
-                print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(drives["metadata"])["chatdbSize"], size(int(json.loads(drives["metadata"])["chatdbSize"]))))
+                for backup in backups:
+                    backup_info(backup)
 
             except Exception as e:
                 print("[e] Error {}".format(e))
 
         elif args.list:
-            print("[+] Backup name : {}".format(drives["name"]))
-            lenfiles = len(files)
-            n = 1
-            for i in files:
-                print("    [-] File {}/{}  : {}".format(n, lenfiles, i.split('files/')[1]))
-                n += 1
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                print("[i] Backup name: {}".format(backup["name"]))
+                for file in wa_backup.backup_files(backup):
+                    num_files += 1
+                    total_size += int(file["sizeBytes"])
+                    print("    [-] {}".format(file["name"]))
+
+            print("[i] {} files {}".format(num_files, human_size(total_size)))
 
         elif args.list_whatsapp:
-            print("[+] Backup name : {}".format(drives["name"]))
-            lenfiles = len(files)
-            n = 1
-            for i in files:
-                i = i.split('files/')[1]
-                if i == "Databases/msgstore.db.crypt12":
-                    print("    [-] File {}/{}   : {}".format(n, lenfiles, i))
-                    print("    [-] Chat DB Size : {} Bytes {}".format(json.loads(drives["metadata"])["chatdbSize"], size(int(json.loads(drives["metadata"])["chatdbSize"]))))
-                    exit()
-                n += 1
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                print("[i] Backup name: {}".format(backup["name"]))
+                for file in wa_backup.backup_files(backup):
+                    num_files += 1
+                    total_size += int(file["sizeBytes"])
+                    if os.path.sep.join(file["name"].split("/")[6:]) == "msgstore.db.crypt14":
+                        print("    [-] {}".format(file["name"]))
+                        print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
 
         elif args.sync:
-            getMultipleFiles(drives, bearer, files)
+            output = args.output
+            if not output:
+                output = os.getcwd()
+            else:
+                output = args.output
+
+            with open(output + "md5sum.txt", "w", encoding="utf-8", buffering=1) as cksums:
+                for backup in backups:
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        print("[+] Backup {} {}:".format(backup["name"], human_size(int(backup["sizeBytes"])),))
+                        wa_backup.fetch_all(backup, cksums)
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_images:
-            filter = []
-            for i in files:
-                try:
-                    if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Images" or i.split("/")[6] == "WhatsApp Stickers" or i.split("/")[6] == "WhatsApp Profile Photos" or i.split("/")[6] == "WallPaper":
-                        filter.append(i)
-                except Exception as e:
-                    pass
-            getMultipleFiles(drives, bearer, filter)
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter = []
+                    print("[+] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+
+                        i = os.path.splitext(file["name"])[1]
+                        if "jpg" in i:
+                            num_files += 1
+                            total_size += int(file["sizeBytes"])
+                            filter.append(file["name"])
+
+                    download_partial(filter)
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_videos:
-            filter = []
-            for i in files:
-                try:
-                    if i.split("/")[6] == ".Statuses" or i.split("/")[6] == "WhatsApp Animated Gifs" or i.split("/")[6] == "WhatsApp Video":
-                        filter.append(i)
-                except Exception as e:
-                    pass
-            getMultipleFiles(drives, bearer, filter)
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter = []
+                    print("[+] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+
+                        i = os.path.splitext(file["name"])[1]
+                        if "mp4" in i:
+                            num_files += 1
+                            total_size += int(file["sizeBytes"])
+                            filter.append(file["name"])
+
+                    download_partial(filter)
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_audios:
-            filter = []
-            for i in files:
-                try:
-                    if i.split("/")[6] == "WhatsApp Voice Notes" or i.split("/")[6] == "WhatsApp Audio":
-                        filter.append(i)
-                except Exception as e:
-                    pass
-            getMultipleFiles(drives, bearer, filter)
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter = []
+                    print("[+] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+                        i = os.path.splitext(file["name"])[1]
+                        if ("mp3" in i) or ("opus" in i):
+                            num_files += 1
+                            total_size += int(file["sizeBytes"])
+                            print("    [-] {}".format(file["name"]))
+                            filter.append(file["name"])
+
+                    download_partial(filter)
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_documents:
-            filter = []
-            for i in files:
-                try:
-                    if i.split("/")[6] == "WhatsApp Documents":
-                        filter.append(i)
-                except Exception as e:
-                    pass
-            getMultipleFiles(drives, bearer, filter)
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter = []
+                    print("[i] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+                        if file["name"].split("/")[6] == "WhatsApp Documents":
+                            num_files += 1
+                            total_size += int(file["sizeBytes"])
+                            print("    [-] {}".format(file["name"]))
+                            filter.append(file["name"])
+
+                    download_partial(filter)
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_databases:
-            filter = []
-            for i in files:
-                try:
-                    if i.split("/")[5] == "Databases" or i.split("/")[5] == "Backups" or i.split("/")[5] == "gdrive_file_map":
-                        filter.append(i)
-                except Exception as e:
-                    pass
-            getMultipleFiles(drives, bearer, filter)
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter = []
+                    print("[+] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+                        i = os.path.splitext(file["name"])[1]
+                        if "crypt14" in i:
+                            num_files += 1
+                            total_size += int(file["sizeBytes"])
+                            print("    [-] {}".format(file["name"]))
+                            filter.append(file["name"])
+
+                    download_partial(filter)
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.pull:
-            try:
-                file = str(args.pull)
-                local_store = file.replace("/", os.path.sep)
-
-                if args.output:
-                    local_store = args.output + local_store
-                if os.path.isfile(local_store):
-                    print("[+] Backup name : {}".format(drives["name"]))
-                    print("    [-] Skipped : {}".format(local_store))
-                else:
-                    print("[+] Backup name        : {}".format(drives["name"]))
-                    downloadFileGoogleDrive(bearer, "https://backup.googleapis.com/v1/clients/wa/backups/{}/files/{}?alt=media".format(celnumbr, file), local_store)
-            except Exception as e:
-                print("[e] Unable to locate: {}".format(file))
+            file = args.pull
+            output = args.output
+            print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
+            download_partial([file])
