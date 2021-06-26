@@ -8,7 +8,7 @@ Updated: June 2021
 
 WhatsApp Messenger Version 2.21.9.14
 
-Whapa is a set of graphical forensic tools to analyze whatsapp from android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on linux, windows and OSX systems.
+Whapa is a set of graphical forensic tools to analyze whatsapp from Android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on linux, windows and macOS systems.
 
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
@@ -43,7 +43,7 @@ Installation
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
-then (Linux or OSX):
+then (Linux or macOS):
 
 	pip3 install --upgrade -r ./doc/requirements.txt
 	
@@ -64,7 +64,7 @@ if you use Windows system:
 	or 
 	click on whapa-gui.bat
 
-if you use OSX system (Thanks to FetchFast):
+if you use macOS system (Thanks to FetchFast):
 * Install a later version of TK
 		
 		brew install tcl-tk
@@ -88,7 +88,7 @@ And a window like this will be displayed on the screen:
 
 WHAPA
 ====
-whapa.py is an android whatsapp database parser which automates the process and presents the data handled by the Sqlite database in a way that is comprehensible to the analyst.
+whapa.py is an Android whatsapp database parser which automates the process and presents the data handled by the SQLite database in a way that is comprehensible to the analyst.
 If you copy the "wa.db" database into the same directory as the script, the phone number will be displayed along with the name.
 
 Please note that this project is an early stage. As such, you could find errors. Use it at your own risk!
@@ -146,6 +146,7 @@ Edit only the values of the./cfg/settings.cfg file
 
 
 If you want to use 2FA (Two Factor Authentication), you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.
+(Thanks to YuriCosta)
 
 WHACLOUD
 =====
