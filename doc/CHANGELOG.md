@@ -2,6 +2,15 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Jun 2021
+
+
+	[+] whapa-gui.py v1.5
+	[+] whacipher.py
+		[-] Decrypt error fixed
+	[+] whagodri.py
+		[-] Need browser error fixed
+
 Feb 2021
 
 
