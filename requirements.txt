@@ -1,8 +1,0 @@
-pycryptodome
-colorama
-configparser
-gpsoauth
-requests==2.21.0
-pyicloud
-pandas
-numpy
