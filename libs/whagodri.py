@@ -242,10 +242,12 @@ class WaBackup:
         name = os.path.sep.join(file["name"].split("/")[3:])
         md5Hash = b64decode(file["md5Hash"], validate=True)
         if not have_file(name, int(file["sizeBytes"]), md5Hash):
-            download_file(
-                name,
-                self.get(file["name"].replace("%", "%25").replace("+", "%2B"), {"alt": "media"}, stream=True)
-            )
+            file_path = output + name
+            if not os.path.isfile(file_path):
+                download_file(
+                    name,
+                    self.get(file["name"].replace("%", "%25").replace("+", "%2B"), {"alt": "media"}, stream=True)
+                )
 
         return name, int(file["sizeBytes"]), md5Hash
 
