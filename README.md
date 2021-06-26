@@ -4,13 +4,13 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: MArch 2021
+Updated: June 2021
 
 WhatsApp Messenger Version 2.21.9.14
 
-Whapa is a set of graphical forensic tools to analyze WhatsApp from Android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on Linux, Windows and macOS systems.
+Whapa is a set of graphical forensic tools to analyze whatsapp from android and soon iOS devices. All the tools have been written in Python 3.X and have been tested on linux, windows and OSX systems.
 
-Note: Whapa provides 10x more performance and fewer bugs on Linux systems than on Windows. 
+Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
 Whapa is included as standard in distributions such as Tsurugi Linux (Digital Forensics) and BlackArch Linux (Penetration Testing).
 
@@ -18,16 +18,16 @@ Whapa toolset is divided in five tools:
 
 **Android**
 ======
-* **Whapa**     (WhatsApp Parser)
-* **Whacipher** (WhatsApp Encryption/Decryption) *** NEW Crypt14 ***
-* **Whagodri**  (WhatsApp Google Drive Extractor)
-* **Whamerge**  (WhatsApp Merger)
-* **Whachat**   (WhatsApp Chat Exporter)
+* **Whapa**     (Whatsapp Parser)
+* **Whacipher** (Whatsapp Encryption/Decryption) *** NEW Crypt14 ***
+* **Whagodri**  (Whataspp Google Drive Extractor)
+* **Whamerge**  (Whatsapp Merger)
+* **Whachat**   (Whatsapp Chat Exporter)
 
 **IPhone**
 ====
-* **Whacloud**  (WhatsApp iCloud Extractor) NEW BETA TOOL FOR IPHONE
-* **Whachat**   (WhatsApp Chat Exporter)
+* **Whacloud**  (Whatsapp ICloud Extractor) NEW BETA TOOL FOR IPHONE
+* **Whachat**   (Whatsapp Chat Exporter)
 
 
 **Do you like this project? Support it by donating**
@@ -43,7 +43,7 @@ Installation
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git
-then (Linux or macOS):
+then (Linux or OSX):
 
 	pip3 install --upgrade -r ./doc/requirements.txt
 	
@@ -64,12 +64,12 @@ if you use Windows system:
 	or 
 	click on whapa-gui.bat
 
-if you use macOS system (Thanks to FetchFast):
+if you use OSX system (Thanks to FetchFast):
 * Install a later version of TK
 		
 		brew install tcl-tk
     
-* Uninstall python3 and then download and reinstall Python 3.9x from python.org
+* Uninstall python3 and then download and reinstall python 3.9x from python.org
 
 		brew uninstall python3
 		https://www.python.org/downloads/
@@ -141,15 +141,15 @@ Edit only the values of the./cfg/settings.cfg file
 		[google-auth]
 		gmail = alias@gmail.com
 		passw = yourpassword
-		celnumbr = BackupPhoneNumber -> Country code + phonenumber (ex. 3466666666666)
-* If you request it, log in to your browser and then click here, https://accounts.google.com/DisplayUnlockCaptcha.
+
+* If you request it, log in to your browser and then click here. https://accounts.google.com/b/0/DisplayUnlockCaptcha
 
 
 If you want to use 2FA (Two Factor Authentication), you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.
 
 WHACLOUD
 =====
-whacloud.py is a tool which allows WhatsApp users on iPhone to extract their backed up WhatsApp data from iCloud.
+whacloud.py is a tool which allows WhatsApp users on Iphone to extract their backed up WhatsApp data from ICloud.
 BETA TOOL May contain bugs.
 
 Make sure of:
@@ -162,7 +162,6 @@ Edit only the values of the./cfg/settings.cfg file
 		[icloud-auth]
 		icloud = alias@icloud.com
 		passw = yourpassword
-		celnumbr = BackupPhoneNumber -> Country code + phonenumber (ex. 3466666666666)
 	
 	
 WHACHAT
