@@ -4,7 +4,6 @@ All notable changes to this project will be documented in this file.
 
 Jun 2021
 
-
 	[+] whapa-gui.py v1.5
 	[+] whacipher.py
 		[-] Decrypt error fixed
@@ -12,7 +11,6 @@ Jun 2021
 		[-] Need browser error fixed
 
 Feb 2021
-
 
 	[+] whapa-gui.py v1.43
 		[-] Media not mapped correctly in the HTML report fixed
