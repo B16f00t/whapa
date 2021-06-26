@@ -3,6 +3,7 @@ import time
 import re
 import sys
 import webbrowser
+from textwrap import dedent
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
@@ -12,7 +13,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.44'
+version = '1.5'
 system = ""
 
 
@@ -124,13 +125,13 @@ class Whapa:
             self.whacipher_path = StringVar(value=os.getcwd() + "/")
             self.whapa_out = StringVar(value=os.getcwd() + "/report/")
             self.whamerge_file = StringVar(value=os.getcwd() + "/msgstore_merge.db")
-            self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.crypt12")
+            self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
             self.whacipher_key = StringVar(value=os.getcwd() + "/key")
             self.whachat_file = StringVar(value=os.getcwd() + "/chat.txt")
             self.whacipher_out = StringVar(value=os.getcwd() + "/msgstore.db")
-            self.whacipher_out_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt12")
+            self.whacipher_out_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
             self.whacipher_file_en = StringVar(value=os.getcwd() + "/msgstore.db")
-            self.whacipher_crypt_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt12")
+            self.whacipher_crypt_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
             self.whacipher_key_en = StringVar(value=os.getcwd() + "/key")
             self.whapa_file = StringVar(value=os.getcwd() + "/msgstore.db")
             self.whapa_wa = StringVar(value=os.getcwd() + "/wa.db")
@@ -142,13 +143,13 @@ class Whapa:
             self.whacipher_path = StringVar(value=os.getcwd() + "\\")
             self.whapa_out = StringVar(value=os.getcwd() + "\\report\\")
             self.whamerge_file = StringVar(value=os.getcwd() + r"\msgstore_merge.db")
-            self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.crypt12")
+            self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
             self.whacipher_key = StringVar(value=os.getcwd() + r"\key")
             self.whachat_file = StringVar(value=os.getcwd() + "\\chat.txt")
             self.whacipher_out = StringVar(value=os.getcwd() + r"\msgstore.db")
-            self.whacipher_out_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt12")
+            self.whacipher_out_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
             self.whacipher_file_en = StringVar(value=os.getcwd() + r"\msgstore.db")
-            self.whacipher_crypt_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt12")
+            self.whacipher_crypt_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
             self.whacipher_key_en = StringVar(value=os.getcwd() + r"\key")
             self.whapa_file = StringVar(value=os.getcwd() + r"\msgstore.db")
             self.whapa_wa = StringVar(value=os.getcwd() + r"\wa.db")
@@ -536,12 +537,12 @@ To export chats on an iOS phone, here are the steps:
         self.wagodri_file = Radiobutton(self.frame_method_whagodri, text='File', variable=self.wagodri_box_value, value='File', anchor="w", compound='left')
         self.wagodri_file.config(bd=4, borderwidth=0, highlightthickness=0)
         self.wagodri_file.grid(row=6, column=0, padx=5, pady=5, sticky="nswe")
-        self.entry_whagodri_down = Entry(self.frame_method_whagodri, width=77)
+        self.entry_whagodri_down = Entry(self.frame_method_whagodri, width=70)
         self.entry_whagodri_down.grid(row=6, column=1, sticky="w", pady=5, padx=5)
 
         self.frame_whagodri_out = LabelFrame(self.tab4, text="Output path")
         self.frame_whagodri_out.grid(row=2, column=0, padx=5, pady=10, sticky="nsew", columnspan=2)
-        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=114)
+        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=110)
         self.entry_whagodri_output.grid(row=0, column=0, sticky="we", padx=5, pady=5 )
         self.whagodri_button_path = Button(self.frame_whagodri_out, image=self.iconfile, command=self.search_path_whagodri, borderwidth=0, highlightthickness=0)
         self.whagodri_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
@@ -552,7 +553,7 @@ To export chats on an iOS phone, here are the steps:
 
         self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
         self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [google-auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n        celnumbr = BackupPhoneNumber (ex. 3466666666666, [Country Code] + Phone Number)\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
+        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the./cfg/settings.cfg file.\n    [google-auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
 
         # Tab 5 WhaChat
         self.label_wachat = Label(self.tab5, text="Whatsapp Chat Exporter", font=('courier', 15, 'bold'))
@@ -1111,10 +1112,10 @@ To export chats on an iOS phone, here are the steps:
         """Search a output file or path"""
         self.path = filedialog.askdirectory()
         if system == "Linux":
-            self.whacipher_out_en.set((self.path + "/msgstore.db.crypt12"))
+            self.whacipher_out_en.set((self.path + "/msgstore.db.crypt14"))
         else:
 
-            self.whacipher_out_en.set((self.path + "\\msgstore.db.crypt12").replace("/", "\\"))
+            self.whacipher_out_en.set((self.path + "\\msgstore.db.crypt14").replace("/", "\\"))
 
 
     def search_criptofile_whacypher_en(self):
@@ -1403,10 +1404,31 @@ To export chats on an iOS phone, here are the steps:
 
 if __name__ == '__main__':
     """Initialize"""
-    if os.path.isfile('./cfg/settings.cfg') is False:
+    if not os.path.isfile('./cfg/settings.cfg'):
         """ Function that creates the settings file """
-        with open('./cfg/settings.cfg', 'w') as cfg:
-            cfg.write("[report]\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[google-auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber\n\n[icloud-auth]\nicloud = alias@icloud.com\npassw  = yourpassword")
+        with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
+            cfg.write(dedent("""
+                [report]
+                company =
+                record =
+                unit =
+                examiner =
+                notes =
+
+                [google-auth]
+                gmail = alias@gmail.com
+                # Optional. The account password or app password when using 2FA.
+                password  = 
+                # Optional. The result of "adb shell settings get secure android_id".
+                android_id = 0000000000000000
+                # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
+                # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
+                celnumbr = 
+                
+                [icloud-auth] 
+                icloud  = alias@icloud.com
+                passw = yourpassword
+                """).lstrip())
 
     error_icon = False
     img_folder = os.getcwd() + os.sep + "images" + os.sep
