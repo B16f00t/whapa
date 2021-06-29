@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file.
 
 Jun 2021
 
+	[+] whapa-gui.py v1.51
+	[+] whagodri.py
+		[-] Speed improvement
+		
 	[+] whapa-gui.py v1.5
 	[+] whacipher.py
 		[-] Decrypt error fixed
