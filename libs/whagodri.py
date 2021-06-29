@@ -2,6 +2,7 @@ from configparser import ConfigParser
 from base64 import b64decode
 from getpass import getpass
 from multiprocessing.pool import ThreadPool
+from multiprocessing import Pool
 from textwrap import dedent
 import json
 import os
@@ -11,6 +12,14 @@ import argparse
 import gpsoauth
 import hashlib
 
+import queue as queue
+import threading
+import time
+import argparse
+
+exitFlag = 0
+queueLock = threading.Lock()
+workQueue = queue.Queue(9999999)
 
 def banner():
     """ Function Banner """
@@ -254,7 +263,7 @@ class WaBackup:
     def fetch_all(self, backup, cksums):
         num_files = 0
         total_size = 0
-        with ThreadPool(10) as pool:
+        with ThreadPool(40) as pool:
             downloads = pool.imap_unordered(
                 lambda file: self.fetch(file),
                 self.backup_files(backup)
@@ -263,7 +272,7 @@ class WaBackup:
                 num_files += 1
                 total_size += size
                 print(
-                    "\rProgress: {:7.2f}% {:60}".format(
+                    "\rProgress: {:7.2f}% - {:60}".format(
                         100 * total_size / int(backup["sizeBytes"]),
                         os.path.basename(name)[-60:]
                     ),
@@ -279,36 +288,144 @@ class WaBackup:
         print("\n{} files {}".format(num_files, human_size(total_size)))
 
 
-def download_partial(filter):
+def download_partial(file):
     """ Sync by category """
 
     output = args.output
     if not output:
         output = os.getcwd()
-    else:
-        output = args.output
 
-    for file in filter:
-        file_short = os.path.sep.join(file.split("/")[3:])
-        response = requests.get(
-            "https://backup.googleapis.com/v1/{}?alt=media".format(file),
-            headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
-            stream=True
-        )
-        if response.status_code == 200:
-            file = output + file_short
-            if not os.path.isfile(file):
-                os.makedirs(os.path.dirname(file), exist_ok=True)
-                with open(file, "bw") as dest:
-                    for chunk in response.iter_content(chunk_size=None):
-                        dest.write(chunk)
-                print("    [-] Downloaded: {}".format(file))
-
-            else:
-                print("    [-] Skipped: {}".format(file))
+    file_short = os.path.sep.join(file.split("/")[3:])
+    response = requests.get(
+        "https://backup.googleapis.com/v1/{}?alt=media".format(file),
+        headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
+        stream=True
+    )
+    if response.status_code == 200:
+        file = output + file_short
+        if not os.path.isfile(file):
+            os.makedirs(os.path.dirname(file), exist_ok=True)
+            with open(file, "bw") as dest:
+                for chunk in response.iter_content(chunk_size=None):
+                    dest.write(chunk)
+            print("    [-] Downloaded: {}".format(file))
 
         else:
-            print("    [-] Not downloaded: {}".format(file))
+            print("    [-] Skipped: {}".format(file))
+
+    else:
+        print("    [-] Not downloaded: {}".format(file))
+
+
+def uploadFileGoogleDrive(bearer, url):
+    """ Future Function not available """
+    try:
+        header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
+        payload = {'uploadType': 'resumable', 'mode': 'backup', 'transaction_i': 'W5a'}
+
+        print("Inicia el request")
+        request = requests.get(url, headers=header, params=payload,  stream=True)
+        if request.status_code == 200:
+            print(request.content)
+        else:
+            print(request.url)
+
+    except Exception as e:
+        print(e)
+
+
+# MultiThreads
+
+
+def getMultipleFiles(drives, files):
+    threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
+                  "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
+                  "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27", "Thread-28", "Thread-29", "Thread-30",
+                  "Thread-31", "Thread-32", "Thread-33", "Thread-34", "Thread-35", "Thread-36", "Thread-37", "Thread-38", "Thread-39", "Thread-40"]
+    threads = []
+    threadID = 1
+    print("[i] Generating threads...")
+    print("[+] Backup name : {}".format(drives["name"]))
+    for tName in threadList:
+        thread = myThread(threadID, tName, workQueue)
+        thread.start()
+        threads.append(thread)
+        threadID += 1
+
+    n = 1
+    lenfiles = len(files)
+    queueLock.acquire()
+
+    output = args.output
+    if not output:
+        output = os.getcwd()
+
+    for entry in files:
+        file = os.path.sep.join(entry.split("/")[3:])
+        local_store = (output + file).replace("/", os.path.sep)
+        if os.path.isfile(local_store):
+            print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local_store))
+        else:
+            workQueue.put({'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles})
+        n += 1
+
+    queueLock.release()
+    while not workQueue.empty():
+        pass
+
+    global exitFlag
+    exitFlag = 1
+    for t in threads:
+        t.join()
+    print("[i] Downloads finished")
+
+
+class myThread(threading.Thread):
+    def __init__(self, threadID, name, q):
+        threading.Thread.__init__(self)
+        self.threadID = threadID
+        self.name = name
+        self.q = q
+
+    def run(self):
+        process_data(self.name, self.q)
+
+
+def process_data(threadName, q):
+    while not exitFlag:
+        queueLock.acquire()
+        if not workQueue.empty():
+            data = q.get()
+            queueLock.release()
+            download_files_thread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'], threadName)
+            time.sleep(1)
+
+        else:
+            queueLock.release()
+            time.sleep(1)
+
+
+def download_files_thread(bearer, url, local, now, lenfiles, threadName):
+    """ Sync by category """
+
+    response = requests.get(
+        "https://backup.googleapis.com/v1/{}?alt=media".format(url),
+        headers={"Authorization": "Bearer {}".format(bearer)},
+        stream=True
+    )
+    if response.status_code == 200:
+        if not os.path.isfile(local):
+            os.makedirs(os.path.dirname(local), exist_ok=True)
+            with open(local, "bw") as dest:
+                for chunk in response.iter_content(chunk_size=None):
+                    dest.write(chunk)
+            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles,  threadName, local))
+
+        else:
+            print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles,  threadName, local))
+
+    else:
+        print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles,  threadName, local))
 
 
 # Initializing
@@ -372,11 +489,10 @@ if __name__ == "__main__":
                         print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
 
         elif args.sync:
+            """
             output = args.output
             if not output:
                 output = os.getcwd()
-            else:
-                output = args.output
 
             with open(output + "md5sum.txt", "w", encoding="utf-8", buffering=1) as cksums:
                 for backup in backups:
@@ -387,6 +503,23 @@ if __name__ == "__main__":
 
                     else:
                         print("[i] Backup {} omitted".format(number_backup))
+            """
+            num_files = 0
+            total_size = 0
+            for backup in backups:
+                number_backup = backup["name"].split("/")[3]
+                if (number_backup in phone) or (phone == ""):
+                    filter_file = []
+                    for file in wa_backup.backup_files(backup):
+                        i = os.path.splitext(file["name"])[1]
+                        num_files += 1
+                        total_size += int(file["sizeBytes"])
+                        filter_file.append(file["name"])
+
+                    getMultipleFiles(backup, filter_file)
+
+                else:
+                    print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_images:
             num_files = 0
@@ -394,17 +527,16 @@ if __name__ == "__main__":
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter = []
-                    print("[+] Backup name: {}".format(backup["name"]))
+                    filter_file = []
                     for file in wa_backup.backup_files(backup):
-
                         i = os.path.splitext(file["name"])[1]
                         if "jpg" in i:
                             num_files += 1
                             total_size += int(file["sizeBytes"])
-                            filter.append(file["name"])
+                            filter_file.append(file["name"])
 
-                    download_partial(filter)
+                    getMultipleFiles(backup, filter_file)
+
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
@@ -414,7 +546,7 @@ if __name__ == "__main__":
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter = []
+                    filter_file = []
                     print("[+] Backup name: {}".format(backup["name"]))
                     for file in wa_backup.backup_files(backup):
 
@@ -422,9 +554,10 @@ if __name__ == "__main__":
                         if "mp4" in i:
                             num_files += 1
                             total_size += int(file["sizeBytes"])
-                            filter.append(file["name"])
+                            filter_file.append(file["name"])
 
-                    download_partial(filter)
+                    getMultipleFiles(backup, filter_file)
+
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
@@ -434,7 +567,7 @@ if __name__ == "__main__":
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter = []
+                    filter_file = []
                     print("[+] Backup name: {}".format(backup["name"]))
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
@@ -442,9 +575,10 @@ if __name__ == "__main__":
                             num_files += 1
                             total_size += int(file["sizeBytes"])
                             print("    [-] {}".format(file["name"]))
-                            filter.append(file["name"])
+                            filter_file.append(file["name"])
 
-                    download_partial(filter)
+                    getMultipleFiles(backup, filter_file)
+
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
@@ -454,16 +588,17 @@ if __name__ == "__main__":
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter = []
+                    filter_file = []
                     print("[i] Backup name: {}".format(backup["name"]))
                     for file in wa_backup.backup_files(backup):
                         if file["name"].split("/")[6] == "WhatsApp Documents":
                             num_files += 1
                             total_size += int(file["sizeBytes"])
                             print("    [-] {}".format(file["name"]))
-                            filter.append(file["name"])
+                            filter_file.append(file["name"])
 
-                    download_partial(filter)
+                    getMultipleFiles(backup, filter_file)
+
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
@@ -473,7 +608,7 @@ if __name__ == "__main__":
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter = []
+                    filter_file = []
                     print("[+] Backup name: {}".format(backup["name"]))
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
@@ -481,9 +616,10 @@ if __name__ == "__main__":
                             num_files += 1
                             total_size += int(file["sizeBytes"])
                             print("    [-] {}".format(file["name"]))
-                            filter.append(file["name"])
+                            filter_file.append(file["name"])
 
-                    download_partial(filter)
+                    getMultipleFiles(backup, filter_file)
+
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
@@ -491,4 +627,4 @@ if __name__ == "__main__":
             file = args.pull
             output = args.output
             print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
-            download_partial([file])
+            download_partial(file)
