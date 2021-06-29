@@ -140,7 +140,13 @@ Edit only the values of the./cfg/settings.cfg file
 
 		[google-auth]
 		gmail = alias@gmail.com
-		passw = yourpassword
+		# Optional. The account password or app password when using 2FA.
+		password  = 
+		# Optional. The result of "adb shell settings get secure android_id".
+		android_id = 0000000000000000
+		# Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
+		# You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
+		celnumbr = 
 
 * If you request it, log in to your browser and then click here. https://accounts.google.com/b/0/DisplayUnlockCaptcha
 
