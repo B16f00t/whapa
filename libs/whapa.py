@@ -20,7 +20,7 @@ message = ""
 report_var = "None"
 report_html = ""
 report_group = ""
-version = "1.43"
+version = "1.52"
 names_dict = {}            # names wa.db
 color = {}                 # participants color
 current_color = "#5586e5"  # default participant color
@@ -28,10 +28,11 @@ current_color = "#5586e5"  # default participant color
 
 def banner():
     """ Function Banner """
-    print("""
+
+    print(r"""
      __      __.__          __________         
     /  \    /  \  |__ _____ \______   \_____   
-    \   \/\/   /  |  \\\\__  \ |     ___/\__  \  
+    \   \/\/   /  |  \\__  \ |     ___/\__  \  
      \        /|   Y  \/ __ \|    |     / __ \_
       \__/\  / |___|  (____  /____|    (____  /
            \/       \/     \/               \/ 
@@ -1808,7 +1809,9 @@ def get_configs():
     global company, record, unit, examiner, notes
     config_report = ConfigParser()
     try:
-        config_report.read('./cfg/settings.cfg')
+        cfg_path_abs = os.path.split(__file__)[0]
+        cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + "\cfg\settings.cfg"  # Get whapa config file
+        config_report.read(cfg_path)
         company = config_report.get('report', 'company')
         record = config_report.get('report', 'record')
         unit = config_report.get('report', 'unit')
