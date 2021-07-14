@@ -1,8 +1,5 @@
 from configparser import ConfigParser
-from base64 import b64decode
 from getpass import getpass
-from multiprocessing.pool import ThreadPool
-from multiprocessing import Pool
 from textwrap import dedent
 import json
 import os
@@ -10,16 +7,78 @@ import requests
 import sys
 import argparse
 import gpsoauth
-import hashlib
-
 import queue as queue
 import threading
 import time
-import argparse
 
 exitFlag = 0
+num_files = 0
+total_size = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
+cfg_path_abs = os.path.split(__file__)[0]
+cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + r"\cfg\settings.cfg"  # Get whapa config file
+
+
+class WaBackup:
+    """
+    Provide access to WhatsApp backups stored in Google drive.
+    """
+
+    def __init__(self, gmail, password, android_id, celnumbr):
+        print("Requesting Google access...")
+        token = gpsoauth.perform_master_login(gmail, password, android_id)
+        if "Token" not in token:
+            error(token)
+        print("Granted\n")
+        print("Requesting authentication for Google Drive...")
+
+        self.auth = gpsoauth.perform_oauth(
+            gmail,
+            token["Token"],
+            android_id,
+            "oauth2:https://www.googleapis.com/auth/drive.appdata",
+            "com.whatsapp",
+            "38a0f7d505fe18fec64fbf343ecaaaf310dbd799",
+        )
+        if "Auth" not in self.auth:
+            error(token)
+        print("Granted\n")
+
+        global Auth, phone
+        Auth = self.auth
+        phone = celnumbr
+
+    def get(self, path, params=None, **kwargs):
+        response = requests.get(
+            "https://backup.googleapis.com/v1/{}".format(path),
+            headers={"Authorization": "Bearer {}".format(self.auth["Auth"])},
+            params=params,
+            **kwargs,
+        )
+        response.raise_for_status()
+        return response
+
+    def get_page(self, path, page_token=None):
+        return self.get(path, None if page_token is None else {"pageToken": page_token},).json()
+
+    def list_path(self, path):
+        last_component = path.split("/")[-1]
+        page_token = None
+        while True:
+            page = self.get_page(path, page_token)
+            for item in page[last_component]:
+                yield item
+            if "nextPageToken" not in page:
+                break
+            page_token = page["nextPageToken"]
+
+    def backups(self):
+        return self.list_path("clients/wa/backups")
+
+    def backup_files(self, backup):
+        return self.list_path("{}/files".format(backup["name"]))
+
 
 def banner():
     """ Function Banner """
@@ -48,7 +107,7 @@ def help():
 def createSettingsFile():
     """ Function that creates the settings file """
 
-    with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
+    with open(cfg_path.replace("/", os.path.sep), 'w') as cfg:
         cfg.write(dedent("""
             [report]
             company =
@@ -76,7 +135,7 @@ def createSettingsFile():
 def getConfigs():
     config = ConfigParser(interpolation=None)
     try:
-        config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
+        config.read(cfg_path.replace("/", os.path.sep))
         gmail = config.get('google-auth', 'gmail')
         password = config.get('google-auth', 'password', fallback="")
         celnumbr = config.get('google-auth', 'celnumbr').lstrip('+0')
@@ -95,7 +154,7 @@ def getConfigs():
         }
 
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
+        quit('The "{}" file is missing or corrupt!'.replace("/", os.path.sep).format(cfg_path))
 
 
 def human_size(size):
@@ -104,37 +163,6 @@ def human_size(size):
             break
         size = int(size / 1024)
     return "({} {})".format(size, s)
-
-
-def have_file(file, size, md5):
-    """
-    Determine whether the named file's contents have the given size and hash.
-    """
-
-    if not os.path.exists(file) or size != os.path.getsize(file):
-        return False
-
-    digest = hashlib.md5()
-    with open(file, "br") as input:
-        while True:
-            b = input.read(8 * 1024)
-            if not b:
-                break
-            digest.update(b)
-
-    return md5 == digest.digest()
-
-
-def download_file(file, stream):
-    """
-    Download a file from the given stream.
-    """
-
-    file = output + file
-    os.makedirs(os.path.dirname(file), exist_ok=True)
-    with open(file, "bw") as dest:
-        for chunk in stream.iter_content(chunk_size=None):
-            dest.write(chunk)
 
 
 def backup_info(backup):
@@ -191,106 +219,10 @@ def error(token):
     quit()
 
 
-class WaBackup:
-    """
-    Provide access to WhatsApp backups stored in Google drive.
-    """
-
-    def __init__(self, gmail, password, android_id, celnumbr):
-        print("Requesting Auth for Google Drive....")
-        token = gpsoauth.perform_master_login(gmail, password, android_id)
-        if "Token" not in token:
-            error(token)
-        print("Granted\n")
-        self.auth = gpsoauth.perform_oauth(
-            gmail,
-            token["Token"],
-            android_id,
-            "oauth2:https://www.googleapis.com/auth/drive.appdata",
-            "com.whatsapp",
-            "38a0f7d505fe18fec64fbf343ecaaaf310dbd799",
-        )
-        global Auth, phone
-        Auth = self.auth
-        phone = celnumbr
-
-    def get(self, path, params=None, **kwargs):
-        response = requests.get(
-            "https://backup.googleapis.com/v1/{}".format(path),
-            headers={"Authorization": "Bearer {}".format(self.auth["Auth"])},
-            params=params,
-            **kwargs,
-        )
-        response.raise_for_status()
-        return response
-
-    def get_page(self, path, page_token=None):
-        return self.get(
-            path,
-            None if page_token is None else {"pageToken": page_token},
-        ).json()
-
-    def list_path(self, path):
-        last_component = path.split("/")[-1]
-        page_token = None
-        while True:
-            page = self.get_page(path, page_token)
-            for item in page[last_component]:
-                yield item
-            if "nextPageToken" not in page:
-                break
-            page_token = page["nextPageToken"]
-
-    def backups(self):
-        return self.list_path("clients/wa/backups")
-
-    def backup_files(self, backup):
-        return self.list_path("{}/files".format(backup["name"]))
-
-    def fetch(self, file):
-        name = os.path.sep.join(file["name"].split("/")[3:])
-        md5Hash = b64decode(file["md5Hash"], validate=True)
-        if not have_file(name, int(file["sizeBytes"]), md5Hash):
-            file_path = output + name
-            if not os.path.isfile(file_path):
-                download_file(
-                    name,
-                    self.get(file["name"].replace("%", "%25").replace("+", "%2B"), {"alt": "media"}, stream=True)
-                )
-
-        return name, int(file["sizeBytes"]), md5Hash
-
-    def fetch_all(self, backup, cksums):
-        num_files = 0
-        total_size = 0
-        with ThreadPool(40) as pool:
-            downloads = pool.imap_unordered(
-                lambda file: self.fetch(file),
-                self.backup_files(backup)
-            )
-            for name, size, md5Hash in downloads:
-                num_files += 1
-                total_size += size
-                print(
-                    "\rProgress: {:7.2f}% - {:60}".format(
-                        100 * total_size / int(backup["sizeBytes"]),
-                        os.path.basename(name)[-60:]
-                    ),
-                    end="",
-                    flush=True,
-                )
-
-                cksums.write("{md5Hash} *{name}\n".format(
-                    name=name,
-                    md5Hash=md5Hash.hex(),
-                ))
-
-        print("\n{} files {}".format(num_files, human_size(total_size)))
-
-
-def download_partial(file):
+def getFile(file):
     """ Sync by category """
 
+    global total_size, num_files
     output = args.output
     if not output:
         output = os.getcwd()
@@ -309,6 +241,8 @@ def download_partial(file):
                 for chunk in response.iter_content(chunk_size=None):
                     dest.write(chunk)
             print("    [-] Downloaded: {}".format(file))
+            total_size = len(response.content)
+            num_files += 1
 
         else:
             print("    [-] Skipped: {}".format(file))
@@ -317,27 +251,7 @@ def download_partial(file):
         print("    [-] Not downloaded: {}".format(file))
 
 
-def uploadFileGoogleDrive(bearer, url):
-    """ Future Function not available """
-    try:
-        header = {'Authorization': 'Bearer ' + bearer, 'User-Agent': 'WhatsApp/2.19.244 Android/Device/Whapa'}
-        payload = {'uploadType': 'resumable', 'mode': 'backup', 'transaction_i': 'W5a'}
-
-        print("Inicia el request")
-        request = requests.get(url, headers=header, params=payload,  stream=True)
-        if request.status_code == 200:
-            print(request.content)
-        else:
-            print(request.url)
-
-    except Exception as e:
-        print(e)
-
-
-# MultiThreads
-
-
-def getMultipleFiles(drives, files):
+def getMultipleFiles(drives, files_dict):
     threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
                   "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
                   "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27", "Thread-28", "Thread-29", "Thread-30",
@@ -353,20 +267,17 @@ def getMultipleFiles(drives, files):
         threadID += 1
 
     n = 1
-    lenfiles = len(files)
+    lenfiles = len(files_dict)
     queueLock.acquire()
 
     output = args.output
     if not output:
         output = os.getcwd()
 
-    for entry in files:
+    for entry, size in files_dict.items():
         file = os.path.sep.join(entry.split("/")[3:])
         local_store = (output + file).replace("/", os.path.sep)
-        if os.path.isfile(local_store):
-            print("    [-] Number: {}/{}  => {} Skipped".format(n, lenfiles, local_store))
-        else:
-            workQueue.put({'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles})
+        workQueue.put({'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
         n += 1
 
     queueLock.release()
@@ -377,7 +288,6 @@ def getMultipleFiles(drives, files):
     exitFlag = 1
     for t in threads:
         t.join()
-    print("[i] Downloads finished")
 
 
 class myThread(threading.Thread):
@@ -397,7 +307,7 @@ def process_data(threadName, q):
         if not workQueue.empty():
             data = q.get()
             queueLock.release()
-            download_files_thread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'], threadName)
+            getMultipleFilesThread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'], data['size'], threadName)
             time.sleep(1)
 
         else:
@@ -405,27 +315,29 @@ def process_data(threadName, q):
             time.sleep(1)
 
 
-def download_files_thread(bearer, url, local, now, lenfiles, threadName):
+def getMultipleFilesThread(bearer, url, local, now, lenfiles, size, threadName):
     """ Sync by category """
 
-    response = requests.get(
-        "https://backup.googleapis.com/v1/{}?alt=media".format(url),
-        headers={"Authorization": "Bearer {}".format(bearer)},
-        stream=True
-    )
-    if response.status_code == 200:
-        if not os.path.isfile(local):
+    global total_size, num_files
+    if not os.path.isfile(local):
+        response = requests.get(
+            "https://backup.googleapis.com/v1/{}?alt=media".format(url),
+            headers={"Authorization": "Bearer {}".format(bearer)},
+            stream=True
+        )
+        if response.status_code == 200:
             os.makedirs(os.path.dirname(local), exist_ok=True)
             with open(local, "bw") as dest:
                 for chunk in response.iter_content(chunk_size=None):
                     dest.write(chunk)
-            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles,  threadName, local))
+            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles, threadName, local))
+            total_size += int(size)
+            num_files += 1
 
         else:
-            print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles,  threadName, local))
-
+            print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles, threadName, local))
     else:
-        print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles,  threadName, local))
+        print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles, threadName, local))
 
 
 # Initializing
@@ -445,7 +357,7 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
-    if not os.path.isfile('./cfg/settings.cfg'):
+    if not os.path.isfile(cfg_path):
         createSettingsFile()
 
     if len(sys.argv) == 0:
@@ -489,37 +401,19 @@ if __name__ == "__main__":
                         print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
 
         elif args.sync:
-            """
-            output = args.output
-            if not output:
-                output = os.getcwd()
-
-            with open(output + "md5sum.txt", "w", encoding="utf-8", buffering=1) as cksums:
-                for backup in backups:
-                    number_backup = backup["name"].split("/")[3]
-                    if (number_backup in phone) or (phone == ""):
-                        print("[+] Backup {} {}:".format(backup["name"], human_size(int(backup["sizeBytes"])),))
-                        wa_backup.fetch_all(backup, cksums)
-
-                    else:
-                        print("[i] Backup {} omitted".format(number_backup))
-            """
-            num_files = 0
-            total_size = 0
             for backup in backups:
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
-                        num_files += 1
-                        total_size += int(file["sizeBytes"])
-                        filter_file.append(file["name"])
+                        filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
-                    print("[i] Backup {} omitted".format(number_backup))
+                    print("\n[i] Backup {} omitted".format(number_backup))
 
         elif args.s_images:
             num_files = 0
@@ -627,4 +521,6 @@ if __name__ == "__main__":
             file = args.pull
             output = args.output
             print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
-            download_partial(file)
+            getFile(file)
+            print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+
