@@ -2,6 +2,16 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Jul 2021
+
+	[+] whapa-gui.py v1.52
+	[+] Whapa
+		[-] Fixed command line execution problem
+	[+] whagodri.py
+		[-] Fixed command line execution problem
+		[-] Show more information about downloads
+		
+
 Jun 2021
 
 	[+] whapa-gui.py v1.51
