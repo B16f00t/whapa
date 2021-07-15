@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 Jul 2021
 
+
+	[+] whapa-gui.py v1.53
+	[+] whagodri.py
+		[-] Fixed Linux problem
+
 	[+] whapa-gui.py v1.52
 	[+] Whapa
 		[-] Fixed command line execution problem
