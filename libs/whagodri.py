@@ -16,8 +16,6 @@ num_files = 0
 total_size = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
-cfg_path_abs = os.path.split(__file__)[0]
-cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + r"\cfg\settings.cfg"  # Get whapa config file
 
 
 class WaBackup:
@@ -340,6 +338,16 @@ def getMultipleFilesThread(bearer, url, local, now, lenfiles, size, threadName):
         print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles, threadName, local))
 
 
+def system_slash(string):
+    """ Change / or \ depend on the OS"""
+
+    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+        return string.replace("/", os.sep)
+
+    else:
+        return string.replace("\\", os.sep)
+
+
 # Initializing
 if __name__ == "__main__":
     banner()
@@ -357,6 +365,9 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
+    cfg_path_abs = os.path.split(__file__)[0]
+    cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + system_slash(r"\cfg\settings.cfg")  # Get whapa config file
+
     if not os.path.isfile(cfg_path):
         createSettingsFile()
 
