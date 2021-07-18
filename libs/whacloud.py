@@ -13,6 +13,10 @@ import time
 exitFlag = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
+abs_path_file = os.path.abspath(__file__)    # C:\Users\Desktop\whapa\libs\whagodri.py
+abs_path = os.path.split(abs_path_file)[0]   # C:\Users\Desktop\whapa\libs\
+split_path = abs_path.split(os.sep)[:-1]     # ['C:', 'Users', 'Desktop', 'whapa']
+whapa_path = os.path.sep.join(split_path)    # C:\Users\Desktop\whapa
 
 
 def banner():
@@ -38,11 +42,43 @@ def help():
     """)
 
 
-def create_settings_file():
+def system_slash(string):
+    """ Change / or \ depend on the OS"""
+
+    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+        return string.replace("/", "\\")
+
+    else:
+        return string.replace("\\", "/")
+
+
+def createSettingsFile():
     """ Function that creates the settings file """
-    with open('./cfg/settings.cfg'.replace("/", os.path.sep), 'w') as cfg:
-        cfg.write(
-            '[report]\ncompany =\nrecord =\nunit =\nexaminer =\nnotes =\n\n[google-auth]\ngmail = alias@gmail.com\npassw = yourpassword\ncelnumbr = BackupPhoneNunmber\n\n[icloud-auth]\nicloud  = alias@icloud.com\npassw = yourpassword')
+
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    with open(cfg_file, 'w') as cfg:
+        cfg.write(dedent("""
+            [report]
+            company =
+            record =
+            unit =
+            examiner =
+            notes =
+
+            [google-auth]
+            gmail = alias@gmail.com
+            # Optional. The account password or app password when using 2FA.
+            password  = 
+            # Optional. The result of "adb shell settings get secure android_id".
+            android_id = 0000000000000000
+            # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
+            # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
+            celnumbr = 
+
+            [icloud-auth] 
+            icloud  = alias@icloud.com
+            passw = yourpassword
+            """).lstrip())
 
 
 def getMultipleFiles(api, files):
@@ -158,13 +194,15 @@ def login():
 def getConfigs():
     global icloud, passw
     config = ConfigParser(interpolation=None)
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+
     try:
-        config.read('./cfg/settings.cfg'.replace("/", os.path.sep))
+        config.read(cfg_file)
         icloud = config.get('icloud-auth', 'icloud')
         passw = config.get('icloud-auth', 'passw')
 
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        quit('The "./cfg/settings.cfg" file is missing or corrupt!'.replace("/", os.path.sep))
+        quit('The "{}" file is missing or corrupt!'.format(cfg_file))
 
 
 # Initializing
@@ -181,11 +219,13 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     files = []
-    if os.path.isfile('./cfg/settings.cfg'.replace("/", os.path.sep)) is False:
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    if not os.path.isfile(cfg_file):
         create_settings_file()
 
     if len(sys.argv) == 0:
         help()
+
     else:
         getConfigs()
         api = login()

@@ -12,10 +12,12 @@ import threading
 import time
 
 exitFlag = 0
-num_files = 0
-total_size = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
+abs_path_file = os.path.abspath(__file__)    # C:\Users\Desktop\whapa\libs\whagodri.py
+abs_path = os.path.split(abs_path_file)[0]   # C:\Users\Desktop\whapa\libs\
+split_path = abs_path.split(os.sep)[:-1]     # ['C:', 'Users', 'Desktop', 'whapa']
+whapa_path = os.path.sep.join(split_path)    # C:\Users\Desktop\whapa
 
 
 class WaBackup:
@@ -94,10 +96,9 @@ def banner():
 def help():
     """ Function show help """
 
-    print("""    ** Author: Ivan Moreno a.k.a B16f00t
+    print("""\n    ** Author: Ivan Moreno a.k.a B16f00t
     ** Github: https://github.com/B16f00t
-    ** Fork from WhatsAppGDExtract by TripCode and forum.xda-developers.com
-    ** Fork from WhatsAppGDExtract by YuriCosta
+    ** Fork from WhatsAppGDExtract by TripCode and forum.xda-developers.com and YuriCosta
     Usage: python3 whagodri.py -h (for help)
     """)
 
@@ -105,7 +106,8 @@ def help():
 def createSettingsFile():
     """ Function that creates the settings file """
 
-    with open(cfg_path.replace("/", os.path.sep), 'w') as cfg:
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    with open(cfg_file, 'w') as cfg:
         cfg.write(dedent("""
             [report]
             company =
@@ -132,8 +134,10 @@ def createSettingsFile():
 
 def getConfigs():
     config = ConfigParser(interpolation=None)
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+
     try:
-        config.read(cfg_path.replace("/", os.path.sep))
+        config.read(cfg_file)
         gmail = config.get('google-auth', 'gmail')
         password = config.get('google-auth', 'password', fallback="")
         celnumbr = config.get('google-auth', 'celnumbr').lstrip('+0')
@@ -152,7 +156,7 @@ def getConfigs():
         }
 
     except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
-        quit('The "{}" file is missing or corrupt!'.replace("/", os.path.sep).format(cfg_path))
+        quit('The "{}" file is missing or corrupt!'.format(cfg_file))
 
 
 def human_size(size):
@@ -342,10 +346,10 @@ def system_slash(string):
     """ Change / or \ depend on the OS"""
 
     if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
-        return string.replace("/", os.sep)
+        return string.replace("/", "\\")
 
     else:
-        return string.replace("\\", os.sep)
+        return string.replace("\\", "/")
 
 
 # Initializing
@@ -365,13 +369,12 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files")
     args = parser.parse_args()
-    cfg_path_abs = os.path.split(__file__)[0]
-    cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + system_slash(r"\cfg\settings.cfg")  # Get whapa config file
 
-    if not os.path.isfile(cfg_path):
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    if not os.path.isfile(cfg_file):
         createSettingsFile()
 
-    if len(sys.argv) == 0:
+    if len(sys.argv) <= 1:
         help()
 
     else:
@@ -388,9 +391,9 @@ if __name__ == "__main__":
                 print("[e] Error {}".format(e))
 
         elif args.list:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 print("[i] Backup name: {}".format(backup["name"]))
                 for file in wa_backup.backup_files(backup):
                     num_files += 1
@@ -400,9 +403,9 @@ if __name__ == "__main__":
             print("[i] {} files {}".format(num_files, human_size(total_size)))
 
         elif args.list_whatsapp:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 print("[i] Backup name: {}".format(backup["name"]))
                 for file in wa_backup.backup_files(backup):
                     num_files += 1
@@ -413,6 +416,8 @@ if __name__ == "__main__":
 
         elif args.sync:
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
                     filter_file = {}
@@ -427,103 +432,91 @@ if __name__ == "__main__":
                     print("\n[i] Backup {} omitted".format(number_backup))
 
         elif args.s_images:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "jpg" in i:
-                            num_files += 1
-                            total_size += int(file["sizeBytes"])
-                            filter_file.append(file["name"])
+                            filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_videos:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
-                    print("[+] Backup name: {}".format(backup["name"]))
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
-
                         i = os.path.splitext(file["name"])[1]
                         if "mp4" in i:
-                            num_files += 1
-                            total_size += int(file["sizeBytes"])
-                            filter_file.append(file["name"])
+                            filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_audios:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
-                    print("[+] Backup name: {}".format(backup["name"]))
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if ("mp3" in i) or ("opus" in i):
-                            num_files += 1
-                            total_size += int(file["sizeBytes"])
-                            print("    [-] {}".format(file["name"]))
-                            filter_file.append(file["name"])
+                            filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_documents:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
-                    print("[i] Backup name: {}".format(backup["name"]))
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
+                        i = os.path.splitext(file["name"])[1]
                         if file["name"].split("/")[6] == "WhatsApp Documents":
-                            num_files += 1
-                            total_size += int(file["sizeBytes"])
-                            print("    [-] {}".format(file["name"]))
-                            filter_file.append(file["name"])
+                            filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
 
         elif args.s_databases:
-            num_files = 0
-            total_size = 0
             for backup in backups:
+                num_files = 0
+                total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = []
-                    print("[+] Backup name: {}".format(backup["name"]))
+                    filter_file = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
-                        if "crypt14" in i:
-                            num_files += 1
-                            total_size += int(file["sizeBytes"])
-                            print("    [-] {}".format(file["name"]))
-                            filter_file.append(file["name"])
+                        if "crypt" in i:
+                            filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -534,4 +527,3 @@ if __name__ == "__main__":
             print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
             getFile(file)
             print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
-

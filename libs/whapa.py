@@ -24,6 +24,10 @@ version = "1.52"
 names_dict = {}            # names wa.db
 color = {}                 # participants color
 current_color = "#5586e5"  # default participant color
+abs_path_file = os.path.abspath(__file__)    # C:\Users\Desktop\whapa\libs\whapa.py
+abs_path = os.path.split(abs_path_file)[0]   # C:\Users\Desktop\whapa\libs\
+split_path = abs_path.split(os.sep)[:-1]     # ['C:', 'Users', 'Desktop', 'whapa']
+whapa_path = os.path.sep.join(split_path)    # C:\Users\Desktop\whapa
 
 
 def banner():
