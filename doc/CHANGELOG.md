@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 Jul 2021
 
+	[+] whapa-gui.py v1.54
+		[-] Full compatibility with Linux and Windows (Gui and Commnad Line)
+	[+] whapa.py
+		[-] Enabled data carving for linux
+	[+] whagodri.py
+		[-] Fixed minor bugs
 
 	[+] whapa-gui.py v1.53
 	[+] whagodri.py
