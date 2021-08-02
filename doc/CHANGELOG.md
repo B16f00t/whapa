@@ -2,6 +2,11 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Agu 2021
+
+	[+] whapa-gui.py v1.55
+	[+] whapa.py
+		[-] Fixed bug with setting file
 Jul 2021
 
 	[+] whapa-gui.py v1.54
