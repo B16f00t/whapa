@@ -53,14 +53,17 @@ def report(obj, html, local):
     """ Function that makes the report """
 
     # Copia los estilos
-    os.makedirs(local + "cfg", exist_ok=True)
-    shutil.copy("./cfg/chat.css", local + "cfg/chat.css")
-    shutil.copy("./cfg/logo.png", local + "cfg/logo.png")
-    shutil.copy("./images/background.png", local + "cfg/background.png")
-    shutil.copy("./images/background-index.png", local + "cfg/background-index.png")
-    shutil.copy("./images/app_icon.png", local + "cfg/app_icon.png")
-    shutil.copy("./images/pdf_icon.png", local + "cfg/pdf_icon.png")
-    shutil.copy("./images/vcard_icon.png", local + "cfg/vcard_icon.png")
+    try:
+        os.makedirs(local + "cfg", exist_ok=True)
+        shutil.copy("./cfg/chat.css", local + "cfg/chat.css")
+        shutil.copy("./cfg/logo.png", local + "cfg/logo.png")
+        shutil.copy("./images/background.png", local + "cfg/background.png")
+        shutil.copy("./images/background-index.png", local + "cfg/background-index.png")
+        shutil.copy("./images/app_icon.png", local + "cfg/app_icon.png")
+        shutil.copy("./images/pdf_icon.png", local + "cfg/pdf_icon.png")
+        shutil.copy("./images/vcard_icon.png", local + "cfg/vcard_icon.png")
+    except:
+        pass
 
     if report_var == 'EN':
         rep_ini = """<!DOCTYPE html>
@@ -252,7 +255,7 @@ def get_configs():
 
 
 def startsWithDateTimeiOS(s):
-    pattern = "^\[([0-9]*/[0-9]*/[0-9]*\W*[0-9]*.[0-9]*.[0-9]*)\]"  # [25/8/20, 19:52:23]
+    pattern = "^\[([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*)\]"  # [25/8/20, 19:52:23]
     result = re.match(pattern, s)
     if result:
         return True
@@ -260,7 +263,8 @@ def startsWithDateTimeiOS(s):
 
 
 def startsWithDateTimeAndroid(s):
-    pattern = "^([0-9]*/[0-9]*/[0-9]*\W*[0-9]*.[0-9]*.[0-9]*)-"  # 24/5/18 14:25 -
+    # pattern = "^([0-9]*/[0-9]*/[0-9]*\W*[0-9]*.[0-9]*.[0-9]*)-"  # 24/5/18 14:25 -
+    pattern = "^([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*) -" # 24.07.21, 10:15 -
     result = re.match(pattern, s)
     if result:
         return True
@@ -305,11 +309,11 @@ def getDataPointiOS(line):
 def getDataPointAndroid(line):
     # Android - line = 23/5/18 15:24 - Sergio F: No se tío no le preguntao al final
     splitLine = line.split(' - ')  # splitLine = ['23/5/18 15:24', 'Sergio F: No se tío no le preguntao al final']
-    dateTime = splitLine[0]  # dateTime = '23/5/18 15:24'
+    dateTime = splitLine[0]  # dateTime = '23/5/18 15:24'                       / 24.07.21, 10:15
     try:
-        date, time = dateTime.split(' ')  # date = '23/5/18'; time = '15:24' # English mobile
-    except:
         date, time = dateTime.split(', ')  # date = '23/5/18'; time = '15:24' #  Unknow mobile
+    except:
+        date, time = dateTime.split(' ')  # date = '23/5/18'; time = '15:24' # English mobile
 
     message = ' '.join(splitLine[1:])  # message = 'Sergio F: No se tío no le preguntao al final'
     if startsWithAuthor(message):  # True
