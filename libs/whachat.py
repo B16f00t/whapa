@@ -19,10 +19,13 @@ arg_user = ""
 message = ""
 report_var = "None"
 report_html = ""
-version = "1.40"
+version = "1.55"
 names_dict = {}  # names wa.db
 color = {}  # participants color
-
+abs_path_file = os.path.abspath(__file__)    # C:\Users\Desktop\whapa\libs\whagodri.py
+abs_path = os.path.split(abs_path_file)[0]   # C:\Users\Desktop\whapa\libs\
+split_path = abs_path.split(os.sep)[:-1]     # ['C:', 'Users', 'Desktop', 'whapa']
+whapa_path = os.path.sep.join(split_path)    # C:\Users\Desktop\whapa
 
 def banner():
     """ Function Banner """
@@ -222,12 +225,23 @@ background-color: #cdcdcd;
         f.write(rep_ini + obj + rep_end)
 
 
+def system_slash(string):
+    """ Change / or \ depend on the OS"""
+
+    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+        return string.replace("/", "\\")
+
+    else:
+        return string.replace("\\", "/")
+
+
 def get_configs():
     """ Function that gets report config"""
     global company, record, unit, examiner, notes
     config_report = ConfigParser()
     try:
-        config_report.read('./cfg/settings.cfg')
+        cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+        config_report.read(cfg_file)
         company = config_report.get('report', 'company')
         record = config_report.get('report', 'record')
         unit = config_report.get('report', 'unit')
@@ -308,6 +322,8 @@ def getDataPointAndroid(line):
 
 
 def getDataFrame(conversationPath, operating_system):
+    """ Extrqact information from the log """
+
     try:
         parsedData = []
         with open(conversationPath, encoding="utf-8", errors='ignore') as fp:

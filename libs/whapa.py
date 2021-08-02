@@ -20,7 +20,7 @@ message = ""
 report_var = "None"
 report_html = ""
 report_group = ""
-version = "1.52"
+version = "1.55"
 names_dict = {}            # names wa.db
 color = {}                 # participants color
 current_color = "#5586e5"  # default participant color
@@ -1808,14 +1808,23 @@ def info(opt, local):
             print("{} {}".format(show, Fore.YELLOW + gets_name(i[0]) + Fore.RESET))
 
 
+def system_slash(string):
+    """ Change / or \ depend on the OS"""
+
+    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+        return string.replace("/", "\\")
+
+    else:
+        return string.replace("\\", "/")
+
+
 def get_configs():
     """ Function that gets report config"""
     global company, record, unit, examiner, notes
     config_report = ConfigParser()
     try:
-        cfg_path_abs = os.path.split(__file__)[0]
-        cfg_path = os.path.sep.join(cfg_path_abs.split(os.sep)[:-1]) + "\cfg\settings.cfg"  # Get whapa config file
-        config_report.read(cfg_path)
+        cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+        config_report.read(cfg_file)
         company = config_report.get('report', 'company')
         record = config_report.get('report', 'record')
         unit = config_report.get('report', 'unit')
@@ -2109,8 +2118,9 @@ if __name__ == "__main__":
                 print("Error:", e)
 
         elif args.info:
+
             if args.output:
-                local = args.output
+                local = r"{}".format(args.output)
             else:
                 local = os.getcwd() + "/"
 
