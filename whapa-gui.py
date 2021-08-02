@@ -14,7 +14,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.54'
+version = '1.55'
 system = ""
 abs_path_file = os.path.abspath(__file__)     # C:\Users\Desktop\whapa\whapa-gui.py
 whapa_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa
@@ -905,9 +905,9 @@ To export chats on an iOS phone, here are the steps:
             pass
 
         if self.whapa_out.get():
-            self.cmd += ' -o "{}"'.format(self.whapa_out.get())
+            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
         else:
-            self.cmd += ' -o "{}"'.format(os.getcwd())
+            self.cmd += ' -o "{}/"'.format(os.getcwd())
 
         if system == "Linux":
             exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
@@ -938,9 +938,9 @@ To export chats on an iOS phone, here are the steps:
             self.cmd += " -u {}".format(self.whapa_user.get()).strip("\n")
 
         if self.whapa_out.get():
-            self.cmd += ' -o "{}"'.format(self.whapa_out.get())
+            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
         else:
-            self.cmd += ' -o "{}"'.format(os.getcwd())
+            self.cmd += ' -o "{}/"'.format(os.getcwd())
 
         if system == "Linux":
             exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
@@ -963,9 +963,9 @@ To export chats on an iOS phone, here are the steps:
             pass
 
         if self.whapa_out.get():
-            self.cmd += ' "-o {}"'.format(self.whapa_out.get())
+            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
         else:
-            self.cmd += ' -o "{}"'.format(os.getcwd())
+            self.cmd += ' -o "{}/"'.format(os.getcwd())
 
         if system == "Linux":
             exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
@@ -997,14 +997,16 @@ To export chats on an iOS phone, here are the steps:
             pass
 
         if self.whapa_out.get():
-            self.cmd += ' "-o {}"'.format(self.whapa_out.get())
+            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
         else:
-            self.cmd += ' -o "{}"'.format(os.getcwd())
+            self.cmd += ' -o "{}/"'.format(os.getcwd())
 
         if system == "Linux":
             exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
         else:
             exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
+            print(exec)
+
         self.label_status.set(exec)
         os.system(exec)
 
@@ -1213,7 +1215,6 @@ To export chats on an iOS phone, here are the steps:
         else:
             self.whamerge_path.set((self.path + "\\").replace("/", "\\"))
 
-
     def search_file_whamerge(self):
         """Search a output file to merge"""
         self.path = filedialog.askdirectory()
@@ -1234,7 +1235,7 @@ To export chats on an iOS phone, here are the steps:
         os.system(exec)
 
     def search_file_whachat(self):
-        """Search a file """
+        """Search a file and load participants"""
         try:
             self.path = filedialog.askopenfilename(title="Select file", filetypes=(("txt files", "*.txt"),))
             if system == "Linux":
@@ -1260,7 +1261,6 @@ To export chats on an iOS phone, here are the steps:
         except Exception as e:
             self.label_status.set("Did not get the list of participants choose another operating system and load the file back")
             print("Could not load the list of participants, choose another operating system and load the file back")
-
 
     def on_entry_click(self, event):
         """function that gets called whenever entry is clicked"""
