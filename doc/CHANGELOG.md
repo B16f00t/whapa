@@ -6,7 +6,7 @@ Nov 2021
 
 	[+] whapa-gui.py v1.56
 	[+] whagodri.py
-		[-] Support Multiaccount
+		[-] Support Multiaccount. You can download accounts with more than two numbers.
 Agu 2021
 
 	[+] whapa-gui.py v1.55
