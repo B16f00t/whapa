@@ -2,6 +2,11 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+Nov 2021
+
+	[+] whapa-gui.py v1.56
+	[+] whagodri.py
+		[-] Support Multiaccount
 Agu 2021
 
 	[+] whapa-gui.py v1.55
