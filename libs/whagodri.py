@@ -254,6 +254,8 @@ def getFile(file):
 
 
 def getMultipleFiles(drives, files_dict):
+    global exitFlag
+    exitFlag = 0
     threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
                   "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
                   "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27", "Thread-28", "Thread-29", "Thread-30",
@@ -286,7 +288,6 @@ def getMultipleFiles(drives, files_dict):
     while not workQueue.empty():
         pass
 
-    global exitFlag
     exitFlag = 1
     for t in threads:
         t.join()
@@ -415,21 +416,25 @@ if __name__ == "__main__":
                         print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
 
         elif args.sync:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        filter_file[file["name"]] = file["sizeBytes"]
+            try:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                        getMultipleFiles(backup, filter_file)
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
 
-                else:
-                    print("\n[i] Backup {} omitted".format(number_backup))
+                    else:
+                        print("\n[i] Backup {} omitted. Write a correct phonenumber in the setting file".format(number_backup))
+
+            except Exception as e:
+                print("[e] Error {}".format(e))
 
         elif args.s_images:
             for backup in backups:
