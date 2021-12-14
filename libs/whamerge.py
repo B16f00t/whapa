@@ -119,7 +119,7 @@ def merge(db_path, db_name):
                 cursor_write.execute("SELECT _id FROM messages;")
                 ids_message_write = cursor_write.fetchall()
                 
-                cursor_write.execute("SELECT _id FROM chat_list;")
+                cursor_write.execute("SELECT _id FROM chat_view;")
                 ids_chatlist_write = cursor_write.fetchall()
 
                 cursor_write.execute("SELECT _id FROM messages_quotes;")
@@ -136,7 +136,7 @@ def merge(db_path, db_name):
                 cursor_read.execute("SELECT _id FROM messages;")
                 ids_message_read = cursor_read.fetchall()
                 
-                cursor_read.execute("SELECT _id FROM chat_list;")
+                cursor_read.execute("SELECT _id FROM chat_view;")
                 ids_chatlist_read = cursor_read.fetchall()
 
                 cursor_read.execute("SELECT _id FROM messages_quotes;")
@@ -182,7 +182,7 @@ def merge(db_path, db_name):
 
                 num_ids_chatlist_cols = len(ids_chatlist_insert)
                 str_id_chatlist_cols = ",".join(ids_chatlist_insert[:num_ids_chatlist_cols])
-                elements_chatlist_cursor = cursor_read.execute("SELECT " + str_chatlist_cols + " FROM chat_list WHERE _id IN (" + str_id_chatlist_cols + ");")
+                elements_chatlist_cursor = cursor_read.execute("SELECT " + str_chatlist_cols + " FROM chat_view WHERE _id IN (" + str_id_chatlist_cols + ");")
                 elements_chatlist_insert = elements_chatlist_cursor.fetchall()
 
                 num_ids_quote_cols = len(ids_quote_insert)
@@ -203,7 +203,7 @@ def merge(db_path, db_name):
                         output.commit()
 
                     for msg in elements_chatlist_insert:
-                        insert_query = "INSERT INTO chat_list(" + str_chatlist_cols + ") VALUES (" + ','.join('?' for x in range(0, len(chatlist_columns))) + ")"
+                        insert_query = "INSERT INTO chat_view(" + str_chatlist_cols + ") VALUES (" + ','.join('?' for x in range(0, len(chatlist_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()
 
@@ -287,7 +287,7 @@ def merge_win(db_path, db_name):
                 cursor_write.execute("SELECT _id FROM messages;")
                 ids_message_write = cursor_write.fetchall()
 
-                cursor_write.execute("SELECT _id FROM chat_list;")
+                cursor_write.execute("SELECT _id FROM chat_view;")
                 ids_chatlist_write = cursor_write.fetchall()
 
                 cursor_write.execute("SELECT _id FROM messages_quotes;")
@@ -306,7 +306,7 @@ def merge_win(db_path, db_name):
                 cursor_read.execute("SELECT _id FROM messages;")
                 ids_message_read = cursor_read.fetchall()
 
-                cursor_read.execute("SELECT _id FROM chat_list;")
+                cursor_read.execute("SELECT _id FROM chat_view;")
                 ids_chatlist_read = cursor_read.fetchall()
 
                 cursor_read.execute("SELECT _id FROM messages_quotes;")
@@ -356,7 +356,7 @@ def merge_win(db_path, db_name):
                 num_ids_chatlist_cols = len(ids_chatlist_insert)
                 str_id_chatlist_cols = ",".join(ids_chatlist_insert[:num_ids_chatlist_cols])
                 elements_chatlist_cursor = cursor_read.execute(
-                    "SELECT " + str_chatlist_cols + " FROM chat_list WHERE _id IN (" + str_id_chatlist_cols + ");")
+                    "SELECT " + str_chatlist_cols + " FROM chat_view WHERE _id IN (" + str_id_chatlist_cols + ");")
                 elements_chatlist_insert = elements_chatlist_cursor.fetchall()
 
                 num_ids_quote_cols = len(ids_quote_insert)
@@ -380,7 +380,7 @@ def merge_win(db_path, db_name):
                         output.commit()
 
                     for msg in elements_chatlist_insert:
-                        insert_query = "INSERT INTO chat_list(" + str_chatlist_cols + ") VALUES (" + ','.join(
+                        insert_query = "INSERT INTO chat_view(" + str_chatlist_cols + ") VALUES (" + ','.join(
                             '?' for x in range(0, len(chatlist_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()

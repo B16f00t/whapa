@@ -1799,7 +1799,7 @@ def info(opt, local):
     elif opt == '3':  # Chat list
         print(Fore.RED + "Actives chat list" + Fore.RESET)
 
-        sql_string_consult = "SELECT key_remote_jid FROM chat_list ORDER BY sort_timestamp DESC"
+        sql_string_consult = "SELECT raw_string_jid FROM chat_view ORDER BY sort_timestamp DESC"
         sql_consult_chat = cursor.execute(sql_string_consult)
         for i in sql_consult_chat:
             show = i[0]
@@ -2032,7 +2032,7 @@ if __name__ == "__main__":
 
                 elif args.all:
                     get_configs()
-                    sql_string_consult = "SELECT key_remote_jid FROM chat_list ORDER BY sort_timestamp DESC"
+                    sql_string_consult = "SELECT raw_string_jid FROM chat_view ORDER BY sort_timestamp DESC"
                     sql_consult_chat = cursor.execute(sql_string_consult)
                     chats_live = []
                     for i in sql_consult_chat:
