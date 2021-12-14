@@ -14,7 +14,7 @@ from tkinter import filedialog
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.55'
+version = '1.57'
 system = ""
 abs_path_file = os.path.abspath(__file__)     # C:\Users\Desktop\whapa\whapa-gui.py
 whapa_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa
