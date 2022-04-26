@@ -64,8 +64,13 @@ if you use Windows system:
 	or 
 	click on whapa-gui.bat
 
-if you use macOS system (Thanks to FetchFast):
-* Install a later version of TK
+if you use macOS system (2 install options):
+1) Install (Thanks to XuluWarrior):
+		
+		brew install python-tk
+
+
+2) Install a later version of TK (Thanks to FetchFast):
 		
 		brew install tcl-tk
     
