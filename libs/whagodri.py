@@ -329,7 +329,7 @@ def get_multiple_files_with_out_threads(files_dict: dict):
         file_name = os.path.sep.join(file_url.split("/")[3:])
         local_file_path = (output_folder + file_name).replace("/", os.path.sep)
 
-        if os.path.isfile(local_file_path):
+        if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size:
 
             print("    [-] Number: {}/{} - {} : Already Exists".format(file_index, total_files, local_file_path))
 
