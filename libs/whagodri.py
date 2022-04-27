@@ -312,7 +312,7 @@ def getMultipleFiles(drives, files_dict):
         t.join()
 
 
-def get_multiple_files_with_out_threads(files_dict):
+def get_multiple_files_with_out_threads(files_dict: dict):
     file_index: int = 1
     total_files: int = len(files_dict)
 
@@ -350,7 +350,7 @@ def get_multiple_files_with_out_threads(files_dict):
                         destination.write(chunk)
                 print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files, local_file_path))
 
-                total_size += file_size
+                total_size += int(file_size)
                 num_files += 1
 
             else:
@@ -388,7 +388,7 @@ def process_data(threadName, q):
             time.sleep(1)
 
 
-def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str):
+def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: str, thread_name: str):
     """ Sync by category """
 
     global total_size, num_files
@@ -406,7 +406,7 @@ def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_file
                 for chunk in response.iter_content(chunk_size=None):
                     destination.write(chunk)
             print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
-            total_size += size
+            total_size += int(size)
             num_files += 1
 
         else:
@@ -495,7 +495,7 @@ if __name__ == "__main__":
                     total_size = 0
                     number_backup = backup["name"].split("/")[3]
                     if (number_backup in phone) or (phone == ""):
-                        filter_file = {}
+                        filter_file: dict = {}
                         for file in wa_backup.backup_files(backup):
                             i = os.path.splitext(file["name"])[1]
                             filter_file[file["name"]] = file["sizeBytes"]
@@ -521,7 +521,7 @@ if __name__ == "__main__":
                 total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
+                    filter_file: dict = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "jpg" in i:
@@ -544,7 +544,7 @@ if __name__ == "__main__":
                 total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
+                    filter_file: dict = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "mp4" in i:
@@ -567,7 +567,7 @@ if __name__ == "__main__":
                 total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
+                    filter_file: dict = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if ("mp3" in i) or ("opus" in i):
@@ -590,7 +590,7 @@ if __name__ == "__main__":
                 total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
+                    filter_file: dict = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if file["name"].split("/")[6] == "WhatsApp Documents":
@@ -613,7 +613,7 @@ if __name__ == "__main__":
                 total_size = 0
                 number_backup = backup["name"].split("/")[3]
                 if (number_backup in phone) or (phone == ""):
-                    filter_file = {}
+                    filter_file: dict = {}
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "crypt" in i:
