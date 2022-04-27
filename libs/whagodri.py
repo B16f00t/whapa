@@ -350,7 +350,7 @@ def get_multiple_files_with_out_threads(files_dict: dict):
                         destination.write(chunk)
                 print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files, local_file_path))
 
-                total_size += int(file_size)
+                total_size += file_size
                 num_files += 1
 
             else:
@@ -388,7 +388,7 @@ def process_data(threadName, q):
             time.sleep(1)
 
 
-def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: str, thread_name: str):
+def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str):
     """ Sync by category """
 
     global total_size, num_files
@@ -406,7 +406,7 @@ def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_file
                 for chunk in response.iter_content(chunk_size=None):
                     destination.write(chunk)
             print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
-            total_size += int(size)
+            total_size += size
             num_files += 1
 
         else:
@@ -498,7 +498,7 @@ if __name__ == "__main__":
                         filter_file: dict = {}
                         for file in wa_backup.backup_files(backup):
                             i = os.path.splitext(file["name"])[1]
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file)
@@ -525,7 +525,7 @@ if __name__ == "__main__":
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "jpg" in i:
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
                         get_multiple_files_with_out_threads(filter_file)
@@ -548,7 +548,7 @@ if __name__ == "__main__":
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "mp4" in i:
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
                         get_multiple_files_with_out_threads(filter_file)
@@ -571,7 +571,7 @@ if __name__ == "__main__":
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if ("mp3" in i) or ("opus" in i):
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
                         get_multiple_files_with_out_threads(filter_file)
@@ -594,7 +594,7 @@ if __name__ == "__main__":
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if file["name"].split("/")[6] == "WhatsApp Documents":
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
                         get_multiple_files_with_out_threads(filter_file)
@@ -617,7 +617,7 @@ if __name__ == "__main__":
                     for file in wa_backup.backup_files(backup):
                         i = os.path.splitext(file["name"])[1]
                         if "crypt" in i:
-                            filter_file[file["name"]] = file["sizeBytes"]
+                            filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
                         get_multiple_files_with_out_threads(filter_file)
