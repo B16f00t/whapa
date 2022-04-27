@@ -1,15 +1,19 @@
-from configparser import ConfigParser
-from getpass import getpass
-from textwrap import dedent
+import io
 import json
 import os
 import requests
 import sys
 import argparse
 import gpsoauth
-import queue as queue
+import queue
 import threading
 import time
+
+from configparser import ConfigParser
+from getpass import getpass
+from textwrap import dedent
+
+from requests import Response
 
 exitFlag = 0
 queueLock = threading.Lock()
@@ -318,29 +322,35 @@ def process_data(threadName, q):
             time.sleep(1)
 
 
-def getMultipleFilesThread(bearer, url, local, now, lenfiles, size, threadName):
+total_size: int
+num_files: int
+
+
+def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str):
     """ Sync by category """
 
     global total_size, num_files
     if not os.path.isfile(local):
-        response = requests.get(
+        response: Response = requests.get(
             "https://backup.googleapis.com/v1/{}?alt=media".format(url),
             headers={"Authorization": "Bearer {}".format(bearer)},
             stream=True
         )
         if response.status_code == 200:
             os.makedirs(os.path.dirname(local), exist_ok=True)
-            with open(local, "bw") as dest:
+            destination: io.BufferedWriter
+            with open(local, "bw") as destination:
+                chunk: bytes
                 for chunk in response.iter_content(chunk_size=None):
-                    dest.write(chunk)
-            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, lenfiles, threadName, local))
-            total_size += int(size)
+                    destination.write(chunk)
+            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
+            total_size += size
             num_files += 1
 
         else:
-            print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, lenfiles, threadName, local))
+            print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, len_files, thread_name, local))
     else:
-        print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, lenfiles, threadName, local))
+        print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, len_files, thread_name, local))
 
 
 def system_slash(string):
