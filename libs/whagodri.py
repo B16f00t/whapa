@@ -18,10 +18,10 @@ from requests import Response
 exitFlag = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
-abs_path_file = os.path.abspath(__file__)    # C:\Users\Desktop\whapa\libs\whagodri.py
-abs_path = os.path.split(abs_path_file)[0]   # C:\Users\Desktop\whapa\libs\
-split_path = abs_path.split(os.sep)[:-1]     # ['C:', 'Users', 'Desktop', 'whapa']
-whapa_path = os.path.sep.join(split_path)    # C:\Users\Desktop\whapa
+abs_path_file = os.path.abspath(__file__)  # C:\Users\Desktop\whapa\libs\whagodri.py
+abs_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa\libs\
+split_path = abs_path.split(os.sep)[:-1]  # ['C:', 'Users', 'Desktop', 'whapa']
+whapa_path = os.path.sep.join(split_path)  # C:\Users\Desktop\whapa
 
 
 class WaBackup:
@@ -64,7 +64,7 @@ class WaBackup:
         return response
 
     def get_page(self, path, page_token=None):
-        return self.get(path, None if page_token is None else {"pageToken": page_token},).json()
+        return self.get(path, None if page_token is None else {"pageToken": page_token}, ).json()
 
     def list_path(self, path):
         last_component = path.split("/")[-1]
@@ -172,7 +172,6 @@ def human_size(size):
 
 
 def backup_info(backup):
-
     print("[i] Backup name     : {}".format(backup["name"]))
     print("[-] Whatsapp version: {}".format(json.loads(backup["metadata"])["versionOfAppWhenBackup"]))
     try:
@@ -190,10 +189,18 @@ def backup_info(backup):
     print("    [-] Num Of Photos            : {}".format(json.loads(backup["metadata"])["numOfPhotos"]))
     print("    [-] Num Of Media Files       : {}".format(json.loads(backup["metadata"])["numOfMediaFiles"]))
     print("    [-] Num Of Messages          : {}".format(json.loads(backup["metadata"])["numOfMessages"]))
-    print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"])["videoSize"], human_size(int(json.loads(backup["metadata"])["videoSize"]))))
-    print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"])["backupSize"], human_size(int(json.loads(backup["metadata"])["backupSize"]))))
-    print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"])["mediaSize"], human_size(int(json.loads(backup["metadata"])["mediaSize"]))))
-    print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"])["chatdbSize"], human_size(int(json.loads(backup["metadata"])["chatdbSize"]))))
+    print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"])["videoSize"],
+                                                                  human_size(int(
+                                                                      json.loads(backup["metadata"])["videoSize"]))))
+    print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"])["backupSize"],
+                                                                  human_size(int(
+                                                                      json.loads(backup["metadata"])["backupSize"]))))
+    print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"])["mediaSize"],
+                                                                  human_size(int(
+                                                                      json.loads(backup["metadata"])["mediaSize"]))))
+    print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"])["chatdbSize"],
+                                                                  human_size(int(
+                                                                      json.loads(backup["metadata"])["chatdbSize"]))))
 
 
 def error(token):
@@ -260,10 +267,14 @@ def getFile(file):
 def getMultipleFiles(drives, files_dict):
     global exitFlag
     exitFlag = 0
-    threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07", "Thread-08", "Thread-09", "Thread-10",
-                  "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17", "Thread-18", "Thread-19", "Thread-20",
-                  "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27", "Thread-28", "Thread-29", "Thread-30",
-                  "Thread-31", "Thread-32", "Thread-33", "Thread-34", "Thread-35", "Thread-36", "Thread-37", "Thread-38", "Thread-39", "Thread-40"]
+    threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07",
+                  "Thread-08", "Thread-09", "Thread-10",
+                  "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17",
+                  "Thread-18", "Thread-19", "Thread-20",
+                  "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27",
+                  "Thread-28", "Thread-29", "Thread-30",
+                  "Thread-31", "Thread-32", "Thread-33", "Thread-34", "Thread-35", "Thread-36", "Thread-37",
+                  "Thread-38", "Thread-39", "Thread-40"]
     threads = []
     threadID = 1
     print("[i] Generating threads...")
@@ -285,7 +296,8 @@ def getMultipleFiles(drives, files_dict):
     for entry, size in files_dict.items():
         file = os.path.sep.join(entry.split("/")[3:])
         local_store = (output + file).replace("/", os.path.sep)
-        workQueue.put({'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
+        workQueue.put(
+            {'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
         n += 1
 
     queueLock.release()
@@ -314,7 +326,8 @@ def process_data(threadName, q):
         if not workQueue.empty():
             data = q.get()
             queueLock.release()
-            getMultipleFilesThread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'], data['size'], threadName)
+            getMultipleFilesThread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'],
+                                   data['size'], threadName)
             time.sleep(1)
 
         else:
@@ -438,10 +451,12 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                         getMultipleFiles(backup, filter_file)
-                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
 
                     else:
-                        print("\n[i] Backup {} omitted. Write a correct phonenumber in the setting file".format(number_backup))
+                        print("\n[i] Backup {} omitted. Write a correct phonenumber in the setting file".format(
+                            number_backup))
 
             except Exception as e:
                 print("[e] Error {}".format(e))
@@ -459,7 +474,8 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                     human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -477,7 +493,8 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                     human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -495,7 +512,8 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                     human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -513,7 +531,8 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                     human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -531,7 +550,8 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = file["sizeBytes"]
 
                     getMultipleFiles(backup, filter_file)
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                     human_size(total_size)))
 
                 else:
                     print("[i] Backup {} omitted".format(number_backup))
@@ -541,4 +561,5 @@ if __name__ == "__main__":
             output = args.output
             print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
             getFile(file)
-            print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size, human_size(total_size)))
+            print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                             human_size(total_size)))
