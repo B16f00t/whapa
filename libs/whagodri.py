@@ -15,6 +15,9 @@ from textwrap import dedent
 
 from requests import Response
 
+total_size: int
+num_files: int
+
 exitFlag = 0
 queueLock = threading.Lock()
 workQueue = queue.Queue(9999999)
@@ -309,6 +312,56 @@ def getMultipleFiles(drives, files_dict):
         t.join()
 
 
+def get_multiple_files_with_out_threads(files_dict):
+    file_index: int = 1
+    total_files: int = len(files_dict)
+
+    output_folder: str = args.output
+    if not output_folder:
+        output_folder = os.getcwd()
+
+    global total_size, num_files
+    total_size = 0
+    num_files = 0
+
+    for file_url, file_size in files_dict.items():
+
+        file_name = os.path.sep.join(file_url.split("/")[3:])
+        local_file_path = (output_folder + file_name).replace("/", os.path.sep)
+
+        if os.path.isfile(local_file_path):
+
+            print("    [-] Number: {}/{} - {} : Already Exists".format(file_index, total_files, local_file_path))
+
+        else:
+
+            response: Response = requests.get(
+                "https://backup.googleapis.com/v1/{}?alt=media".format(file_url),
+                headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
+                stream=True
+            )
+            if response.status_code == 200:
+
+                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                destination: io.BufferedWriter
+                with open(local_file_path, "bw") as destination:
+                    chunk: bytes
+                    for chunk in response.iter_content(chunk_size=None):
+                        destination.write(chunk)
+                print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files, local_file_path))
+
+                total_size += file_size
+                num_files += 1
+
+            else:
+                print("    [-] Number: {}/{} - {} : Download Failure, Error - {} : {}".format(file_index, total_files,
+                                                                                              local_file_path,
+                                                                                              response.status_code,
+                                                                                              response.reason))
+
+        file_index += 1
+
+
 class myThread(threading.Thread):
     def __init__(self, threadID, name, q):
         threading.Thread.__init__(self)
@@ -333,10 +386,6 @@ def process_data(threadName, q):
         else:
             queueLock.release()
             time.sleep(1)
-
-
-total_size: int
-num_files: int
 
 
 def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str):
@@ -391,7 +440,8 @@ if __name__ == "__main__":
     user_parser.add_argument("-sa", "--s_audios", help="Sync Audios files locally", action="store_true")
     user_parser.add_argument("-sx", "--s_documents", help="Sync Documents files locally", action="store_true")
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
-    parser.add_argument("-o", "--output", help="Output path to save files")
+    parser.add_argument("-o", "--output", help="Output path to save files", type=str)
+    parser.add_argument("-np", "--no_parallel", help="No parallel downloads", action="store_true")
     args = parser.parse_args()
 
     cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
@@ -450,7 +500,11 @@ if __name__ == "__main__":
                             i = os.path.splitext(file["name"])[1]
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                        getMultipleFiles(backup, filter_file)
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file)
+                        else:
+                            getMultipleFiles(backup, filter_file)
+
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
 
@@ -473,7 +527,11 @@ if __name__ == "__main__":
                         if "jpg" in i:
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
+                    if args.no_parallel:
+                        get_multiple_files_with_out_threads(filter_file)
+                    else:
+                        getMultipleFiles(backup, filter_file)
+
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
 
@@ -492,7 +550,11 @@ if __name__ == "__main__":
                         if "mp4" in i:
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
+                    if args.no_parallel:
+                        get_multiple_files_with_out_threads(filter_file)
+                    else:
+                        getMultipleFiles(backup, filter_file)
+
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
 
@@ -511,7 +573,11 @@ if __name__ == "__main__":
                         if ("mp3" in i) or ("opus" in i):
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
+                    if args.no_parallel:
+                        get_multiple_files_with_out_threads(filter_file)
+                    else:
+                        getMultipleFiles(backup, filter_file)
+
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
 
@@ -530,7 +596,11 @@ if __name__ == "__main__":
                         if file["name"].split("/")[6] == "WhatsApp Documents":
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
+                    if args.no_parallel:
+                        get_multiple_files_with_out_threads(filter_file)
+                    else:
+                        getMultipleFiles(backup, filter_file)
+
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
 
@@ -549,7 +619,11 @@ if __name__ == "__main__":
                         if "crypt" in i:
                             filter_file[file["name"]] = file["sizeBytes"]
 
-                    getMultipleFiles(backup, filter_file)
+                    if args.no_parallel:
+                        get_multiple_files_with_out_threads(filter_file)
+                    else:
+                        getMultipleFiles(backup, filter_file)
+
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
 
