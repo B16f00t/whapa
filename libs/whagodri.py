@@ -509,7 +509,7 @@ if __name__ == "__main__":
                                                                                          human_size(total_size)))
 
                     else:
-                        print("\n[i] Backup {} omitted. Write a correct phonenumber in the setting file".format(
+                        print("\n[i] Backup {} omitted. Write a correct phone number in the setting file".format(
                             number_backup))
 
             except Exception as e:
