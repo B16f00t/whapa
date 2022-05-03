@@ -235,39 +235,42 @@ def error(token):
     quit()
 
 
-def getFile(file):
-    """ Sync by category """
-
+def get_file(passed_file: str, is_dry_run: bool):
     global total_size, num_files
-    output = args.output
-    if not output:
-        output = os.getcwd()
+    output_folder = args.output
+    if not output_folder:
+        output_folder = os.getcwd()
 
-    file_short = os.path.sep.join(file.split("/")[3:])
-    response = requests.get(
-        "https://backup.googleapis.com/v1/{}?alt=media".format(file),
-        headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
-        stream=True
-    )
-    if response.status_code == 200:
-        file = output + file_short
-        if not os.path.isfile(file):
-            os.makedirs(os.path.dirname(file), exist_ok=True)
-            with open(file, "bw") as dest:
-                for chunk in response.iter_content(chunk_size=None):
-                    dest.write(chunk)
-            print("    [-] Downloaded: {}".format(file))
-            total_size = len(response.content)
-            num_files += 1
+    file_short = os.path.sep.join(passed_file.split("/")[3:])
+    if is_dry_run:
 
-        else:
-            print("    [-] Skipped: {}".format(file))
+        print("    [-] Skipped (Dry Run): {}".format(passed_file))
 
     else:
-        print("    [-] Not downloaded: {}".format(file))
+        response = requests.get(
+            "https://backup.googleapis.com/v1/{}?alt=media".format(passed_file),
+            headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
+            stream=True
+        )
+        if response.status_code == 200:
+            passed_file = output_folder + file_short
+            if not os.path.isfile(passed_file):
+                os.makedirs(os.path.dirname(passed_file), exist_ok=True)
+                with open(passed_file, "bw") as destination:
+                    for chunk in response.iter_content(chunk_size=None):
+                        destination.write(chunk)
+                print("    [-] Downloaded: {}".format(passed_file))
+                total_size = len(response.content)
+                num_files += 1
+
+            else:
+                print("    [-] Skipped: {}".format(passed_file))
+
+        else:
+            print("    [-] Not downloaded: {}".format(passed_file))
 
 
-def getMultipleFiles(drives, files_dict):
+def get_multiple_files(drives, files_dict: dict, is_dry_run: bool):
     global exitFlag
     exitFlag = 0
     threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07",
@@ -283,7 +286,7 @@ def getMultipleFiles(drives, files_dict):
     print("[i] Generating threads...")
     print("[+] Backup name : {}".format(drives["name"]))
     for tName in threadList:
-        thread = myThread(threadID, tName, workQueue)
+        thread = MyThread(threadID, tName, workQueue, is_dry_run=is_dry_run)
         thread.start()
         threads.append(thread)
         threadID += 1
@@ -292,13 +295,13 @@ def getMultipleFiles(drives, files_dict):
     lenfiles = len(files_dict)
     queueLock.acquire()
 
-    output = args.output
-    if not output:
-        output = os.getcwd()
+    output_folder = args.output
+    if not output_folder:
+        output_folder = os.getcwd()
 
     for entry, size in files_dict.items():
-        file = os.path.sep.join(entry.split("/")[3:])
-        local_store = (output + file).replace("/", os.path.sep)
+        file_name = os.path.sep.join(entry.split("/")[3:])
+        local_store = (output_folder + file_name).replace("/", os.path.sep)
         workQueue.put(
             {'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
         n += 1
@@ -312,7 +315,7 @@ def getMultipleFiles(drives, files_dict):
         t.join()
 
 
-def get_multiple_files_with_out_threads(files_dict: dict):
+def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
     file_index: int = 1
     total_files: int = len(files_dict)
 
@@ -335,52 +338,60 @@ def get_multiple_files_with_out_threads(files_dict: dict):
 
         else:
 
-            response: Response = requests.get(
-                "https://backup.googleapis.com/v1/{}?alt=media".format(file_url),
-                headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
-                stream=True
-            )
-            if response.status_code == 200:
+            if is_dry_run:
 
-                os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
-                destination: io.BufferedWriter
-                with open(local_file_path, "bw") as destination:
-                    chunk: bytes
-                    for chunk in response.iter_content(chunk_size=None):
-                        destination.write(chunk)
-                print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files, local_file_path))
-
-                total_size += file_size
-                num_files += 1
+                print("    [-] Skipped (Dry Run): {}".format(local_file_path))
 
             else:
-                print("    [-] Number: {}/{} - {} : Download Failure, Error - {} : {}".format(file_index, total_files,
-                                                                                              local_file_path,
-                                                                                              response.status_code,
-                                                                                              response.reason))
+                response: Response = requests.get(
+                    "https://backup.googleapis.com/v1/{}?alt=media".format(file_url),
+                    headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
+                    stream=True
+                )
+                if response.status_code == 200:
+
+                    os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                    destination: io.BufferedWriter
+                    with open(local_file_path, "bw") as destination:
+                        chunk: bytes
+                        for chunk in response.iter_content(chunk_size=None):
+                            destination.write(chunk)
+                    print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files,
+                                                                                 local_file_path))
+
+                    total_size += file_size
+                    num_files += 1
+
+                else:
+                    print(
+                        "    [-] Number: {}/{} - {} : Download Failure, Error - {} : {}".format(file_index, total_files,
+                                                                                                local_file_path,
+                                                                                                response.status_code,
+                                                                                                response.reason))
 
         file_index += 1
 
 
-class myThread(threading.Thread):
-    def __init__(self, threadID, name, q):
+class MyThread(threading.Thread):
+    def __init__(self, thread_id, name, q, is_dry_run: bool):
         threading.Thread.__init__(self)
-        self.threadID = threadID
+        self.threadID = thread_id
         self.name = name
         self.q = q
+        self.is_dry_run = is_dry_run
 
     def run(self):
-        process_data(self.name, self.q)
+        process_data(self.name, self.q, self.is_dry_run)
 
 
-def process_data(threadName, q):
+def process_data(thread_name: str, q, is_dry_run: bool):
     while not exitFlag:
         queueLock.acquire()
         if not workQueue.empty():
             data = q.get()
             queueLock.release()
-            getMultipleFilesThread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'],
-                                   data['size'], threadName)
+            get_multiple_files_thread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'],
+                                      data['size'], thread_name, is_dry_run=is_dry_run)
             time.sleep(1)
 
         else:
@@ -388,29 +399,35 @@ def process_data(threadName, q):
             time.sleep(1)
 
 
-def getMultipleFilesThread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str):
-    """ Sync by category """
-
+def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str,
+                              is_dry_run: bool):
     global total_size, num_files
     if not os.path.isfile(local):
-        response: Response = requests.get(
-            "https://backup.googleapis.com/v1/{}?alt=media".format(url),
-            headers={"Authorization": "Bearer {}".format(bearer)},
-            stream=True
-        )
-        if response.status_code == 200:
-            os.makedirs(os.path.dirname(local), exist_ok=True)
-            destination: io.BufferedWriter
-            with open(local, "bw") as destination:
-                chunk: bytes
-                for chunk in response.iter_content(chunk_size=None):
-                    destination.write(chunk)
-            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
-            total_size += size
-            num_files += 1
+
+        if is_dry_run:
+
+            print("    [-] Skipped (Dry Run): {}".format(local))
 
         else:
-            print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, len_files, thread_name, local))
+            response: Response = requests.get(
+                "https://backup.googleapis.com/v1/{}?alt=media".format(url),
+                headers={"Authorization": "Bearer {}".format(bearer)},
+                stream=True
+            )
+            if response.status_code == 200:
+
+                os.makedirs(os.path.dirname(local), exist_ok=True)
+                destination: io.BufferedWriter
+                with open(local, "bw") as destination:
+                    chunk: bytes
+                    for chunk in response.iter_content(chunk_size=None):
+                        destination.write(chunk)
+                print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
+                total_size += size
+                num_files += 1
+
+            else:
+                print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, len_files, thread_name, local))
     else:
         print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, len_files, thread_name, local))
 
@@ -442,6 +459,7 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files", type=str)
     parser.add_argument("-np", "--no_parallel", help="No parallel downloads", action="store_true")
+    parser.add_argument("-dr", "--dry_run", help="Dry Run : No downloads", action="store_true")
     args = parser.parse_args()
 
     cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
@@ -501,9 +519,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                         if args.no_parallel:
-                            get_multiple_files_with_out_threads(filter_file)
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            getMultipleFiles(backup, filter_file)
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -528,9 +546,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file)
+                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                     else:
-                        getMultipleFiles(backup, filter_file)
+                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
@@ -551,9 +569,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file)
+                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                     else:
-                        getMultipleFiles(backup, filter_file)
+                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
@@ -574,9 +592,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file)
+                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                     else:
-                        getMultipleFiles(backup, filter_file)
+                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
@@ -597,9 +615,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file)
+                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                     else:
-                        getMultipleFiles(backup, filter_file)
+                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
@@ -620,9 +638,9 @@ if __name__ == "__main__":
                             filter_file[file["name"]] = int(file["sizeBytes"])
 
                     if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file)
+                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                     else:
-                        getMultipleFiles(backup, filter_file)
+                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
 
                     print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                      human_size(total_size)))
@@ -634,6 +652,6 @@ if __name__ == "__main__":
             file = args.pull
             output = args.output
             print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
-            getFile(file)
+            get_file(file, is_dry_run=args.dry_run)
             print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                              human_size(total_size)))
