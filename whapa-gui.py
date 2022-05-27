@@ -761,7 +761,7 @@ To export chats on an iOS phone, here are the steps:
     def api(self):
         """Open settings file"""
 
-        cfg_file = Whapa.system_slash("", r'{}/cfg/settings.cfg'.format(whapa_path))
+        cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
         if system == "Linux":
             os.system('xdg-open "{}"'.format(cfg_file))
         else:
@@ -770,7 +770,7 @@ To export chats on an iOS phone, here are the steps:
     def manual(self):
         """Open the manual"""
 
-        readme_file = Whapa.system_slash("", r'{}/README.md'.format(whapa_path))
+        readme_file = system_slash(r'{}/README.md'.format(whapa_path))
         if system == "Linux":
             os.system('xdg-open "{}"'.format(readme_file))
         else:
@@ -1446,15 +1446,25 @@ To export chats on an iOS phone, here are the steps:
         os.system(exec)
 
 
+def system_slash(string):
+    """ Change / or \ depend on the OS"""
+
+    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+        return string.replace("/", "\\")
+
+    else:
+        return string.replace("\\", "/")
+
+
 if __name__ == '__main__':
     """Initialize"""
 
     if system == "Linux":
-        exec = Whapa.system_slash("", r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
+        exec = system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
     else:
-        exec = Whapa.system_slash("", r'python "{}/libs/update.py" {}'.format(whapa_path, version))
+        exec = system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
 
-    cfg_file = Whapa.system_slash("", r'{}/cfg/settings.cfg'.format(whapa_path))
+    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
     if not os.path.isfile(cfg_file):
         # It creates the settings file
         with open(cfg_file, 'w') as cfg:
@@ -1484,7 +1494,7 @@ if __name__ == '__main__':
                 """).lstrip())
 
     error_icon = False
-    img_folder = Whapa.system_slash("{}/images/".format(whapa_path))
+    img_folder = system_slash("{}/images/".format(whapa_path))
     icons = (img_folder + "logo.png",
              img_folder + "whapa.png",
              img_folder + "about.png",
