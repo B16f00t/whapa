@@ -45,7 +45,7 @@ class WaBackup:
                 url = token.get("Url")
                 options = Options()
                 options.add_argument("--window-size=720,720")
-                #os.environ['GH_TOKEN'] = "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"
+                #os.environ['GH_TOKEN'] = ""
                 try:
                     if operating_system() == "Windows":
                         driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=options)
