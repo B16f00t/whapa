@@ -9,31 +9,46 @@ import sys
 
 
 # Define global variable
-
+# New Table message
 message_columns = [
+    '_id', 'chat_row_id','from_me','key_id','sender_jid_row_id','status','broadcast','recipient_count','participant_hash',
+    'origination_flags', 'origin','timestamp','received_timestamp','receipt_server_timestamp','message_type',
+    'text_data','starred','lookup_tables', 'sort_id','message_add_on_flags'
+    ]
+
+messages_columns = [
     '_id', 'key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type',
     'media_wa_type','media_size','media_name','media_caption','media_hash','media_duration','origin','latitude',
     'longitude','thumb_image','remote_resource','received_timestamp','send_timestamp','receipt_server_timestamp',
     'receipt_device_timestamp','read_device_timestamp','played_device_timestamp','raw_data','recipient_count',
     'participant_hash','starred','quoted_row_id','mentioned_jids','multicast_id','edit_version','media_enc_hash',
-    'payment_transaction_id','forwarded'
+    'payment_transaction_id','forwarded', 'preview_type', 'send_count', 'lookup_tables', 'future_message_type',
+    'message_add_on_flags'
     ]
+
 chatlist_columns = [
-    '_id','key_remote_jid','message_table_id','subject','creation','last_read_message_table_id','last_read_receipt_sent_message_table_id',
-    'archived','sort_timestamp','mod_tag','gen','my_messages','plaintext_disabled','last_message_table_id','unseen_message_count',
-    'unseen_missed_calls_count','unseen_row_count','vcard_ui_dismissed','deleted_message_id','deleted_starred_message_id',
-    'deleted_message_categories','change_number_notified_message_id','last_important_message_table_id','show_group_description'
+    '_id','jid_row_id','hidden','subject','created_timestamp','display_message_row_id','last_message_row_id',
+    'last_read_message_row_id','last_read_receipt_sent_message_row_id','last_important_message_row_id','archived','sort_timestamp','mod_tag',
+    'gen','spam_detection', 'unseen_earliest_message_received_time', 'unseen_message_count', 'unseen_missed_calls_count',
+    'unseen_row_count','plaintext_disabled','vcard_ui_dismissed','change_number_notified_message_row_id','show_group_description',
+    'ephemeral_expiration','last_read_ephemeral_message_row_id','ephemeral_setting_timestamp','unseen_important_message_count',
+    'ephemeral_disappearing_messages_initiator', 'group_type', 'last_message_reaction_row_id', 'last_seen_message_reaction_row_id',
+    'unseen_message_reaction_count', 'growth_lock_level', 'growth_lock_expiration_ts', 'last_read_message_sort_id', 'display_message_sort_id',
+    'last_message_sort_id', 'last_read_receipt_sent_message_sort_id'
     ]
+
 quote_columns = [
     '_id', 'key_remote_jid','key_from_me','key_id','status','needs_push','data','timestamp','media_url','media_mime_type',
     'media_wa_type','media_size','media_name','media_caption','media_hash','media_duration','origin','latitude',
     'longitude','thumb_image','remote_resource','received_timestamp','send_timestamp','receipt_server_timestamp',
     'receipt_device_timestamp','read_device_timestamp','played_device_timestamp','raw_data','recipient_count',
     'participant_hash','starred','quoted_row_id','mentioned_jids','multicast_id','edit_version','media_enc_hash',
-    'payment_transaction_id','forwarded'
+    'payment_transaction_id','forwarded', 'preview_type', 'send_count', 'lookup_tables', 'future_message_type',
+    'message_add_on_flags'
     ]
+
 thumbnail_columns = [
-    'rowid','thumbnail','timestamp','key_remote_jid','key_from_me','key_id'
+    'thumbnail','timestamp','key_remote_jid','key_from_me','key_id'
     ]
 
 
@@ -49,6 +64,7 @@ def banner():
            \/       \/     \/      \/     \/     /_____/      \/ 
     ------------------------ Whatsapp Merger -----------------------
     """)
+
 
 def help():
     """ Function show help """
@@ -91,8 +107,8 @@ def merge(db_path, db_name):
             except Exception as e:
                 print("[e] Error copying: ", e)
 
-        num_message_cols = len(message_columns)
-        str_message_cols = ",".join(message_columns[:num_message_cols])
+        num_message_cols = len(messages_columns)
+        str_message_cols = ",".join(messages_columns[:num_message_cols])
         total_message = 0
 
         num_chatlist_cols = len(chatlist_columns)
@@ -119,7 +135,7 @@ def merge(db_path, db_name):
                 cursor_write.execute("SELECT _id FROM messages;")
                 ids_message_write = cursor_write.fetchall()
                 
-                cursor_write.execute("SELECT _id FROM chat_view;")
+                cursor_write.execute("SELECT _id FROM chat;")
                 ids_chatlist_write = cursor_write.fetchall()
 
                 cursor_write.execute("SELECT _id FROM messages_quotes;")
@@ -136,7 +152,7 @@ def merge(db_path, db_name):
                 cursor_read.execute("SELECT _id FROM messages;")
                 ids_message_read = cursor_read.fetchall()
                 
-                cursor_read.execute("SELECT _id FROM chat_view;")
+                cursor_read.execute("SELECT _id FROM chat;")
                 ids_chatlist_read = cursor_read.fetchall()
 
                 cursor_read.execute("SELECT _id FROM messages_quotes;")
@@ -182,7 +198,7 @@ def merge(db_path, db_name):
 
                 num_ids_chatlist_cols = len(ids_chatlist_insert)
                 str_id_chatlist_cols = ",".join(ids_chatlist_insert[:num_ids_chatlist_cols])
-                elements_chatlist_cursor = cursor_read.execute("SELECT " + str_chatlist_cols + " FROM chat_view WHERE _id IN (" + str_id_chatlist_cols + ");")
+                elements_chatlist_cursor = cursor_read.execute("SELECT " + str_chatlist_cols + " FROM chat WHERE _id IN (" + str_id_chatlist_cols + ");")
                 elements_chatlist_insert = elements_chatlist_cursor.fetchall()
 
                 num_ids_quote_cols = len(ids_quote_insert)
@@ -198,12 +214,12 @@ def merge(db_path, db_name):
                 # Insert the elements into the database
                 try:
                     for msg in elements_message_insert:
-                        insert_query = "INSERT INTO messages(" + str_message_cols + ") VALUES (" + ','.join('?' for x in range(0, len(message_columns))) + ")"
+                        insert_query = "INSERT INTO messages(" + str_message_cols + ") VALUES (" + ','.join('?' for x in range(0, len(messages_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()
 
                     for msg in elements_chatlist_insert:
-                        insert_query = "INSERT INTO chat_view(" + str_chatlist_cols + ") VALUES (" + ','.join('?' for x in range(0, len(chatlist_columns))) + ")"
+                        insert_query = "INSERT INTO chat(" + str_chatlist_cols + ") VALUES (" + ','.join('?' for x in range(0, len(chatlist_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()
 
@@ -259,8 +275,8 @@ def merge_win(db_path, db_name):
             except Exception as e:
                 print("[e] Error copying: ", e)
 
-        num_message_cols = len(message_columns)
-        str_message_cols = ",".join(message_columns[:num_message_cols])
+        num_message_cols = len(messages_columns)
+        str_message_cols = ",".join(messages_columns[:num_message_cols])
         total_message = 0
 
         num_chatlist_cols = len(chatlist_columns)
@@ -287,7 +303,7 @@ def merge_win(db_path, db_name):
                 cursor_write.execute("SELECT _id FROM messages;")
                 ids_message_write = cursor_write.fetchall()
 
-                cursor_write.execute("SELECT _id FROM chat_view;")
+                cursor_write.execute("SELECT _id FROM chat;")
                 ids_chatlist_write = cursor_write.fetchall()
 
                 cursor_write.execute("SELECT _id FROM messages_quotes;")
@@ -306,7 +322,7 @@ def merge_win(db_path, db_name):
                 cursor_read.execute("SELECT _id FROM messages;")
                 ids_message_read = cursor_read.fetchall()
 
-                cursor_read.execute("SELECT _id FROM chat_view;")
+                cursor_read.execute("SELECT _id FROM chat;")
                 ids_chatlist_read = cursor_read.fetchall()
 
                 cursor_read.execute("SELECT _id FROM messages_quotes;")
@@ -356,7 +372,7 @@ def merge_win(db_path, db_name):
                 num_ids_chatlist_cols = len(ids_chatlist_insert)
                 str_id_chatlist_cols = ",".join(ids_chatlist_insert[:num_ids_chatlist_cols])
                 elements_chatlist_cursor = cursor_read.execute(
-                    "SELECT " + str_chatlist_cols + " FROM chat_view WHERE _id IN (" + str_id_chatlist_cols + ");")
+                    "SELECT " + str_chatlist_cols + " FROM chat WHERE _id IN (" + str_id_chatlist_cols + ");")
                 elements_chatlist_insert = elements_chatlist_cursor.fetchall()
 
                 num_ids_quote_cols = len(ids_quote_insert)
@@ -375,12 +391,12 @@ def merge_win(db_path, db_name):
                 try:
                     for msg in elements_message_insert:
                         insert_query = "INSERT INTO messages(" + str_message_cols + ") VALUES (" + ','.join(
-                            '?' for x in range(0, len(message_columns))) + ")"
+                            '?' for x in range(0, len(messages_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()
 
                     for msg in elements_chatlist_insert:
-                        insert_query = "INSERT INTO chat_view(" + str_chatlist_cols + ") VALUES (" + ','.join(
+                        insert_query = "INSERT INTO chat(" + str_chatlist_cols + ") VALUES (" + ','.join(
                             '?' for x in range(0, len(chatlist_columns))) + ")"
                         cursor_write.execute(insert_query, msg)
                         output.commit()

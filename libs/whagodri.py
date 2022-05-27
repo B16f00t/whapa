@@ -8,12 +8,17 @@ import gpsoauth
 import queue
 import threading
 import time
-
-from configparser import ConfigParser
+import subprocess
+from configobj import ConfigObj
 from getpass import getpass
 from textwrap import dedent
-
 from requests import Response
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
+from selenium_stealth import stealth
+
 
 total_size: int
 num_files: int
@@ -32,34 +37,93 @@ class WaBackup:
     Provide access to WhatsApp backups stored in Google drive.
     """
 
-    def __init__(self, gmail, password, android_id, celnumbr):
-        print("Requesting Google access...")
-        token = gpsoauth.perform_master_login(gmail, password, android_id)
-        if "Token" not in token:
-            error(token)
-        print("Granted\n")
-        print("Requesting authentication for Google Drive...")
+    def __init__(self, gmail, password, android_id, celnumbr, oauth_token):
+        if not oauth_token:
+            print("Requesting access to Google by account and password...")
+            token = gpsoauth.perform_master_login(email=gmail, password=password, android_id=android_id)
+            if token.get("Url"):
+                url = token.get("Url")
+                options = Options()
+                options.add_argument("--window-size=720,720")
+                #os.environ['GH_TOKEN'] = "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"
+                try:
+                    if operating_system() == "Windows":
+                        driver = webdriver.Chrome(service=Service("chromedriver.exe"), options=options)
+                    elif operating_system() == "MacOs M1":
+                        driver = webdriver.Chrome(service=Service("chromedriverM1"), options=options)
+                    elif operating_system() == "MacOs":
+                        driver = webdriver.Chrome(service=Service("chromedriverMac"), options=options)
+                    else:
+                        driver = webdriver.Chrome(service=Service("chromedriver"), options=options)
+                except:
+                    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
-        self.auth = gpsoauth.perform_oauth(
+                stealth(driver,
+                        languages=["en-US", "en"],
+                        vendor="Google Inc.",
+                        platform="Win32",
+                        webgl_vendor="Intel Inc.",
+                        renderer="Intel Iris OpenGL Engine",
+                        fix_hairline=True,
+                        )
+
+                driver.get(url)
+                for remaining in range(30, -1, -1):
+                    sys.stdout.write("\r")
+                    sys.stdout.write("{:2d} seconds remaining to login to your Google Account".format(remaining))
+                    sys.stdout.flush()
+                    time.sleep(1)
+
+                sys.stdout.write("\nFinished!\n")
+                cookies = driver.get_cookies()
+                for cookie in cookies:
+                    if cookie.get("name") == 'oauth_token':
+                        oauth_token = cookie.get("value")
+                        print("A valid token has been obtained.")
+                        break
+
+                driver.close()
+                if not oauth_token:
+                    print("No valid token has been obtained.")
+                    exit()
+
+                print("Requesting access to Google by OAuth cookie...")
+                token = gpsoauth.perform_master_login_oauth(email=gmail, oauth_token=oauth_token, android_id=android_id)
+                if "Token" not in token:
+                    error(token)
+                else:
+                    print("Granted.")
+                    print("Writing Token in your settings.cfg file...")
+                    cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
+                    config = ConfigObj(cfg_file, interpolation=None)
+                    config['google-auth']['oauth'] = token['Token']
+                    config.write()
+                    oauth_token = token['Token']
+            else:
+                if "Token" not in token:
+                    error(token)
+
+        print("Requesting authentication for Google Drive...")
+        auth = gpsoauth.perform_oauth(
             gmail,
-            token["Token"],
+            oauth_token,
             android_id,
             "oauth2:https://www.googleapis.com/auth/drive.appdata",
             "com.whatsapp",
             "38a0f7d505fe18fec64fbf343ecaaaf310dbd799",
         )
-        if "Auth" not in self.auth:
-            error(token)
-        print("Granted\n")
+        if "Auth" not in auth:
+            error(auth)
 
+        print("Granted.\n")
         global Auth, phone
-        Auth = self.auth
+        Auth = auth
         phone = celnumbr
 
     def get(self, path, params=None, **kwargs):
         response = requests.get(
             "https://backup.googleapis.com/v1/{}".format(path),
-            headers={"Authorization": "Bearer {}".format(self.auth["Auth"])},
+            headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
             params=params,
             **kwargs,
         )
@@ -113,25 +177,27 @@ def help():
 def createSettingsFile():
     """ Function that creates the settings file """
 
-    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
     with open(cfg_file, 'w') as cfg:
         cfg.write(dedent("""
             [report]
-            company =
-            record =
-            unit =
-            examiner =
-            notes =
+            company = ""
+            record = ""
+            unit = ""
+            examiner = ""
+            notes = ""
             
             [google-auth]
             gmail = alias@gmail.com
             # Optional. The account password or app password when using 2FA.
-            password  = 
+            password  = yourpassword
+            # Optional. Login using the oauth cookie.
+            oauth = ""
             # Optional. The result of "adb shell settings get secure android_id".
-            android_id = 0000000000000000
+            android_id  = 0000000000000000
             # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
             # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
-            celnumbr = 
+            celnumbr = ""
             
             [icloud-auth] 
             icloud  = alias@icloud.com
@@ -140,29 +206,30 @@ def createSettingsFile():
 
 
 def getConfigs():
-    config = ConfigParser(interpolation=None)
-    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
-
+    cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
+    config = ConfigObj(cfg_file, interpolation=None)
     try:
-        config.read(cfg_file)
-        gmail = config.get('google-auth', 'gmail')
-        password = config.get('google-auth', 'password', fallback="")
-        celnumbr = config.get('google-auth', 'celnumbr').lstrip('+0')
+        gmail = config['google-auth']['gmail']
+        password = config['google-auth']['password']
+        celnumbr = config['google-auth']['celnumbr'].lstrip('+0')
+        oauth_token = config['google-auth']['oauth']
+        android_id = config['google-auth']['android_id']
         if not password:
             try:
                 password = getpass("Enter your password for {}: ".format(gmail))
             except KeyboardInterrupt:
                 quit('\nCancelled!')
 
-        android_id = config.get("google-auth", "android_id")
         return {
             "gmail": gmail,
             "password": password,
             "android_id": android_id,
             "celnumbr": celnumbr,
+            "oauth_token": oauth_token,
         }
 
-    except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except Exception as e:
+        print(e)
         quit('The "{}" file is missing or corrupt!'.format(cfg_file))
 
 
@@ -175,35 +242,34 @@ def human_size(size):
 
 
 def backup_info(backup):
-    print("[i] Backup name     : {}".format(backup["name"]))
-    print("[-] Whatsapp version: {}".format(json.loads(backup["metadata"])["versionOfAppWhenBackup"]))
     try:
-        print("[-] Backup protected: {}".format(json.loads(backup["metadata"])["passwordProtectedBackupEnabled"]))
-    except:
-        pass
-
-    print("[-] Backup upload   : {}".format(backup["updateTime"]))
-    print("[-] Backup size     : {} Bytes {}".format(backup["sizeBytes"], human_size(int(backup["sizeBytes"]))))
-    print("[+] Backup metadata")
-    print("    [-] Backup Frequency         : {} ".format(json.loads(backup["metadata"])["backupFrequency"]))
-    print("    [-] Backup Network Settings  : {} ".format(json.loads(backup["metadata"])["backupNetworkSettings"]))
-    print("    [-] Backup Version           : {} ".format(json.loads(backup["metadata"])["backupVersion"]))
-    print("    [-] Include Videos In Backup : {} ".format(json.loads(backup["metadata"])["includeVideosInBackup"]))
-    print("    [-] Num Of Photos            : {}".format(json.loads(backup["metadata"])["numOfPhotos"]))
-    print("    [-] Num Of Media Files       : {}".format(json.loads(backup["metadata"])["numOfMediaFiles"]))
-    print("    [-] Num Of Messages          : {}".format(json.loads(backup["metadata"])["numOfMessages"]))
-    print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"])["videoSize"],
-                                                                  human_size(int(
-                                                                      json.loads(backup["metadata"])["videoSize"]))))
-    print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"])["backupSize"],
-                                                                  human_size(int(
-                                                                      json.loads(backup["metadata"])["backupSize"]))))
-    print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"])["mediaSize"],
-                                                                  human_size(int(
-                                                                      json.loads(backup["metadata"])["mediaSize"]))))
-    print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"])["chatdbSize"],
-                                                                  human_size(int(
-                                                                      json.loads(backup["metadata"])["chatdbSize"]))))
+        print("[i] Backup name     : {}".format(backup["name"]))
+        print("[-] Whatsapp version: {}".format(json.loads(backup["metadata"]).get("versionOfAppWhenBackup")))
+        print("[-] Backup protected: {}".format(json.loads(backup["metadata"]).get("passwordProtectedBackupEnabled")))
+        print("[-] Backup upload   : {}".format(backup["updateTime"]))
+        print("[-] Backup size     : {} Bytes {}".format(backup["sizeBytes"], human_size(int(backup["sizeBytes"]))))
+        print("[+] Backup metadata")
+        print("    [-] Backup Frequency         : {} ".format(json.loads(backup["metadata"]).get("backupFrequency")))
+        print("    [-] Backup Network Settings  : {} ".format(json.loads(backup["metadata"]).get("backupNetworkSettings")))
+        print("    [-] Backup Version           : {} ".format(json.loads(backup["metadata"]).get("backupVersion")))
+        print("    [-] Include Videos In Backup : {} ".format(json.loads(backup["metadata"]).get("includeVideosInBackup")))
+        print("    [-] Num Of Photos            : {}".format(json.loads(backup["metadata"]).get("numOfPhotos")))
+        print("    [-] Num Of Media Files       : {}".format(json.loads(backup["metadata"]).get("numOfMediaFiles")))
+        print("    [-] Num Of Messages          : {}".format(json.loads(backup["metadata"]).get("numOfMessages")))
+        print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"]).get("videoSize"),
+                                                                      human_size(int(
+                                                                          json.loads(backup["metadata"]).get("videoSize")))))
+        print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"]).get("backupSize"),
+                                                                      human_size(int(
+                                                                          json.loads(backup["metadata"]).get("backupSize")))))
+        print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"]).get("mediaSize"),
+                                                                      human_size(int(
+                                                                          json.loads(backup["metadata"]).get("mediaSize")))))
+        print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"]).get("chatdbSize"),
+                                                                      human_size(int(
+                                                                          json.loads(backup["metadata"]).get("chatdbSize")))))
+    except Exception as e:
+        print(e)
 
 
 def error(token):
@@ -215,7 +281,13 @@ def error(token):
         print(
             "1. Check that your email and password are correct in the settings file.\n"
             "2. Your are using a old python version. Works >= 3.8.\n"
-            "3. Update requirements, use in a terminal: 'pip3 install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt")
+            "3. Update requirements, use in a terminal: 'pip3 install --upgrade -r ./doc/requirements.txt' or 'pip install --upgrade -r ./doc/requirements.txt\n"
+            "4. Your OAuth token configured in the settings file may have expired. The token will be deleted and you will have to log in again.")
+
+        cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
+        config = ConfigObj(cfg_file, interpolation=None)
+        config['google-auth']['oauth'] = ""
+        config.write()
 
     elif "NeedsBrowser" in failed:
         print("\n   Workaround\n-----------------")
@@ -301,7 +373,7 @@ def get_multiple_files(drives, files_dict: dict, is_dry_run: bool):
 
     for entry, size in files_dict.items():
         file_name = os.path.sep.join(entry.split("/")[3:])
-        local_store = (output_folder + file_name).replace("/", os.path.sep)
+        local_store = (output_folder + "/" + file_name).replace("/", os.path.sep)
         workQueue.put(
             {'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
         n += 1
@@ -328,18 +400,13 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
     num_files = 0
 
     for file_url, file_size in files_dict.items():
-
         file_name = os.path.sep.join(file_url.split("/")[3:])
-        local_file_path = (output_folder + file_name).replace("/", os.path.sep)
-
+        local_file_path = (output_folder + "/" + file_name).replace("/", os.path.sep)
         if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size:
-
             print("    [-] Number: {}/{} - {} : Already Exists".format(file_index, total_files, local_file_path))
 
         else:
-
             if is_dry_run:
-
                 print("    [-] Skipped (Dry Run): {}".format(local_file_path))
 
             else:
@@ -358,7 +425,6 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
                             destination.write(chunk)
                     print("    [-] Number: {}/{} - {} : Download Success".format(file_index, total_files,
                                                                                  local_file_path))
-
                     total_size += file_size
                     num_files += 1
 
@@ -405,7 +471,6 @@ def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_f
     if not os.path.isfile(local):
 
         if is_dry_run:
-
             print("    [-] Skipped (Dry Run): {}".format(local))
 
         else:
@@ -415,7 +480,6 @@ def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_f
                 stream=True
             )
             if response.status_code == 200:
-
                 os.makedirs(os.path.dirname(local), exist_ok=True)
                 destination: io.BufferedWriter
                 with open(local, "bw") as destination:
@@ -432,14 +496,18 @@ def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_f
         print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, len_files, thread_name, local))
 
 
-def system_slash(string):
-    """ Change / or \ depend on the OS"""
+def operating_system():
+    """ Get the name of the OS """
 
-    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
-        return string.replace("/", "\\")
-
+    if sys.platform == "win32" or sys.platform == "cygwin":
+        return "Windows"
+    elif sys.platform == "Darwin":
+        if subprocess.check_output(['sysctl', '-n', 'machdep.cpu.brand_string']).decode('utf-8') == "Apple M1\n":
+            return "MacOs M1"
+        else:
+            return "MacOs"
     else:
-        return string.replace("\\", "/")
+        return "Linux"
 
 
 # Initializing
@@ -462,7 +530,7 @@ if __name__ == "__main__":
     parser.add_argument("-dr", "--dry_run", help="Dry Run : No downloads", action="store_true")
     args = parser.parse_args()
 
-    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
+    cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
     if not os.path.isfile(cfg_file):
         createSettingsFile()
 
@@ -473,41 +541,36 @@ if __name__ == "__main__":
         print("[i] Searching...\n")
         wa_backup = WaBackup(**getConfigs())
         backups = wa_backup.backups()
-
-        if args.info:
-            try:
+        try:
+            if args.info:
                 for backup in backups:
                     backup_info(backup)
 
-            except Exception as e:
-                print("[e] Error {}".format(e))
-
-        elif args.list:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                print("[i] Backup name: {}".format(backup["name"]))
-                for file in wa_backup.backup_files(backup):
-                    num_files += 1
-                    total_size += int(file["sizeBytes"])
-                    print("    [-] {}".format(file["name"]))
-
-            print("[i] {} files {}".format(num_files, human_size(total_size)))
-
-        elif args.list_whatsapp:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                print("[i] Backup name: {}".format(backup["name"]))
-                for file in wa_backup.backup_files(backup):
-                    num_files += 1
-                    total_size += int(file["sizeBytes"])
-                    if os.path.sep.join(file["name"].split("/")[6:]) == "msgstore.db.crypt14":
+            elif args.list:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    print("[i] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+                        num_files += 1
+                        total_size += int(file["sizeBytes"])
                         print("    [-] {}".format(file["name"]))
-                        print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
 
-        elif args.sync:
-            try:
+                print("[i] {} files {}".format(num_files, human_size(total_size)))
+
+            elif args.list_whatsapp:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    print("[i] Backup name: {}".format(backup["name"]))
+                    for file in wa_backup.backup_files(backup):
+                        num_files += 1
+                        total_size += int(file["sizeBytes"])
+                        if os.path.sep.join(file["name"].split("/")[6:]) == "msgstore.db.crypt14":
+                            print("    [-] {}".format(file["name"]))
+                            print("    [-] Size {} {}".format(file["sizeBytes"], human_size((int(file["sizeBytes"])))))
+
+            elif args.sync:
                 for backup in backups:
                     num_files = 0
                     total_size = 0
@@ -530,128 +593,136 @@ if __name__ == "__main__":
                         print("\n[i] Backup {} omitted. Write a correct phone number in the setting file".format(
                             number_backup))
 
-            except Exception as e:
+            elif args.s_images:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file: dict = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            if ("jpg" in i) or ("jpeg" in i) or ("png" in i):
+                                filter_file[file["name"]] = int(file["sizeBytes"])
+
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
+                        else:
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
+
+            elif args.s_videos:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file: dict = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            if "mp4" in i:
+                                filter_file[file["name"]] = int(file["sizeBytes"])
+
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
+                        else:
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
+
+            elif args.s_audios:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file: dict = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            if ("mp3" in i) or ("opus" in i):
+                                filter_file[file["name"]] = int(file["sizeBytes"])
+
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
+                        else:
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
+
+            elif args.s_documents:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file: dict = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            if file["name"].split("/")[6] == "WhatsApp Documents":
+                                filter_file[file["name"]] = int(file["sizeBytes"])
+
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
+                        else:
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
+
+            elif args.s_databases:
+                for backup in backups:
+                    num_files = 0
+                    total_size = 0
+                    number_backup = backup["name"].split("/")[3]
+                    if (number_backup in phone) or (phone == ""):
+                        filter_file: dict = {}
+                        for file in wa_backup.backup_files(backup):
+                            i = os.path.splitext(file["name"])[1]
+                            if "crypt" in i:
+                                filter_file[file["name"]] = int(file["sizeBytes"])
+
+                        if args.no_parallel:
+                            get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
+                        else:
+                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+
+                        print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                         human_size(total_size)))
+
+                    else:
+                        print("[i] Backup {} omitted".format(number_backup))
+
+            elif args.pull:
+                file = args.pull
+                output = args.output
+                print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
+                get_file(file, is_dry_run=args.dry_run)
+                print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
+                                                                                 human_size(total_size)))
+        except Exception as e:
+            if "401 Client Error" in str(e):
+                print("Unable to access the resource, your OAuth token configured in the settings file may have"
+                      " expired.\nRemoving token....\nTry again, you will have to log in again.""")
+                cfg_file = r'{}/cfg/settings.cfg'.format(whapa_path).replace("/", os.path.sep)
+                config = ConfigObj(cfg_file, interpolation=None)
+                config['google-auth']['oauth'] = ""
+                config.write()
+
+            else:
                 print("[e] Error {}".format(e))
-
-        elif args.s_images:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file: dict = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        if "jpg" in i:
-                            filter_file[file["name"]] = int(file["sizeBytes"])
-
-                    if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
-                    else:
-                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
-
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                                     human_size(total_size)))
-
-                else:
-                    print("[i] Backup {} omitted".format(number_backup))
-
-        elif args.s_videos:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file: dict = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        if "mp4" in i:
-                            filter_file[file["name"]] = int(file["sizeBytes"])
-
-                    if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
-                    else:
-                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
-
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                                     human_size(total_size)))
-
-                else:
-                    print("[i] Backup {} omitted".format(number_backup))
-
-        elif args.s_audios:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file: dict = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        if ("mp3" in i) or ("opus" in i):
-                            filter_file[file["name"]] = int(file["sizeBytes"])
-
-                    if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
-                    else:
-                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
-
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                                     human_size(total_size)))
-
-                else:
-                    print("[i] Backup {} omitted".format(number_backup))
-
-        elif args.s_documents:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file: dict = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        if file["name"].split("/")[6] == "WhatsApp Documents":
-                            filter_file[file["name"]] = int(file["sizeBytes"])
-
-                    if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
-                    else:
-                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
-
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                                     human_size(total_size)))
-
-                else:
-                    print("[i] Backup {} omitted".format(number_backup))
-
-        elif args.s_databases:
-            for backup in backups:
-                num_files = 0
-                total_size = 0
-                number_backup = backup["name"].split("/")[3]
-                if (number_backup in phone) or (phone == ""):
-                    filter_file: dict = {}
-                    for file in wa_backup.backup_files(backup):
-                        i = os.path.splitext(file["name"])[1]
-                        if "crypt" in i:
-                            filter_file[file["name"]] = int(file["sizeBytes"])
-
-                    if args.no_parallel:
-                        get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
-                    else:
-                        get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
-
-                    print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                                     human_size(total_size)))
-
-                else:
-                    print("[i] Backup {} omitted".format(number_backup))
-
-        elif args.pull:
-            file = args.pull
-            output = args.output
-            print("[+] Backup name: {}".format(os.path.sep.join(file.split("/")[:4])))
-            get_file(file, is_dry_run=args.dry_run)
-            print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
-                                                                             human_size(total_size)))

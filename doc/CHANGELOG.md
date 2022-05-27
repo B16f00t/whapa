@@ -2,6 +2,16 @@ Changelog
 ====
 All notable changes to this project will be documented in this file.
 
+May 2022
+
+	[+] whapa-gui.py v1.58
+	[+] whacipher.py
+		[-] Fixed Decrypt crypt14 files.
+	[+] whagodri.py
+		[-] Fixed bug connecting with Google.
+		[-] Added No parallel downloads
+		[-] Added support for jpeg files with option "-si"
+
 Nov 2021
 
 	[+] whapa-gui.py v1.56
@@ -11,7 +21,7 @@ Agu 2021
 
 	[+] whapa-gui.py v1.55
 	[+] whapa.py
-		[-] Fixed bug with setting file
+		[-] Fixed bug with settings file
 	[+] whachat.py
 		[-] New time formats
 		

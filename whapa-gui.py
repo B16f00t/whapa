@@ -10,11 +10,21 @@ from tkinter import ttk
 from tkinter import messagebox
 from tkinter import filedialog
 
+try:
+    import requests
+except ModuleNotFoundError:
+    print("You need requests module to run this script")
+    print("Use this: python -m pip install requests")
+    print("Or: pip install requests")
+    exit(1)
+
+
+
 """ Global vars"""
 author = 'B16f00t'
 title = 'WhatsApp Parser Toolset'
 contact = "https://t.me/bigfoot_whapa"
-version = '1.57'
+version = '1.58'
 system = ""
 abs_path_file = os.path.abspath(__file__)     # C:\Users\Desktop\whapa\whapa-gui.py
 whapa_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa
@@ -691,8 +701,10 @@ To export chats on an iOS phone, here are the steps:
         self.entry_whachat_te.bind('<FocusIn>', self.on_entry_click_out_whachat)
         self.entry_whachat_te.bind('<FocusOut>', self.on_focusout_out_whachat)
         self.entry_whachat_te.config(fg='grey')
-
+        print("Checking updates...")
+        self.update()
         self.root.mainloop()
+
 
     def on_entry_click_whapa(self, event):
         """function that gets called whenever entry is clicked"""
@@ -794,7 +806,11 @@ To export chats on an iOS phone, here are the steps:
         """ About dialog"""
 
         if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
+            try:
+                exec = self.system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
+            except:
+                exec = self.system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
+
         else:
             exec = self.system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
 
@@ -1444,29 +1460,31 @@ if __name__ == '__main__':
         with open(cfg_file, 'w') as cfg:
             cfg.write(dedent("""
                 [report]
-                company =
-                record =
-                unit =
-                examiner =
-                notes =
+                company = ""
+                record = ""
+                unit = ""
+                examiner = ""
+                notes = ""
 
                 [google-auth]
                 gmail = alias@gmail.com
                 # Optional. The account password or app password when using 2FA.
-                password  = 
+                password  = yourpassword
+                # Optional. Login using the oauth cookie.
+                oauth = ""
                 # Optional. The result of "adb shell settings get secure android_id".
-                android_id = 0000000000000000
+                android_id  = 0000000000000000
                 # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
                 # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
-                celnumbr = 
-                
+                celnumbr = ""
+
                 [icloud-auth] 
                 icloud  = alias@icloud.com
                 passw = yourpassword
                 """).lstrip())
 
     error_icon = False
-    img_folder = Whapa.system_slash("", "{}/images/".format(whapa_path))
+    img_folder = Whapa.system_slash("{}/images/".format(whapa_path))
     icons = (img_folder + "logo.png",
              img_folder + "whapa.png",
              img_folder + "about.png",
@@ -1511,4 +1529,5 @@ if __name__ == '__main__':
             system = "Windows"
         else:
             system = "Linux"
+
         Whapa(img_folder, icons)

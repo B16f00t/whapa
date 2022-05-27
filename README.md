@@ -4,7 +4,7 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: July 2021
+Updated: May 2022
 
 WhatsApp Messenger Version 2.21.9.14
 
@@ -18,15 +18,15 @@ Whapa toolset is divided in five tools:
 
 **Android**
 ======
-* **Whapa**     (Whatsapp Parser)
-* **Whacipher** (Whatsapp Encryption/Decryption) *** NEW Crypt14 ***
+* **Whapa**     (Whatsapp Parser)(Only working with old database, Working in Progress...)
+* **Whacipher** (Whatsapp Encryption/Decryption) *** Not support Crypt15 ***
 * **Whagodri**  (Whataspp Google Drive Extractor)
-* **Whamerge**  (Whatsapp Merger)
+* **Whamerge**  (Whatsapp Merger) (Only working with old database, Working in Progress...)
 * **Whachat**   (Whatsapp Chat Exporter)
 
 **IPhone**
 ====
-* **Whacloud**  (Whatsapp ICloud Extractor) NEW BETA TOOL FOR IPHONE
+* **Whacloud**  (Whatsapp ICloud Extractor) (Not working)
 * **Whachat**   (Whatsapp Chat Exporter)
 
 
@@ -153,11 +153,7 @@ Edit only the values of the./cfg/settings.cfg file
 		# You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
 		celnumbr = 
 
-* If you request it, log in to your browser and then click here. https://accounts.google.com/b/0/DisplayUnlockCaptcha
-
-
-If you want to use 2FA (Two Factor Authentication), you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.
-(Thanks to YuriCosta)
+* New Method: Now you will have to login in the browser, this method is not valid for accounts without a phone number or alternative email associated to the account.
 
 WHACLOUD
 =====

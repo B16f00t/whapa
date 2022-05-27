@@ -59,21 +59,23 @@ def createSettingsFile():
     with open(cfg_file, 'w') as cfg:
         cfg.write(dedent("""
             [report]
-            company =
-            record =
-            unit =
-            examiner =
-            notes =
+            company = ""
+            record = ""
+            unit = ""
+            examiner = ""
+            notes = ""
 
             [google-auth]
             gmail = alias@gmail.com
             # Optional. The account password or app password when using 2FA.
-            password  = 
+            password  = yourpassword
+            # Optional. Login using the oauth cookie.
+            oauth = ""
             # Optional. The result of "adb shell settings get secure android_id".
-            android_id = 0000000000000000
+            android_id  = 0000000000000000
             # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
             # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
-            celnumbr = 
+            celnumbr = ""
 
             [icloud-auth] 
             icloud  = alias@icloud.com
@@ -165,13 +167,35 @@ def getMultipleFilesThread(photo, local, now, lenfiles, threadName):
 def login():
     """ Get access to Icloud """
 
+    global click
     api = PyiCloudService(icloud, passw)
-    if api.requires_2sa:
+    if api.requires_2fa:
+        print("Two-factor authentication required.")
+        code = input("Enter the code you received of one of your approved devices: ")
+        result = api.validate_2fa_code(code)
+        print("Code validation result: %s" % result)
+
+        if not result:
+            print("Failed to verify security code")
+            sys.exit(1)
+
+        if not api.is_trusted_session:
+            print("Session is not trusted. Requesting trust...")
+            result = api.trust_session()
+            print("Session trust result %s" % result)
+
+            if not result:
+                print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
+    elif api.requires_2sa:
+        import click
         print("Two-step authentication required. Your trusted devices are:")
 
         devices = api.trusted_devices
         for i, device in enumerate(devices):
-            print("  %s: %s" % (i, device.get('deviceName', "SMS to %s" % device.get('phoneNumber'))))
+            print(
+                "  %s: %s" % (i, device.get('deviceName',
+                                            "SMS to %s" % device.get('phoneNumber')))
+            )
 
         device = click.prompt('Which device would you like to use?', default=0)
         device = devices[device]
@@ -237,9 +261,14 @@ if __name__ == "__main__":
             getMultipleFiles(api, files)
 
         elif args.list:
+            print(api.photos.all)
+            api.files.params['dsid'] = api.data['dsInfo']['dsid']
+            print(api.files.dir())
+
+            """
             for photo in api.photos.albums['WhatsApp']:
                 print(photo, photo.filename)
-
+            """
         elif args.s_images:
             for entries in api.photos.albums['WhatsApp']:
                 file_name, extension = splitext(entries.filename)

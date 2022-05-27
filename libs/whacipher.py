@@ -63,9 +63,10 @@ def encrypt12(db_file, key_file, db_cript, output):
         print("[e] An error has ocurred encrypting '" + db_file + "' - ", e)
 
 
-def decrypt14(db_file, key_file, path):
+def decrypt14(db_file, key_file, path, offset):
     """ Function decrypt Crypt14 Database """
     try:
+        print("Trying offset {}".format(offset))
         if os.path.getsize(key_file) != 158:
             quit('[e] The specified input key file is invalid.')
 
@@ -76,15 +77,17 @@ def decrypt14(db_file, key_file, path):
         with open(db_file, "rb") as fh:
             db_data = fh.read()
 
-        data = db_data[191:]
+        data = db_data[offset:]  #191
         iv = db_data[67:83]
         aes = AES.new(key, mode=AES.MODE_GCM, nonce=iv)
         with open(path, "wb") as fh:
             fh.write(zlib.decompress(aes.decrypt(data)))
         print("[-] " + db_file + " decrypted, '" + path + "' created")
+        return True
 
     except Exception as e:
         print("[e] An error has ocurred decrypting '" + db_file + "' - ", e)
+        return False
 
 
 def decrypt12(db_file, key_file, path):
@@ -144,8 +147,9 @@ if __name__ == "__main__":
                         decrypt12(args.file, args.decrypt, args.output)
 
                     elif ".crypt14" == os.path.splitext(args.file)[1]:
-                        decrypt14(args.file, args.decrypt, args.output)
-
+                        for offset in range(185, 195):
+                            if decrypt14(args.file, args.decrypt, args.output, offset):
+                                break
                 else:
                     print("[e] " + args.decrypt + " doesn't exist")
             else:
@@ -160,7 +164,9 @@ if __name__ == "__main__":
                     for crypt_file in files:
                         if ".crypt14" == os.path.splitext(crypt_file)[1]:
                             output = args.output + os.path.splitext(crypt_file)[0]
-                            decrypt14(dir + crypt_file, args.decrypt, output)
+                            for offset in range(185, 195):
+                                if decrypt14(dir + crypt_file, args.decrypt, output, offset):
+                                    break
 
                         elif ".crypt12" == os.path.splitext(crypt_file)[1]:
                                 output = args.output + os.path.splitext(crypt_file)[0]
