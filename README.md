@@ -153,7 +153,12 @@ Edit only the values of the./cfg/settings.cfg file
 		# You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
 		celnumbr = 
 
-* New Method: Now you will have to login in the browser, this method is not valid for accounts without a phone number or alternative email associated to the account.
+* New Method: Login by Oauth, this method is not valid for accounts without a phone number or alternative email associated to the account.
+* If you request it, log in to your browser and then click here. https://accounts.google.com/b/0/DisplayUnlockCaptcha
+
+
+If you want to use 2FA (Two Factor Authentication), you will have to go to the URL: https://myaccount.google.com/apppasswords Then select Application: Other. Write down: Whapa, and a password will be display, then you must write the password in your settings.cfg.
+(Thanks to YuriCosta)
 
 WHACLOUD
 =====

@@ -39,9 +39,17 @@ class WaBackup:
 
     def __init__(self, gmail, password, android_id, celnumbr, oauth_token):
         if not oauth_token:
-            print("Requesting access to Google by account and password...")
+            print("Requesting access to Google...")
             token = gpsoauth.perform_master_login(email=gmail, password=password, android_id=android_id)
-            if token.get("Url"):
+            if token.get("Error") == "NeedsBrowser":
+                error(token)
+                print("\n")
+                for remaining in range(15, -1, -1):
+                    sys.stdout.write("\r")
+                    sys.stdout.write("{:2d} seconds remaining to try to gain access through a web browser. Press Ctrl+C to cancel".format(remaining))
+                    sys.stdout.flush()
+                    time.sleep(1)
+
                 url = token.get("Url")
                 options = Options()
                 options.add_argument("--window-size=720,720")
@@ -91,6 +99,7 @@ class WaBackup:
                 token = gpsoauth.perform_master_login_oauth(email=gmail, oauth_token=oauth_token, android_id=android_id)
                 if "Token" not in token:
                     error(token)
+                    quit()
                 else:
                     print("Granted.")
                     print("Writing Token in your settings.cfg file...")
@@ -102,6 +111,10 @@ class WaBackup:
             else:
                 if "Token" not in token:
                     error(token)
+                    quit()
+                else:
+                    print("Granted.")
+                    oauth_token = token['Token']
 
         print("Requesting authentication for Google Drive...")
         auth = gpsoauth.perform_oauth(
@@ -114,8 +127,9 @@ class WaBackup:
         )
         if "Auth" not in auth:
             error(auth)
+            quit()
 
-        print("Granted.\n")
+        print("Granted.")
         global Auth, phone
         Auth = auth
         phone = celnumbr
@@ -273,7 +287,7 @@ def backup_info(backup):
 
 
 def error(token):
-    print("Failed\n")
+    print("Failed")
     print(token)
     failed = token.get("Error")
     if "BadAuthentication" in failed:
@@ -303,9 +317,6 @@ def error(token):
         print(
             "1. You are using a GSuite account.  The reason for this is, that for this google-apps account, the enforcement of policies on mobile clients is enabled in admin console (enforce_android_policy).\n"
             "   If you disable this in admin-console, the authentication works.")
-
-    quit()
-
 
 def get_file(passed_file: str, is_dry_run: bool):
     global total_size, num_files

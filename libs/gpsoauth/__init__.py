@@ -8,6 +8,7 @@ from typing import Any, Iterable
 
 import requests
 from urllib3.poolmanager import PoolManager  # type: ignore
+from urllib3.util import ssl_
 
 from . import google
 
@@ -25,7 +26,7 @@ B64_KEY_7_3_29 = (
 ANDROID_KEY_7_3_29 = google.key_from_b64(B64_KEY_7_3_29)
 
 AUTH_URL = "https://android.clients.google.com/auth"
-USER_AGENT = "gpsoauth/" + __version__
+USER_AGENT = "GoogleAuth/1.4"
 
 # Google is very picky about list of used ciphers. Changing this list most likely
 # will cause BadAuthentication error.
@@ -55,21 +56,16 @@ class SSLContext(ssl.SSLContext):
 
 
 class AuthHTTPAdapter(requests.adapters.HTTPAdapter):
-    """HTTPAdapter wrapper."""
-
-    def init_poolmanager(self, *args: Any, **kwargs: Any) -> None:
+    def init_poolmanager(self, *args, **kwargs):
         """
         Secure settings from ssl.create_default_context(), but without
         ssl.OP_NO_TICKET which causes Google to return 403 Bad
         Authentication.
         """
         context = SSLContext()
-        context.set_ciphers(":".join(CIPHERS))
-        context.options |= ssl.OP_NO_COMPRESSION
-        context.options |= ssl.OP_NO_SSLv2
-        context.options |= ssl.OP_NO_SSLv3
-        context.post_handshake_auth = True
+        context.set_ciphers(ssl_.DEFAULT_CIPHERS)
         context.verify_mode = ssl.CERT_REQUIRED
+        context.options &= ~ssl_.OP_NO_TICKET
         self.poolmanager = PoolManager(*args, ssl_context=context, **kwargs)
 
 
@@ -80,8 +76,10 @@ def _perform_auth_request(
     session.mount(AUTH_URL, AuthHTTPAdapter())
     if proxies:
         session.proxies = proxies
+    session.headers={"User-Agent": USER_AGENT, 'Content-type': 'application/x-www-form-urlencoded'}
 
-    res = session.post(AUTH_URL, data, headers={"User-Agent": USER_AGENT})
+    res = session.post(AUTH_URL, data=data, verify=True)
+
     return google.parse_auth_response(res.text)
 
 
@@ -95,13 +93,12 @@ def perform_master_login(
     lang: str = "en",
     sdk_version: int = 17,
     proxy: MutableMapping[str, str] | None = None,
+    client_sig: str = "38918a453d07199354f8b19af05ec6562ced5788",
 ) -> dict[str, str]:
     """
     Perform a master login, which is what Android does when you first add
     a Google account.
-
     Return a dict, eg::
-
         {
             'Auth': '...',
             'Email': 'email@gmail.com',
@@ -133,6 +130,9 @@ def perform_master_login(
         "operatorCountry": operator_country,
         "lang": lang,
         "sdk_version": sdk_version,
+        "client_sig": client_sig,
+        "callerSig": client_sig,
+        "droidguard_results": "dummy123"
     }
 
     return _perform_auth_request(data, proxy)
