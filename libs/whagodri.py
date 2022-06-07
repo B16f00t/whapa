@@ -705,7 +705,7 @@ if __name__ == "__main__":
                         filter_file: dict = {}
                         for file in wa_backup.backup_files(backup):
                             i = os.path.splitext(file["name"])[1]
-                            if "crypt" in i:
+                            if "crypt" in i and "mcrypt" not in i:
                                 filter_file[file["name"]] = int(file["sizeBytes"])
 
                         if args.no_parallel:
