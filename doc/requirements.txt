@@ -9,3 +9,4 @@ webdriver-manager
 selenium-stealth
 ConfigObj
 pycryptodome
+packaging
