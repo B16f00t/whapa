@@ -42,7 +42,7 @@ Installation
 ====
 You can download the latest version of whapa by cloning the GitHub repository:
 
-	git clone https://github.com/B16f00t/whapa.git
+	git clone https://github.com/B16f00t/whapa.git && cd whapa
 then (Linux or macOS):
 
 	pip3 install --upgrade -r ./doc/requirements.txt
