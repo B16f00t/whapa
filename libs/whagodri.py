@@ -336,6 +336,21 @@ def get_file(passed_file: str, is_dry_run: bool):
         print("    [-] Skipped (Dry Run): {}".format(passed_file))
 
     else:
+        if file_short.endswith("mcrypt1"):
+            response: Response = requests.get(
+                "https://backup.googleapis.com/v1/{}".format(passed_file),
+                headers={"Authorization": "Bearer {}".format(Auth["Auth"])}
+            )
+            if response.status_code == 200:
+                encrypted_metadata = json.loads(response.content)["metadata"]
+                os.makedirs(os.path.dirname(passed_file), exist_ok=True)
+                destination: io.BufferedWriter
+                with open(passed_file + "-metadata", 'w') as destination:
+                    destination.write(encrypted_metadata)
+
+            else:
+                pass
+
         response = requests.get(
             "https://backup.googleapis.com/v1/{}?alt=media".format(passed_file),
             headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
@@ -419,7 +434,8 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
     for file_url, file_size in files_dict.items():
         file_name = os.path.sep.join(file_url.split("/")[3:])
         local_file_path = (output_folder + "/" + file_name).replace("/", os.path.sep)
-        if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size:
+        if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size\
+                and os.path.isfile(local_file_path + "-metadata"):
             print("    [-] Number: {}/{} - {} : Already Exists".format(file_index, total_files, local_file_path))
 
         else:
@@ -427,6 +443,28 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
                 print("    [-] Skipped (Dry Run): {}".format(local_file_path))
 
             else:
+                if file_name.endswith("mcrypt1"):
+                    response: Response = requests.get(
+                        "https://backup.googleapis.com/v1/{}".format(file_url),
+                        headers={"Authorization": "Bearer {}".format(Auth["Auth"])}
+                    )
+                    if response.status_code == 200:
+                        encrypted_metadata = json.loads(response.content)["metadata"]
+                        os.makedirs(os.path.dirname(local_file_path), exist_ok=True)
+                        destination: io.BufferedWriter
+                        with open(local_file_path + "-metadata", 'w') as destination:
+                            destination.write(encrypted_metadata)
+                        print("    [-] Number: {}/{} - {} : Download Metadata Success".format(file_index, total_files,
+                                                                                     local_file_path))
+
+                    else:
+                        print(
+                            "    [-] Number: {}/{} - {} : Download  Metadata Failure, Error - {} : {}".format(file_index,
+                                                                                                    total_files,
+                                                                                                    local_file_path,
+                                                                                                    response.status_code,
+                                                                                                    response.reason))
+
                 response: Response = requests.get(
                     "https://backup.googleapis.com/v1/{}?alt=media".format(file_url),
                     headers={"Authorization": "Bearer {}".format(Auth["Auth"])},
@@ -485,30 +523,51 @@ def process_data(thread_name: str, q, is_dry_run: bool):
 def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str,
                               is_dry_run: bool):
     global total_size, num_files
-    if not os.path.isfile(local):
 
-        if is_dry_run:
-            print("    [-] Skipped (Dry Run): {}".format(local))
+    if is_dry_run:
+        print("    [-] Skipped (Dry Run): {}".format(local))
+        return
 
-        else:
+    if local.endswith("mcrypt1"):
+        if not os.path.isfile(local + "-metadata"):
             response: Response = requests.get(
-                "https://backup.googleapis.com/v1/{}?alt=media".format(url),
-                headers={"Authorization": "Bearer {}".format(bearer)},
-                stream=True
+                "https://backup.googleapis.com/v1/{}".format(url),
+                headers={"Authorization": "Bearer {}".format(bearer)}
             )
             if response.status_code == 200:
+                encrypted_metadata = json.loads(response.content)["metadata"]
                 os.makedirs(os.path.dirname(local), exist_ok=True)
                 destination: io.BufferedWriter
-                with open(local, "bw") as destination:
-                    chunk: bytes
-                    for chunk in response.iter_content(chunk_size=None):
-                        destination.write(chunk)
-                print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
-                total_size += size
-                num_files += 1
-
+                with open(local + "-metadata", 'w') as destination:
+                    destination.write(encrypted_metadata)
+                print("    [-] Number: {}/{} - {} => Metadata Downloaded: {}"
+                      .format(now, len_files, thread_name, local))
             else:
-                print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, len_files, thread_name, local))
+                print("    [-] Number: {}/{} - {} => Metadata not Downloaded: {}"
+                      .format(now, len_files, thread_name, local))
+        else:
+            print("    [-] Number: {}/{} - {} => Metadata Skipped: {}".format(now, len_files, thread_name, local))
+
+    if not os.path.isfile(local):
+
+        response: Response = requests.get(
+            "https://backup.googleapis.com/v1/{}?alt=media".format(url),
+            headers={"Authorization": "Bearer {}".format(bearer)},
+            stream=True
+        )
+        if response.status_code == 200:
+            os.makedirs(os.path.dirname(local), exist_ok=True)
+            destination: io.BufferedWriter
+            with open(local, "bw") as destination:
+                chunk: bytes
+                for chunk in response.iter_content(chunk_size=None):
+                    destination.write(chunk)
+            print("    [-] Number: {}/{} - {} => Downloaded: {}".format(now, len_files, thread_name, local))
+            total_size += size
+            num_files += 1
+
+        else:
+            print("    [-] Number: {}/{} - {} => Not downloaded: {}".format(now, len_files, thread_name, local))
     else:
         print("    [-] Number: {}/{} - {} => Skipped: {}".format(now, len_files, thread_name, local))
 
