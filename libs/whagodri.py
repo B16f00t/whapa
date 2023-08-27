@@ -257,31 +257,37 @@ def human_size(size):
 
 def backup_info(backup):
     try:
+        metadata = json.loads(backup["metadata"])
+        print(backup)
         print("[i] Backup name     : {}".format(backup["name"]))
-        print("[-] Whatsapp version: {}".format(json.loads(backup["metadata"]).get("versionOfAppWhenBackup")))
-        print("[-] Backup protected: {}".format(json.loads(backup["metadata"]).get("passwordProtectedBackupEnabled")))
+        print("[-] Whatsapp version: {}".format(metadata.get("versionOfAppWhenBackup")))
+        print("[-] Backup protected: {}".format(metadata.get("encryptedBackupEnabled")))
         print("[-] Backup upload   : {}".format(backup["updateTime"]))
         print("[-] Backup size     : {} Bytes {}".format(backup["sizeBytes"], human_size(int(backup["sizeBytes"]))))
         print("[+] Backup metadata")
-        print("    [-] Backup Frequency         : {} ".format(json.loads(backup["metadata"]).get("backupFrequency")))
-        print("    [-] Backup Network Settings  : {} ".format(json.loads(backup["metadata"]).get("backupNetworkSettings")))
-        print("    [-] Backup Version           : {} ".format(json.loads(backup["metadata"]).get("backupVersion")))
-        print("    [-] Include Videos In Backup : {} ".format(json.loads(backup["metadata"]).get("includeVideosInBackup")))
-        print("    [-] Num Of Photos            : {}".format(json.loads(backup["metadata"]).get("numOfPhotos")))
-        print("    [-] Num Of Media Files       : {}".format(json.loads(backup["metadata"]).get("numOfMediaFiles")))
-        print("    [-] Num Of Messages          : {}".format(json.loads(backup["metadata"]).get("numOfMessages")))
-        print("    [-] Video Size               : {} Bytes {}".format(json.loads(backup["metadata"]).get("videoSize"),
+        print("    [-] Backup Version           : {} ".format(metadata.get("backupVersion")))
+        print("    [-] Chat DB Size             : {} Bytes {}".format(metadata.get("chatdbSize"),
                                                                       human_size(int(
-                                                                          json.loads(backup["metadata"]).get("videoSize")))))
-        print("    [-] Backup Size              : {} Bytes {}".format(json.loads(backup["metadata"]).get("backupSize"),
+                                                                          metadata.get("chatdbSize")))))
+        if metadata.get("encryptedBackupEnabled"):
+            return
+        print("    [-] Backup Frequency         : {} ".format(metadata.get("backupFrequency")))
+        print("    [-] Backup Network Settings  : {} ".format(metadata.get("backupNetworkSettings")))
+
+        print("    [-] Include Videos In Backup : {} ".format(metadata.get("includeVideosInBackup")))
+        print("    [-] Num Of Photos            : {}".format(metadata.get("numOfPhotos")))
+        print("    [-] Num Of Media Files       : {}".format(metadata.get("numOfMediaFiles")))
+        print("    [-] Num Of Messages          : {}".format(metadata.get("numOfMessages")))
+        print("    [-] Video Size               : {} Bytes {}".format(metadata.get("videoSize"),
                                                                       human_size(int(
-                                                                          json.loads(backup["metadata"]).get("backupSize")))))
-        print("    [-] Media Size               : {} Bytes {}".format(json.loads(backup["metadata"]).get("mediaSize"),
+                                                                          metadata.get("videoSize")))))
+        print("    [-] Backup Size              : {} Bytes {}".format(metadata.get("backupSize"),
                                                                       human_size(int(
-                                                                          json.loads(backup["metadata"]).get("mediaSize")))))
-        print("    [-] Chat DB Size             : {} Bytes {}".format(json.loads(backup["metadata"]).get("chatdbSize"),
+                                                                          metadata.get("backupSize")))))
+        print("    [-] Media Size               : {} Bytes {}".format(metadata.get("mediaSize"),
                                                                       human_size(int(
-                                                                          json.loads(backup["metadata"]).get("chatdbSize")))))
+                                                                          metadata.get("mediaSize")))))
+
     except Exception as e:
         print(e)
 
