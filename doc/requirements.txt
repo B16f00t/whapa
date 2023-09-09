@@ -1,4 +1,5 @@
 requests
+hachoir
 colorama
 gpsoauth @ git+https://github.com/simon-weber/gpsoauth@b22c57a
 pyicloud
@@ -10,3 +11,4 @@ selenium-stealth
 ConfigObj
 pycryptodome
 packaging
+
