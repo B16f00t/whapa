@@ -49,7 +49,7 @@ then (Linux or macOS):
 	
 or (Windows):
 	
-	pip install --upgrade -r ./doc/requirements.txt
+	pip install --upgrade -r .\doc\requirements.txt
 
 
 Start
