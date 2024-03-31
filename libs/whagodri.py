@@ -434,8 +434,7 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
     for file_url, file_size in files_dict.items():
         file_name = os.path.sep.join(file_url.split("/")[3:])
         local_file_path = (output_folder + "/" + file_name).replace("/", os.path.sep)
-        if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size\
-                and os.path.isfile(local_file_path + "-metadata"):
+        if os.path.isfile(local_file_path) and os.path.getsize(local_file_path) == file_size:
             print("    [-] Number: {}/{} - {} : Already Exists".format(file_index, total_files, local_file_path))
 
         else:
