@@ -58,6 +58,8 @@ if you use Linux system:
 
 	python3 whapa-gui.py
 
+Note that if you get the error `ModuleNotFoundError: No module named 'tkinter'`, you may want to run `sudo apt install python3-tk`
+
 if you use Windows system:
 	
 	python whapa-gui.py
