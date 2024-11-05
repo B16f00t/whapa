@@ -784,7 +784,8 @@ To export chats on an iOS phone, here are the steps:
             return
 
         if system == "Linux":
-            os.system('xdg-open "{}"'.format(self.path))
+            #os.system('xdg-open "{}"'.format(self.path)) # Unsafe, leads to command injection
+            subprocess.run(["xdg-open", self.path], check=True)
         else:
             os.startfile(self.path)
 
