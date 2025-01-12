@@ -795,14 +795,11 @@ To export chats on an iOS phone, here are the steps:
         messagebox.showinfo("About", title + " v" + version + "\nAuthor: " + author + "\nContact: " + contact)
 
     def system_slash(self, string):
-      import sys
-
-def system_slash(string):
-    """ Change / to \ or vice versa depending on the OS """
-    if sys.platform.startswith("win"):
-        return string.replace("/", "\\")
-    else:
-        return string.replace("\\", "/")
+        """ Change slashes depending on the platform """
+        if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
+            return string.replace("/", "\\")
+        else:
+            return string.replace("\\", "/")
 
     def update(self):
         """ About dialog"""
@@ -1449,11 +1446,9 @@ def system_slash(string):
 
 
 def system_slash(string):
-    """ Change / or \ depend on the OS"""
-
+    """ Change slashes depending on the platform """
     if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
         return string.replace("/", "\\")
-
     else:
         return string.replace("\\", "/")
 
