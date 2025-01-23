@@ -233,6 +233,7 @@ def perform_oauth(
         "operatorCountry": operator_country,
         "lang": lang,
         "sdk_version": sdk_version,
+        "google_play_services_version": 240913000
     }
 
     return _perform_auth_request(data, proxy)
