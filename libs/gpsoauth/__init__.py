@@ -173,7 +173,7 @@ def perform_master_login_oauth(
 
     data: dict[str, int | str | bytes] = {
         "lang": lang,
-        "google_play_services_version": 19629032,
+        "google_play_services_version": 240913000,
         "sdk_version": sdk_version,
         "device_country": device_country,
         "Email": email,
