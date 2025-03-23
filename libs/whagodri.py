@@ -25,7 +25,7 @@ num_files: int
 
 exitFlag = 0
 queueLock = threading.Lock()
-workQueue = queue.Queue(9999999)
+workQueue = queue.Queue(1000)
 abs_path_file = os.path.abspath(__file__)  # C:\Users\Desktop\whapa\libs\whagodri.py
 abs_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa\libs\
 split_path = abs_path.split(os.sep)[:-1]  # ['C:', 'Users', 'Desktop', 'whapa']
@@ -374,51 +374,6 @@ def get_file(passed_file: str, is_dry_run: bool):
             print("    [-] Not downloaded: {}".format(passed_file))
 
 
-def get_multiple_files(drives, files_dict: dict, is_dry_run: bool):
-    global exitFlag
-    exitFlag = 0
-    threadList = ["Thread-01", "Thread-02", "Thread-03", "Thread-04", "Thread-05", "Thread-06", "Thread-07",
-                  "Thread-08", "Thread-09", "Thread-10",
-                  "Thread-11", "Thread-12", "Thread-13", "Thread-14", "Thread-15", "Thread-16", "Thread-17",
-                  "Thread-18", "Thread-19", "Thread-20",
-                  "Thread-21", "Thread-22", "Thread-23", "Thread-24", "Thread-25", "Thread-26", "Thread-27",
-                  "Thread-28", "Thread-29", "Thread-30",
-                  "Thread-31", "Thread-32", "Thread-33", "Thread-34", "Thread-35", "Thread-36", "Thread-37",
-                  "Thread-38", "Thread-39", "Thread-40"]
-    threads = []
-    threadID = 1
-    print("[i] Generating threads...")
-    print("[+] Backup name : {}".format(drives["name"]))
-    for tName in threadList:
-        thread = MyThread(threadID, tName, workQueue, is_dry_run=is_dry_run)
-        thread.start()
-        threads.append(thread)
-        threadID += 1
-
-    n = 1
-    lenfiles = len(files_dict)
-    queueLock.acquire()
-
-    output_folder = args.output
-    if not output_folder:
-        output_folder = os.getcwd()
-
-    for entry, size in files_dict.items():
-        file_name = os.path.sep.join(entry.split("/")[3:])
-        local_store = (output_folder + "/" + file_name).replace("/", os.path.sep)
-        workQueue.put(
-            {'bearer': Auth["Auth"], 'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
-        n += 1
-
-    queueLock.release()
-    while not workQueue.empty():
-        pass
-
-    exitFlag = 1
-    for t in threads:
-        t.join()
-
-
 def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
     file_index: int = 1
     total_files: int = len(files_dict)
@@ -492,34 +447,76 @@ def get_multiple_files_with_out_threads(files_dict: dict, is_dry_run: bool):
         file_index += 1
 
 
+def get_multiple_files(drives, files_dict: dict, thread_count: int, is_dry_run: bool):
+    print("Thread-Main started")
+    try:
+        threadList = [ "Thread-{:02d}".format(i+1) for i in range(thread_count) ]
+        threads = []
+        threadID = 1
+        print("[i] Generating threads...")
+        print("[+] Backup name : {}".format(drives["name"]))
+        for tName in threadList:
+            thread = MyThread(threadID, tName, workQueue, is_dry_run=is_dry_run)
+            thread.start()
+            threads.append(thread)
+            threadID += 1
+
+        n = 1
+        lenfiles = len(files_dict)
+        
+        output_folder = args.output
+        if not output_folder:
+            output_folder = os.getcwd()
+
+        for entry, size in files_dict.items():
+            file_name = os.path.sep.join(entry.split("/")[3:])
+            local_store = (output_folder + "/" + file_name).replace("/", os.path.sep)
+            workQueue.put({'url': entry, 'local': local_store, 'now': n, 'lenfiles': lenfiles, 'size': size})
+            n += 1
+        
+        workQueue.shutdown()
+        
+        for t in threads:
+            t.join()
+
+    except KeyboardInterrupt:
+        workQueue.shutdown(immediate=True)
+    except queue.ShutDown:
+        print("Thread-Main received Queue Shutdown")
+    finally:
+        print("Thread-Main finished")
+
+
 class MyThread(threading.Thread):
-    def __init__(self, thread_id, name, q, is_dry_run: bool):
+    def __init__(self, thread_id: str, name: str, q: queue.Queue, is_dry_run: bool):
         threading.Thread.__init__(self)
         self.threadID = thread_id
         self.name = name
         self.q = q
         self.is_dry_run = is_dry_run
+        self.session = requests.Session()
+        self.session.headers.update({"Authorization": "Bearer {}".format(Auth["Auth"])})
 
     def run(self):
-        process_data(self.name, self.q, self.is_dry_run)
+        print("{} started".format(self.name))
+        try:
+            process_data(self.name, self.q, self.session, self.is_dry_run)
+        except requests.exceptions.SSLError:
+            workQueue.shutdown(immediate=True)
+        except queue.ShutDown:
+            print("{} received Queue shutdown".format(self.name))
+        finally:
+            print("{} finished".format(self.name))
 
 
-def process_data(thread_name: str, q, is_dry_run: bool):
-    while not exitFlag:
-        queueLock.acquire()
-        if not workQueue.empty():
-            data = q.get()
-            queueLock.release()
-            get_multiple_files_thread(data['bearer'], data['url'], data['local'], data['now'], data['lenfiles'],
-                                      data['size'], thread_name, is_dry_run=is_dry_run)
-            time.sleep(1)
-
-        else:
-            queueLock.release()
-            time.sleep(1)
+def process_data(thread_name: str, q: queue.Queue, session: requests.Session, is_dry_run: bool):
+    while True:
+        data = q.get()
+        get_multiple_files_thread(data['url'], data['local'], data['now'], data['lenfiles'],
+                                data['size'], thread_name, session, is_dry_run=is_dry_run)
 
 
-def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_files: int, size: int, thread_name: str,
+def get_multiple_files_thread(url: str, local: str, now: int, len_files: int, size: int, thread_name: str, session: requests.Session,
                               is_dry_run: bool):
     global total_size, num_files
 
@@ -529,9 +526,8 @@ def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_f
 
     if local.endswith("mcrypt1"):
         if not os.path.isfile(local + "-metadata"):
-            response: Response = requests.get(
-                "https://backup.googleapis.com/v1/{}".format(url),
-                headers={"Authorization": "Bearer {}".format(bearer)}
+            response: Response = session.get(
+                "https://backup.googleapis.com/v1/{}".format(url)
             )
             if response.status_code == 200:
                 encrypted_metadata = json.loads(response.content)["metadata"]
@@ -547,11 +543,9 @@ def get_multiple_files_thread(bearer: str, url: str, local: str, now: int, len_f
         else:
             print("    [-] Number: {}/{} - {} => Metadata Skipped: {}".format(now, len_files, thread_name, local))
 
-    if not os.path.isfile(local):
-
-        response: Response = requests.get(
+    if not os.path.isfile(local) or os.path.getsize(local) != size:
+        response: Response = session.get(
             "https://backup.googleapis.com/v1/{}?alt=media".format(url),
-            headers={"Authorization": "Bearer {}".format(bearer)},
             stream=True
         )
         if response.status_code == 200:
@@ -602,6 +596,7 @@ if __name__ == "__main__":
     user_parser.add_argument("-sd", "--s_databases", help="Sync Databases files locally", action="store_true")
     parser.add_argument("-o", "--output", help="Output path to save files", type=str)
     parser.add_argument("-np", "--no_parallel", help="No parallel downloads", action="store_true")
+    parser.add_argument("-tc", "--thread_count", help="Number of threads if parallel download", type=int, default=12)
     parser.add_argument("-dr", "--dry_run", help="Dry Run : No downloads", action="store_true")
     args = parser.parse_args()
 
@@ -659,7 +654,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -683,7 +678,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -706,7 +701,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -729,7 +724,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -752,7 +747,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
@@ -775,7 +770,7 @@ if __name__ == "__main__":
                         if args.no_parallel:
                             get_multiple_files_with_out_threads(filter_file, is_dry_run=args.dry_run)
                         else:
-                            get_multiple_files(backup, filter_file, is_dry_run=args.dry_run)
+                            get_multiple_files(backup, filter_file, thread_count=args.thread_count, is_dry_run=args.dry_run)
 
                         print("\n[i] {} files downloaded, total size {} Bytes {}".format(num_files, total_size,
                                                                                          human_size(total_size)))
