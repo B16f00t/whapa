@@ -3,8 +3,8 @@
 
 from colorama import init, Fore
 from configparser import ConfigParser
+from pathlib import Path
 import html
-import distutils.dir_util
 import argparse
 import sqlite3
 import time
@@ -555,7 +555,7 @@ def reply(id, local):
                     ans = (str(rep[0]).split('@'))[0] + gets_name(rep[0])
         elif str(rep[0]) == "status@broadcast":
             if os.path.isfile(local + "Media/.Statuses") is False:
-                distutils.dir_util.mkpath(local + "Media/.Statuses")
+                Path(local + "Media/.Statuses").mkdir(parents=True)
                 if int(rep[1]) == 1:  # I post a Status
                     if report_var == 'EN':
                         reply_msj = "<font color=\"#FF0000\" > Me </font>"
@@ -605,7 +605,7 @@ def reply(id, local):
                     thumb = local + thumb[2:]
 
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath(local + "Media/WhatsApp Images")
+                    Path(local + "Media/WhatsApp Images").mkdir(parents=True)
                     if rep[19]:  # raw_data exists
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -652,7 +652,7 @@ def reply(id, local):
                         thumb = local + thumb[2:]
 
                     if os.path.isfile(thumb) is False:
-                        distutils.dir_util.mkpath(local + "Media/WhatsApp Video")
+                        Path(local + "Media/WhatsApp Video").mkdir(parents=True)
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
             if rep[11]:  # media_caption
@@ -723,7 +723,7 @@ def reply(id, local):
                     thumb = local + thumb[2:]
 
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath(local + "Media/WhatsApp Documents")
+                    Path(local + "Media/WhatsApp Documents").mkdir(Parents=True)
                     if rep[19]:  # raw_data exists
                         with open(thumb +"jpg", 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -775,7 +775,7 @@ def reply(id, local):
                     thumb = local + thumb[2:]
 
                 if os.path.isfile(thumb) is False:
-                    distutils.dir_util.mkpath(local + "Media/WhatsApp Animated Gifs")
+                    Path(local + "Media/WhatsApp Animated Gifs").mkdir(parents=True)
                     if rep[19]:  # raw_data exists
                         with open(thumb, 'wb') as profile_file:
                             profile_file.write(rep[19])
@@ -962,7 +962,7 @@ def messages(consult, rows, report_html, local):
                         # Status
                         if str(data[0]) == "status@broadcast":
                             if os.path.isfile(local + "Media/.Statuses") is False:
-                                distutils.dir_util.mkpath(local + "Media/.Statuses")
+                                Path(local + "Media/.Statuses").mkdir(parents=True)
                             if int(data[1]) == 1:  # I post a Status
                                 if report_var == 'EN':
                                     report_name = "Me"
@@ -1043,7 +1043,7 @@ def messages(consult, rows, report_html, local):
                                 if data[17]:
                                     file_created = local + "Media/WhatsApp Profile Pictures/" + (data[0].split('@'))[0] + "-" + str(data[2]) + ".jpg"
                                     if os.path.isfile(file_created) is False:
-                                        distutils.dir_util.mkpath(local + "Media/WhatsApp Profile Pictures")
+                                        Path(local + "Media/WhatsApp Profile Pictures").mkdir(parents=True)
                                         thumb = data[17].split(b'\xFF\xD8\xFF\xE0')[1]
                                         with open(file_created, 'wb') as profile_file:
                                             profile_file.write(b'\xFF\xD8\xFF\xE0' + thumb)
@@ -1280,7 +1280,7 @@ def messages(consult, rows, report_html, local):
                             thumb = local + thumb[2:]
 
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath(local + "Media/WhatsApp Images/Sent")
+                            Path(local + "Media/WhatsApp Images/Sent").mkdir(parents=True)
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = local + "Media/WhatsApp Images/Sent/IMG-" + str(data[2]) + "-NotDownloaded.jpg"
@@ -1348,7 +1348,7 @@ def messages(consult, rows, report_html, local):
                             thumb = local + thumb[2:]
 
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath(local + "Media/WhatsApp Video/Sent")
+                            Path(local + "Media/WhatsApp Video/Sent").mkdir(parents=True)
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = local + "Media/WhatsApp Video/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
@@ -1447,7 +1447,7 @@ def messages(consult, rows, report_html, local):
                             thumb = local + thumb[2:]
 
                         if os.path.isfile(thumb + ".jpg") is False:
-                            distutils.dir_util.mkpath(local + "Media/WhatsApp Documents/Sent")
+                            Path(local + "Media/WhatsApp Documents/Sent").mkdir(parents=True)
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = local + "Media/WhatsApp Documents/Sent/DOC-" + str(data[2]) + "-NotDownloaded"
@@ -1516,7 +1516,7 @@ def messages(consult, rows, report_html, local):
                             thumb = local + thumb[2:]
 
                         if os.path.isfile(thumb) is False:
-                            distutils.dir_util.mkpath(local + "Media/WhatsApp Animated Gifs/Sent")
+                            Path(local + "Media/WhatsApp Animated Gifs/Sent").mkdir(parents=True)
                             if thumb == "Not downloaded":
                                 if int(data[1]) == 1:
                                     thumb = local + "Media/WhatsApp Animated Gifs/Sent/VID-" + str(data[2]) + "-NotDownloaded.mp4"
@@ -1853,7 +1853,7 @@ def extract(obj, total, local):
                 thumb = local + thumb[2:]
 
             if os.path.isfile(thumb) is False:
-                distutils.dir_util.mkpath(local + "thumbnails")
+                Path(local + "thumbnails").mkdir(parents=True)
 
             if thumb == "Not downloaded":
                 epoch = time.strftime("%Y%m%d", time.localtime((int(data[4]) / 1000)))
