@@ -50,7 +50,7 @@ class ToolTip(object):
 
         # Leaves only the label and removes the app window
         self.tw.wm_overrideredirect(True)
-        self.tw.wm_geometry("+%d+%d" % (x, y))
+        self.tw.wm_geometry(f"+{x}+{y}")
         label = Label(self.tw, text=self.text, justify='left', background='yellow', relief='solid', borderwidth=1, font=("times", "8", "normal"))
         label.pack(ipadx=1)
 
@@ -807,7 +807,8 @@ To export chats on an iOS phone, here are the steps:
         if system == "Linux":
             try:
                 exec = self.system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
-            except:
+            except Exception as e:
+                print(f"Warning: python3 not found, trying python: {e}")
                 exec = self.system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
 
         else:
@@ -1088,8 +1089,8 @@ To export chats on an iOS phone, here are the steps:
                     self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "/msgstore.db"))
                 else:
                     self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + r"\msgstore.db"))
-            except:
-                pass
+            except Exception as e:
+                print(f"Warning: Could not set default output path: {e}")
 
         elif self.whacipher_box_value.get() == "Path":
             self.entry_whacipher_file.config(state=DISABLED)
@@ -1102,8 +1103,8 @@ To export chats on an iOS phone, here are the steps:
                     self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "/"))
                 else:
                     self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "\\"))
-            except:
-                pass
+            except Exception as e:
+                print(f"Warning: Could not set default output path: {e}")
 
     def checkNumberOnly(self, action, value_if_allowed):
         """Check that only numbers are entered"""

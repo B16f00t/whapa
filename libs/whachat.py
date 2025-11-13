@@ -8,6 +8,7 @@ import html
 import argparse
 import time
 import sys
+from tqdm import tqdm
 import os
 import re
 import shutil
@@ -62,8 +63,8 @@ def report(obj, html, local):
         shutil.copy("./images/app_icon.png", local + "cfg/app_icon.png")
         shutil.copy("./images/pdf_icon.png", local + "cfg/pdf_icon.png")
         shutil.copy("./images/vcard_icon.png", local + "cfg/vcard_icon.png")
-    except:
-        pass
+    except OSError as e:
+        print(f"Warning: Could not copy configuration files: {e}")
 
     if report_var == 'EN':
         rep_ini = """<!DOCTYPE html>
@@ -293,7 +294,7 @@ def getDataPointiOS(line):
     dateTime = splitLine[0].replace("[", "")  # dateTime = '25/8/20, 10:02:14'
     try:
         date, time = dateTime.split(', ')  # date = '25/8/20'; time = '10:02:14' # English mobile
-    except:
+    except ValueError:
         date, time = dateTime.split(' ')  # date = '25/8/20'; time = '10:02:14' # Spanish mobile
 
     message = ' '.join(splitLine[1:])  # message = 'Jordi Subinspector Tecnologicos: Por qué no vieron los maniquiey'
@@ -312,7 +313,7 @@ def getDataPointAndroid(line):
     dateTime = splitLine[0]  # dateTime = '23/5/18 15:24'                       / 24.07.21, 10:15
     try:
         date, time = dateTime.split(', ')  # date = '23/5/18'; time = '15:24' #  Unknow mobile
-    except:
+    except ValueError:
         date, time = dateTime.split(' ')  # date = '23/5/18'; time = '15:24' # English mobile
 
     message = ' '.join(splitLine[1:])  # message = 'Sergio F: No se tío no le preguntao al final'
@@ -421,7 +422,7 @@ def getAttachediOS(message):
         if (report_var == 'EN') or (report_var == 'ES'):
             try:
                 message = "<br> " + message.split('Location:')[1] + "</br><iframe width='300' height='150' id='gmap_canvas' src='https://maps.google.com/maps?q={}%2C{}&t=&z=15&ie=UTF8&iwloc=&output=embed' frameborder='0' scrolling='no' marginheight='0' marginwidth='0'></iframe>".format(lon, lat)
-            except:
+            except (ValueError, IndexError):
                 message = "<br> " + message.split('Ubicación:')[1] + "</br><iframe width='300' height='150' id='gmap_canvas' src='https://maps.google.com/maps?q={}%2C{}&t=&z=15&ie=UTF8&iwloc=&output=embed' frameborder='0' scrolling='no' marginheight='0' marginwidth='0'></iframe>".format(lon, lat)
 
         return message
@@ -481,7 +482,7 @@ def getAttachedAndroid(message):
         if (report_var == 'EN') or (report_var == 'ES'):
             try:
                 message = "<br> " + message.split('location')[1] + "</br><iframe width='300' height='150' id='gmap_canvas' src='https://maps.google.com/maps?q={}%2C{}&t=&z=15&ie=UTF8&iwloc=&output=embed' frameborder='0' scrolling='no' marginheight='0' marginwidth='0'></iframe>".format(lon, lat)
-            except:
+            except (ValueError, IndexError):
                 message = "<br> " + message.split('ubicación')[1] + "</br><iframe width='300' height='150' id='gmap_canvas' src='https://maps.google.com/maps?q={}%2C{}&t=&z=15&ie=UTF8&iwloc=&output=embed' frameborder='0' scrolling='no' marginheight='0' marginwidth='0'></iframe>".format(lon, lat)
 
         return message
@@ -494,13 +495,11 @@ def messages(data, user, recipient, report_html, local, time_start, time_end, ti
 
     rep_med = ""  # Saves the complete chat
     rows = len(data.index)
-    for i in data.index:
+    for i in tqdm(data.index, desc="Processing messages", unit="msg"):
         try:
             report_msj = ""  # Saves each message
             report_name = ""  # Saves the chat sender
             message = ""  # Saves each msg
-            sys.stdout.write("\rMessage {}/{}".format(str(i+1), str(rows)))
-            sys.stdout.flush()
             # transform chat time in epoch local time
             time_parse = str(data['Date'][i]) + " " + str(data['Time'][i])
             utc_time = time.strptime(time_parse, timeformat)

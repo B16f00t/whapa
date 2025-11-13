@@ -1,5 +1,5 @@
 from pyicloud import PyiCloudService
-from configparser import ConfigParser
+import configparser
 from os.path import splitext
 import sys
 import queue as queue
@@ -128,7 +128,7 @@ def getMultipleFiles(api, files):
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name, q):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.threadID = threadID
         self.name = name
         self.q = q
@@ -173,7 +173,7 @@ def login():
         print("Two-factor authentication required.")
         code = input("Enter the code you received of one of your approved devices: ")
         result = api.validate_2fa_code(code)
-        print("Code validation result: %s" % result)
+        print(f"Code validation result: {result}")
 
         if not result:
             print("Failed to verify security code")
@@ -182,7 +182,7 @@ def login():
         if not api.is_trusted_session:
             print("Session is not trusted. Requesting trust...")
             result = api.trust_session()
-            print("Session trust result %s" % result)
+            print(f"Session trust result {result}")
 
             if not result:
                 print("Failed to request trust. You will likely be prompted for the code again in the coming weeks")
@@ -192,10 +192,8 @@ def login():
 
         devices = api.trusted_devices
         for i, device in enumerate(devices):
-            print(
-                "  %s: %s" % (i, device.get('deviceName',
-                                            "SMS to %s" % device.get('phoneNumber')))
-            )
+            device_name = device.get('deviceName', f"SMS to {device.get('phoneNumber')}")
+            print(f"  {i}: {device_name}")
 
         device = click.prompt('Which device would you like to use?', default=0)
         device = devices[device]
@@ -217,7 +215,7 @@ def login():
 
 def getConfigs():
     global icloud, passw
-    config = ConfigParser(interpolation=None)
+    config = configparser.ConfigParser(interpolation=None)
     cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
 
     try:
@@ -225,7 +223,7 @@ def getConfigs():
         icloud = config.get('icloud-auth', 'icloud')
         passw = config.get('icloud-auth', 'passw')
 
-    except(ConfigParser.NoSectionError, ConfigParser.NoOptionError):
+    except (configparser.NoSectionError, configparser.NoOptionError):
         quit('The "{}" file is missing or corrupt!'.format(cfg_file))
 
 

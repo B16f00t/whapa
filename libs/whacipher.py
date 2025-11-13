@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-from Crypto.Cipher import AES
+from Cryptodome.Cipher import AES
 import argparse
 import zlib
 import sys

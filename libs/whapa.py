@@ -12,6 +12,7 @@ import sys
 import os
 import shutil
 import random
+from tqdm import tqdm
 
 # Define global variable
 arg_user = ""
@@ -878,13 +879,11 @@ def messages(consult, rows, report_html, local):
             print(Fore.RED + "Participants" + Fore.RESET)
             print(report_group)
 
-        for data in consult:
+        for data in tqdm(consult, total=rows, desc="Processing messages", unit="msg"):
             try:
                 report_msj = ""   # Saves each message
                 report_name = ""  # Saves the chat sender
                 message = ""      # Saves each msg
-                sys.stdout.write("\rMessage {}/{} - ID {}".format(str(n_mes+1), str(rows), str(data[23])))
-                sys.stdout.flush()
 
                 if int(data[8]) != -1:   # media_wa_type -1 "Start DB"
                     # Groups
@@ -1656,8 +1655,8 @@ def messages(consult, rows, report_html, local):
                 shutil.copy("./cfg/logo.png", local + "cfg/logo.png")
                 shutil.copy("./images/background.png", local + "cfg/background.png")
                 shutil.copy("./images/background-index.png", local + "cfg/background-index.png")
-            except:
-                pass
+            except OSError as e:
+                print(f"Warning: Could not copy configuration files: {e}")
 
     except Exception as e:
         print("\nAn error occurred connecting to the database", e)
@@ -1791,8 +1790,8 @@ def info(opt, local):
                 shutil.copy("./cfg/logo.png", local + "cfg/logo.png")
                 shutil.copy("./images/background.png", local + "cfg/background.png")
                 shutil.copy("./images/background-index.png", local + "cfg/background-index.png")
-            except:
-                pass
+            except OSError as e:
+                print(f"Warning: Could not copy configuration files: {e}")
 
         print("\n[i] Finished")
 
@@ -1837,8 +1836,7 @@ def get_configs():
 def extract(obj, total, local):
     """ Functions that extracts thumbnails"""
 
-    i = 1
-    for data in obj:
+    for data in tqdm(obj, total=total, desc="Extracting thumbnails", unit="thumb"):
         try:
             chain = str(data[2]).split('w\\x02')[0]
             a = chain.rfind("Media/")
@@ -1870,11 +1868,8 @@ def extract(obj, total, local):
                 else:
                     profile_file.write(b"")
 
-            sys.stdout.write("\rExtracting thumbnail " + str(i) + " / " + str(total))
-            sys.stdout.flush()
-            i += 1
         except Exception as e:
-            print("\nError extracting: {}, Message ID {}".format(e, str(data[8])))
+            print(f"\nError extracting: {e}, Message ID {data[8]}")
 
     print("\n")
     print("Extraction Complete. Thumbnails save in './thumbnails' path")

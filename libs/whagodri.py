@@ -13,6 +13,7 @@ from configobj import ConfigObj
 from getpass import getpass
 from textwrap import dedent
 from requests import Response
+from tqdm import tqdm
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
@@ -44,11 +45,10 @@ class WaBackup:
             if token.get("Error") == "NeedsBrowser":
                 error(token)
                 print("\n")
-                for remaining in range(15, -1, -1):
-                    sys.stdout.write("\r")
-                    sys.stdout.write("{:2d} seconds remaining to try to gain access through a web browser. Press Ctrl+C to cancel".format(remaining))
-                    sys.stdout.flush()
-                    time.sleep(1)
+                with tqdm(total=16, desc="Waiting to access browser", unit="sec", bar_format='{desc}: {n}/{total} seconds') as pbar:
+                    for remaining in range(16):
+                        time.sleep(1)
+                        pbar.update(1)
 
                 url = token.get("Url")
                 options = Options()
@@ -63,7 +63,8 @@ class WaBackup:
                         driver = webdriver.Chrome(service=Service("chromedriverMac"), options=options)
                     else:
                         driver = webdriver.Chrome(service=Service("chromedriver"), options=options)
-                except:
+                except Exception as e:
+                    print(f"Warning: Using ChromeDriverManager due to: {e}")
                     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
 
                 stealth(driver,
@@ -76,13 +77,12 @@ class WaBackup:
                         )
 
                 driver.get(url)
-                for remaining in range(30, -1, -1):
-                    sys.stdout.write("\r")
-                    sys.stdout.write("{:2d} seconds remaining to login to your Google Account".format(remaining))
-                    sys.stdout.flush()
-                    time.sleep(1)
+                with tqdm(total=31, desc="Login to Google Account", unit="sec", bar_format='{desc}: {n}/{total} seconds') as pbar:
+                    for remaining in range(31):
+                        time.sleep(1)
+                        pbar.update(1)
 
-                sys.stdout.write("\nFinished!\n")
+                print("\nFinished!")
                 cookies = driver.get_cookies()
                 for cookie in cookies:
                     if cookie.get("name") == 'oauth_token':
@@ -489,7 +489,7 @@ def get_multiple_files(drives, files_dict: dict, thread_count: int, is_dry_run: 
 
 class MyThread(threading.Thread):
     def __init__(self, thread_id: str, name: str, q: queue.Queue, is_dry_run: bool):
-        threading.Thread.__init__(self)
+        super().__init__()
         self.threadID = thread_id
         self.name = name
         self.q = q

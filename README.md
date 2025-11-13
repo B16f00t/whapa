@@ -4,11 +4,11 @@
 
 Whatsapp Parser Toolset
 ====
-Updated: May 2022
+Updated: November 2025
 
 WhatsApp Messenger Version 2.21.9.14
 
-Whapa is a set of graphical forensic tools to analyze whatsapp from Android and soon iOS devices. All the tools have been written in Python 3.8 and have been tested on linux, windows and macOS systems.
+Whapa is a set of graphical forensic tools to analyze whatsapp from Android and soon iOS devices. All the tools have been written in Python 3.10+ and have been tested on linux, windows and macOS systems.
 
 Note: Whapa provides 10x more performance and fewer bugs on linux systems than on windows. 
 
@@ -40,16 +40,20 @@ https://github.com/B16f00t/whapa/blob/master/doc/CHANGELOG.md
 
 Installation
 ====
+**Requirements:** Python 3.10 or higher
+
 You can download the latest version of whapa by cloning the GitHub repository:
 
 	git clone https://github.com/B16f00t/whapa.git && cd whapa
 then (Linux or macOS):
 
 	pip3 install --upgrade -r ./doc/requirements.txt
-	
+
 or (Windows):
-	
+
 	pip install --upgrade -r .\doc\requirements.txt
+
+**Note:** This project requires Python 3.10+. If you're using an older version of Python, please upgrade before installing.
 
 
 Start
