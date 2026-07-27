@@ -1,12 +1,31 @@
-requests
+# WhaPa 2.00 - requiere Python 3.11 o superior
+#
+# Instalacion completa:
+#     pip3 install --upgrade -r doc/requirements.txt      (Linux / macOS)
+#     pip  install --upgrade -r doc\requirements.txt      (Windows)
+#
+# O desde la interfaz grafica: boton "Instalar dependencias".
+
+# --- Nucleo: whapa.py y whacipher.py (imprescindible) ---
+pycryptodome
 colorama
-gpsoauth @ git+https://github.com/simon-weber/gpsoauth@b22c57a
-pyicloud
-pandas
-numpy
+
+# --- Interfaz grafica: whapa-gui.py ---
+customtkinter
+
+# --- Google Drive: whagodri.py ---
+requests
+pycryptodomex
 selenium
 webdriver-manager
 selenium-stealth
-ConfigObj
-pycryptodome
 packaging
+
+# --- iCloud: whacloud.py ---
+pyicloud
+click
+
+# --- Fusion de bases y chats exportados: whamerge.py, whachat.py ---
+pandas
+numpy
+ConfigObj
