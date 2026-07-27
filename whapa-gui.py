@@ -1,1540 +1,1125 @@
+#!/usr/bin/python3
+# -*- coding: utf-8 -*-
+"""
+whapa-gui.py - Interfaz grafica de WhaPa (CustomTkinter)
+
+COMETIDO DE ESTE ARCHIVO
+    Ser un lanzador de las herramientas de libs/, no una reimplementacion de
+    ellas. Cada pestana corresponde a un archivo y compone sus argumentos:
+
+        WhaPa      -> libs/whapa.py      analisis de la base de datos
+        WhaCipher  -> libs/whacipher.py  descifrado y cifrado
+        WhaMerge   -> libs/whamerge.py   fusion de bases
+        WhaGoDri   -> libs/whagodri.py   descarga desde Google Drive
+        WhaChat    -> libs/whachat.py    analisis de chats exportados
+        WhaCloud   -> libs/whacloud.py   descarga desde iCloud
+
+QUE CAMBIA RESPECTO A LA VERSION ANTERIOR
+    * Reescrita con CustomTkinter (tema oscuro), compatible con Python 3.11+.
+    * Las ordenes se lanzan con subprocess y una LISTA de argumentos, no con
+      os.system() sobre una cadena montada a mano: aquello permitia inyeccion
+      de ordenes a traves de los nombres de archivo.
+    * La ejecucion corre en un hilo aparte y la salida se vuelca en directo en
+      el panel inferior, de modo que la ventana no se congela.
+    * Todo acceso a los widgets ocurre en el hilo principal (Tkinter no es
+      seguro entre hilos); el hilo de trabajo solo escribe en una cola.
+
+Requisitos:  pip install customtkinter
+
+** Author: Ivan Moreno a.k.a B16f00t
+** Github: https://github.com/B16f00t
+"""
+
 import os
-import time
-import re
 import sys
+import queue
+import shlex
+import threading
 import subprocess
 import webbrowser
-from textwrap import dedent
-from tkinter import *
-from tkinter import ttk
-from tkinter import messagebox
-from tkinter import filedialog
+from configparser import ConfigParser
 
 try:
-    import requests
-except ModuleNotFoundError:
-    print("You need requests module to run this script")
-    print("Use this: python -m pip install requests")
-    print("Or: pip install requests")
-    exit(1)
-
-
-
-""" Global vars"""
-author = 'B16f00t'
-title = 'WhatsApp Parser Toolset'
-contact = "https://t.me/bigfoot_whapa"
-version = '1.59'
-system = ""
-abs_path_file = os.path.abspath(__file__)     # C:\Users\Desktop\whapa\whapa-gui.py
-whapa_path = os.path.split(abs_path_file)[0]  # C:\Users\Desktop\whapa
-
-
-class ToolTip(object):
-    """ Create a tooltip for a given widget """
-
-    def __init__(self, widget, text='widget info'):
-        self.widget = widget
-        self.text = text
-        self.widget.bind("<Enter>", self.enter)
-        self.widget.bind("<Leave>", self.close)
-
-    def enter(self, event=None):
-        x = y = 0
-        x, y, cx, cy = self.widget.bbox("insert")
-        x += self.widget.winfo_rootx() + 25
-        y += self.widget.winfo_rooty() + 20
-
-        # creates a toplevel window
-        self.tw = Toplevel(self.widget)
-
-        # Leaves only the label and removes the app window
-        self.tw.wm_overrideredirect(True)
-        self.tw.wm_geometry("+%d+%d" % (x, y))
-        label = Label(self.tw, text=self.text, justify='left', background='yellow', relief='solid', borderwidth=1, font=("times", "8", "normal"))
-        label.pack(ipadx=1)
-
-    def close(self, event=None):
-        if self.tw:
-            self.tw.destroy()
-
-
-class Whapa:
-    """Menu Class"""
-
-    def __init__(self, img_folder, icons):
-        """ Defines windows, menu, submenus, shortcuts"""
-        self.img_folder = img_folder
-        self.icons = icons
-        self.root = Tk()
-        self.iconlogo = PhotoImage(file=self.icons[0])
-        self.iconbg = PhotoImage(file=self.icons[1])
-        self.iconabout = PhotoImage(file=self.icons[2])
-        self.iconsetting = PhotoImage(file=self.icons[3])
-        self.iconexit = PhotoImage(file=self.icons[4])
-        self.iconsearh = PhotoImage(file=self.icons[5])
-        self.iconmanual = PhotoImage(file=self.icons[6])
-        self.iconreport = PhotoImage(file=self.icons[7])
-        self.iconfile = PhotoImage(file=self.icons[8])
-        self.icontabwhapa = PhotoImage(file=self.icons[9])
-        self.icontabdrive = PhotoImage(file=self.icons[10])
-        self.icontabcipher = PhotoImage(file=self.icons[11])
-        self.icontabmerge = PhotoImage(file=self.icons[12])
-        self.iconinfowhagodri = PhotoImage(file=self.icons[13])
-        self.icondownwhagodri = PhotoImage(file=self.icons[14])
-        self.iconmerge = PhotoImage(file=self.icons[15])
-        self.icondecrypt = PhotoImage(file=self.icons[16])
-        self.iconencrypt = PhotoImage(file=self.icons[17])
-        self.icones = PhotoImage(file=self.icons[18])
-        self.iconen = PhotoImage(file=self.icons[19])
-        self.iconparser = PhotoImage(file=self.icons[20])
-        self.iconone = PhotoImage(file=self.icons[21])
-        self.iconextract = PhotoImage(file=self.icons[22])
-        self.iconcall = PhotoImage(file=self.icons[23])
-        self.iconstatus = PhotoImage(file=self.icons[24])
-        self.iconrequire = PhotoImage(file=self.icons[25])
-        self.iconupdate = PhotoImage(file=self.icons[26])
-        self.iconcarving = PhotoImage(file=self.icons[27])
-        self.icontabwhacloud = PhotoImage(file=self.icons[28])
-        self.icontabwhachat = PhotoImage(file=self.icons[29])
-        self.iconandroid = PhotoImage(file=self.icons[30])
-        self.iconios = PhotoImage(file=self.icons[31])
-
-
-        # Menu Windows Property
-        self.root.title(title + " v" + version)
-        self.root.iconphoto(self.root, self.iconlogo)
-        self.root.option_add("*Font", "Helvetica 10")
-        self.root.option_add('*tearOff', False)
-        self.root.geometry('930x640+' + str(int((self.root.winfo_screenwidth()/2) - (975/2))) + '+' + str(int(self.root.winfo_screenheight()/2 - (810/2))))
-        self.root.resizable(0, 0)
-        self.root.grid_rowconfigure(1, weight=1)
-        self.root.grid_columnconfigure(0, weight=1)
-
-
-        # Variables
-        """ Function that gets report config"""
-        self.wagodri_box_value = StringVar()
-        self.whacipher_box_value = StringVar()
-        self.wacloud_box_value = StringVar()
-        self.label_status = StringVar()
-        self.whapa_box_value = StringVar()
-        self.whapa_user = StringVar()
-        self.whapa_box_filter = StringVar()
-        self.whapa_box_rep = StringVar()
-        self.whachat_box_rep = StringVar()
-        self.whachat_box_os = StringVar()
-        self.whapa_text = StringVar(value="0")
-        self.whapa_ts = StringVar(value="0")
-        self.whapa_te = StringVar(value="0")
-        self.whapa_w = StringVar(value="0")
-        self.whapa_s = StringVar(value="0")
-        self.whapa_b = StringVar(value="0")
-
-        if system == "Linux":
-            self.whamerge_path = StringVar(value=os.getcwd() + "/")
-            self.whagodri_path = StringVar(value=os.getcwd() + "/")
-            self.whacloud_path = StringVar(value=os.getcwd() + "/")
-            self.whacipher_path = StringVar(value=os.getcwd() + "/")
-            self.whapa_out = StringVar(value=os.getcwd() + "/report/")
-            self.whamerge_file = StringVar(value=os.getcwd() + "/msgstore_merge.db")
-            self.whacipher_file = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
-            self.whacipher_key = StringVar(value=os.getcwd() + "/key")
-            self.whachat_file = StringVar(value=os.getcwd() + "/chat.txt")
-            self.whacipher_out = StringVar(value=os.getcwd() + "/msgstore.db")
-            self.whacipher_out_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
-            self.whacipher_file_en = StringVar(value=os.getcwd() + "/msgstore.db")
-            self.whacipher_crypt_en = StringVar(value=os.getcwd() + "/msgstore.db.crypt14")
-            self.whacipher_key_en = StringVar(value=os.getcwd() + "/key")
-            self.whapa_file = StringVar(value=os.getcwd() + "/msgstore.db")
-            self.whapa_wa = StringVar(value=os.getcwd() + "/wa.db")
-
-        else:
-            self.whamerge_path = StringVar(value=os.getcwd() + "\\")
-            self.whagodri_path = StringVar(value=os.getcwd() + "\\")
-            self.whacloud_path = StringVar(value=os.getcwd() + "\\")
-            self.whacipher_path = StringVar(value=os.getcwd() + "\\")
-            self.whapa_out = StringVar(value=os.getcwd() + "\\report\\")
-            self.whamerge_file = StringVar(value=os.getcwd() + r"\msgstore_merge.db")
-            self.whacipher_file = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
-            self.whacipher_key = StringVar(value=os.getcwd() + r"\key")
-            self.whachat_file = StringVar(value=os.getcwd() + "\\chat.txt")
-            self.whacipher_out = StringVar(value=os.getcwd() + r"\msgstore.db")
-            self.whacipher_out_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
-            self.whacipher_file_en = StringVar(value=os.getcwd() + r"\msgstore.db")
-            self.whacipher_crypt_en = StringVar(value=os.getcwd() + r"\msgstore.db.crypt14")
-            self.whacipher_key_en = StringVar(value=os.getcwd() + r"\key")
-            self.whapa_file = StringVar(value=os.getcwd() + r"\msgstore.db")
-            self.whapa_wa = StringVar(value=os.getcwd() + r"\wa.db")
-
-        self.instructions_wachat = StringVar(value="""To export chats on an Android phone, here are the steps:
-   1. Open the individual or group chat.
-   2. Press the Menu button.
-   3. Press More.
-   4. Select Export chat.
-   5. Choose Include or Exclude files.
-   
-To export chats on an iOS phone, here are the steps:
-   1. Open the individual or group chat.
-   2. Press on the name (Chat information).
-   3. Slide down.
-   4. Select Export chat.
-   5. Choose Include or Exclude files.
-        """)
-
-        # Toolbar
-        self.toolbar = Frame(self.root, relief=RAISED, bd=2)
-        self.toolbar.grid(row=0, sticky="ew", columnspan=5)
-        self.toolbar_but1 = Button(self.toolbar, image=self.iconsearh, command=self.open_folder)
-        self.toolbar_but1.grid(row=0, column=0)
-        ToolTip(self.toolbar_but1, "Open Folder")
-        self.toolbar_but2 = Button(self.toolbar, image=self.iconreport, command=self.report)
-        self.toolbar_but2.grid(row=0, column=1)
-        ToolTip(self.toolbar_but2, "Open Report")
-        self.toolbar_but3 = Button(self.toolbar, image=self.iconsetting, command=self.api)
-        self.toolbar_but3.grid(row=0, column=2)
-        ToolTip(self.toolbar_but3, "Configuration")
-        self.toolbar_but4 = Button(self.toolbar, image=self.iconmanual, command=self.manual)
-        self.toolbar_but4.grid(row=0, column=3)
-        ToolTip(self.toolbar_but4, "Readme")
-        self.toolbar_but5 = Button(self.toolbar, image=self.iconrequire, command=self.requirements)
-        self.toolbar_but5.grid(row=0, column=4)
-        ToolTip(self.toolbar_but5, "Install requirements")
-        self.toolbar_but6 = Button(self.toolbar, image=self.iconupdate, command=self.update)
-        self.toolbar_but6.grid(row=0, column=5)
-        ToolTip(self.toolbar_but6, "Update")
-        self.toolbar_but7 = Button(self.toolbar, image=self.iconabout, command=self.about)
-        self.toolbar_but7.grid(row=0, column=6)
-        ToolTip(self.toolbar_but7, "About")
-        self.toolbar_but8 = Button(self.toolbar, image=self.iconexit, command=self.exit)
-        self.toolbar_but8.grid(row=0, column=7)
-        ToolTip(self.toolbar_but8, "Exit")
-
-        # Top
-        #self.label_bg = Label(self.root, image=self.iconbg, bg="#A0A0A0", font=("times", "8", "normal"))
-        #self.label_bg.grid(row=1, padx=5, pady=5)
-
-        # Main Frame
-        self.frame_main = Frame(self.root)
-        self.frame_main.grid(row=1, sticky="ewn")
-
-        # Tab Panel
-        self.note = ttk.Notebook(self.root)
-        self.tab1 = Frame(self.note)
-        self.tab2 = Frame(self.note)
-        self.tab3 = Frame(self.note)
-        self.tab4 = Frame(self.note)
-        self.tab5 = Frame(self.note)
-        self.tab6 = Frame(self.note)
-        self.note.add(self.tab1, text="WhaPa", image=self.icontabwhapa, compound='left', padding=0)
-        self.note.add(self.tab2, text="WhaCipher", image=self.icontabcipher, compound='left', padding=0)
-        self.note.add(self.tab3, text="WhaMerge", image=self.icontabmerge, compound='left', padding=0)
-        self.note.add(self.tab4, text="WhaGoDri", image=self.icontabdrive, compound='left', padding=0)
-        self.note.add(self.tab5, text="WhaChat", image=self.icontabwhachat, compound='left', padding=0)
-        self.note.add(self.tab6, text="WhaCloud", image=self.icontabwhacloud, compound='left', padding=0)
-        self.note.grid(row=2, padx=10, pady=0, sticky="nwes")
-
-        # Tab 1 Whapa
-        self.label_whapa = Label(self.tab1, text="Whatsapp Parser", font=('courier', 15, 'bold'))
-        self.label_whapa.grid(row=0, column=0, sticky="we", padx=5, pady=5, columnspan=2)
-
-        self.frame_whapa_db = LabelFrame(self.tab1, text="Database")
-        self.frame_whapa_db.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-
-        self.label_whapa_file = Label(self.frame_whapa_db, text="Database file")
-        self.label_whapa_file.grid(row=0, column=0, sticky="we", padx=5, pady=15)
-        self.entry_whapa_file = Entry(self.frame_whapa_db, textvariable=self.whapa_file, width=70)
-        self.entry_whapa_file.grid(row=0, column=1, sticky="we", padx=5, pady=5)
-        self.buttonwhapa_file = Button(self.frame_whapa_db, image=self.iconfile, command=self.search_whapa_file, borderwidth=0, highlightthickness=0)
-        self.buttonwhapa_file.grid(row=0, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.buttonwhapa_file, "Database file to parser")
-
-        self.label_whapa_wa = Label(self.frame_whapa_db, text="WA file")
-        self.label_whapa_wa.grid(row=1, column=0, sticky="we", padx=5, pady=5, columnspan=1)
-        self.entry_whapa_wa = Entry(self.frame_whapa_db, textvariable=self.whapa_wa, width=70)
-        self.entry_whapa_wa.grid(row=1, column=1, sticky="we", padx=5, pady=5, columnspan=1)
-        self.button_whapa_wa = Button(self.frame_whapa_db, image=self.iconfile, command=self.search_whapa_wa, borderwidth=0, highlightthickness=0)
-        self.button_whapa_wa.grid(row=1, column=2, sticky="w", padx=5, pady=5, columnspan=1)
-        ToolTip(self.button_whapa_wa, "Wa file, optionally to get names")
-
-        self.label_whapa_out = Label(self.frame_whapa_db, text="Output path")
-        self.label_whapa_out.grid(row=2, column=0, sticky="we", padx=5, pady=15, columnspan=1)
-        self.entry_whapa_out = Entry(self.frame_whapa_db, textvariable=self.whapa_out, width=70)
-        self.entry_whapa_out.grid(row=2, column=1, sticky="we", padx=5, pady=5, columnspan=1)
-        self.button_whapa_out = Button(self.frame_whapa_db, image=self.iconfile, command=self.search_whapa_out, borderwidth=0, highlightthickness=0)
-        self.button_whapa_out.grid(row=2, column=2, sticky="w", padx=5, pady=5, columnspan=1)
-        ToolTip(self.button_whapa_out, "Output path to save the information")
-
-        self.frame_whapa_repo = LabelFrame(self.tab1, text="Report")
-        self.frame_whapa_repo.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-        self.whapa_but_rep_none = Radiobutton(self.frame_whapa_repo, text='  Terminal', image=self.iconone, variable=self.whapa_box_rep, value='None', anchor="w", compound='left')
-        self.whapa_but_rep_none.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_rep_none.grid(row=0, column=0, padx=5, pady=(15,5), sticky="nswe")
-        self.whapa_but_rep_es = Radiobutton(self.frame_whapa_repo, text='  Spanish', image=self.icones, variable=self.whapa_box_rep, value='ES', anchor="w", compound='left')
-        self.whapa_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_rep_es.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_rep_en = Radiobutton(self.frame_whapa_repo, text='  English', image=self.iconen, variable=self.whapa_box_rep, value='EN', anchor="w", compound='left')
-        self.whapa_but_rep_en.config(bd=4, borderwidth=0, highlightthickness=0,)
-        self.whapa_but_rep_en.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.whapa_box_rep.set("None")
-
-        self.frame_whapa_filter = LabelFrame(self.tab1, text="Filters")
-        self.frame_whapa_filter.grid(row=2, column=0, padx=5, pady=5, sticky="nsew")
-        self.check_whapa_text = Checkbutton(self.frame_whapa_filter, text="Text", borderwidth=0, highlightthickness=0, variable=self.whapa_text)
-        self.check_whapa_text.grid(row=0, column=0, sticky="w", padx=5, pady=5)
-        self.entry_whapa_text = Entry(self.frame_whapa_filter, width=20)
-        self.entry_whapa_text.grid(row=0, column=1, sticky="we", padx=5, pady=5, columnspan=1)
-        self.check_whapa_ts = Checkbutton(self.frame_whapa_filter, text="Start time", borderwidth=0, highlightthickness=0, variable=self.whapa_ts)
-        self.check_whapa_ts.grid(row=1, column=0, sticky="w", padx=5, pady=5)
-        self.entry_whapa_ts = Entry(self.frame_whapa_filter, width=20)
-        self.entry_whapa_ts.grid(row=1, column=1, sticky="we", padx=5, pady=5, columnspan=1)
-        self.check_whapa_te = Checkbutton(self.frame_whapa_filter, text="End time", borderwidth=0, highlightthickness=0, variable=self.whapa_te)
-        self.check_whapa_te.grid(row=2, column=0, sticky="w", padx=5, pady=5)
-        self.entry_whapa_te = Entry(self.frame_whapa_filter, width=20)
-        self.entry_whapa_te.grid(row=2, column=1, sticky="we", padx=5, pady=5, columnspan=1)
-        self.check_whapa_w = Checkbutton(self.frame_whapa_filter, text="Whatsapp web", borderwidth=0, highlightthickness=0, variable=self.whapa_w)
-        self.check_whapa_w.grid(row=3, column=0, sticky="w", padx=5, pady=5)
-        self.check_whapa_s = Checkbutton(self.frame_whapa_filter, text="Starred", borderwidth=0, highlightthickness=0, variable=self.whapa_s)
-        self.check_whapa_s.grid(row=4, column=0, sticky="w", padx=5, pady=5)
-        self.check_whapa_b = Checkbutton(self.frame_whapa_filter, text="Broadcast", borderwidth=0, highlightthickness=0, variable=self.whapa_b)
-        self.check_whapa_b.grid(row=5, column=0, sticky="w", padx=5, pady=5)
-        self.whapa_but_allme = Radiobutton(self.frame_whapa_filter, text='All', variable=self.whapa_box_filter, value='All', anchor="w", compound='left')
-        self.whapa_but_allme.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_allme.grid(row=0, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tt = Radiobutton(self.frame_whapa_filter, text='Texts', variable=self.whapa_box_filter, value='Text', anchor="w", compound='left')
-        self.whapa_but_tt.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tt.grid(row=1, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_ti = Radiobutton(self.frame_whapa_filter, text='Images', variable=self.whapa_box_filter, value='Images', anchor="w", compound='left')
-        self.whapa_but_ti.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_ti.grid(row=2, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_ta = Radiobutton(self.frame_whapa_filter, text='Audios', variable=self.whapa_box_filter, value='Audios', anchor="w", compound='left')
-        self.whapa_but_ta.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_ta.grid(row=3, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tv = Radiobutton(self.frame_whapa_filter, text='Videos', variable=self.whapa_box_filter, value='Videos', anchor="w", compound='left')
-        self.whapa_but_tv.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tv.grid(row=4, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tc = Radiobutton(self.frame_whapa_filter, text='Contacts', variable=self.whapa_box_filter, value='Contacts', anchor="w", compound='left')
-        self.whapa_but_tc.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tc.grid(row=5, column=2, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tl = Radiobutton(self.frame_whapa_filter, text='Locations', variable=self.whapa_box_filter, value='Locations', anchor="w", compound='left')
-        self.whapa_but_tl.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tl.grid(row=0, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tx = Radiobutton(self.frame_whapa_filter, text='Calls', variable=self.whapa_box_filter, value='Calls', anchor="w", compound='left')
-        self.whapa_but_tx.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tx.grid(row=1, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tp = Radiobutton(self.frame_whapa_filter, text='Applications', variable=self.whapa_box_filter, value='Applications', anchor="w", compound='left')
-        self.whapa_but_tp.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tp.grid(row=2, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tg = Radiobutton(self.frame_whapa_filter, text='GIFs', variable=self.whapa_box_filter, value='GIFs', anchor="w", compound='left')
-        self.whapa_but_tg.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tg.grid(row=3, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_td = Radiobutton(self.frame_whapa_filter, text='Deleted objects', variable=self.whapa_box_filter, value='Deleted', anchor="w", compound='left')
-        self.whapa_but_td.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_td.grid(row=4, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tr = Radiobutton(self.frame_whapa_filter, text='Realtime Locations', variable=self.whapa_box_filter, value='Realtime', anchor="w", compound='left')
-        self.whapa_but_tr.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tr.grid(row=5, column=3, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tk = Radiobutton(self.frame_whapa_filter, text='Stickers', variable=self.whapa_box_filter, value='Stickers', anchor="w", compound='left')
-        self.whapa_but_tk.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tk.grid(row=0, column=4, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_tm = Radiobutton(self.frame_whapa_filter, text='System', variable=self.whapa_box_filter, value='System', anchor="w", compound='left')
-        self.whapa_but_tm.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_tm.grid(row=1, column=4, padx=5, pady=5, sticky="nswe")
-        self.whapa_box_filter.set("All")
-
-        self.frame_whapa_recip = LabelFrame(self.tab1, text="Recipients")
-        self.frame_whapa_recip.grid(row=2, column=1, padx=5, pady=5, sticky="nsew")
-        self.whapa_but_all = Radiobutton(self.frame_whapa_recip, text='All', variable=self.whapa_box_value, value='All', anchor="w", compound='left')
-        self.whapa_but_all.config(bd=4, borderwidth=0, highlightthickness=0)
-        ToolTip(self.whapa_but_all, "All chats")
-        self.whapa_but_all.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_group = Radiobutton(self.frame_whapa_recip, text='Group or Broadcast', variable=self.whapa_box_value, value='Group', anchor="w", compound='left')
-        self.whapa_but_group.config(bd=4, borderwidth=0, highlightthickness=0)
-        ToolTip(self.whapa_but_group, "All messages in a group or broadcast")
-        self.whapa_but_group.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.whapa_but_user = Radiobutton(self.frame_whapa_recip, text='Chat', variable=self.whapa_box_value, value='User', anchor="w", compound='left')
-        self.whapa_but_user.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_user.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        ToolTip(self.whapa_but_user, "Chat with the user")
-        self.whapa_but_user_all = Radiobutton(self.frame_whapa_recip, text='User', variable=self.whapa_box_value, value='User_all', anchor="w", compound='left')
-        self.whapa_but_user_all.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whapa_but_user_all.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
-        ToolTip(self.whapa_but_user_all, "All messages where the user participates individually or in groups.\nCreating reports with this option may not make sense")
-        self.whapa_box_value.set("All")
-        self.entry_whapa_user = Entry(self.frame_whapa_recip, textvariable=self.whapa_user, width=33)
-        self.entry_whapa_user.grid(row=4, column=0, sticky="we", padx=5, pady=5)
-        self.button_whapa_extract = Button(self.frame_whapa_recip, image=self.iconinfowhagodri, command=self.whapa_info, height=32, width=64)
-        self.button_whapa_extract.grid(row=5, column=0, padx=5, pady=5)
-        ToolTip(self.button_whapa_extract, "Actives Chat list")
-
-        self.frame_whapa_info = LabelFrame(self.tab1, text="Options")
-        self.frame_whapa_info.grid(row=3, column=0, padx=5, pady=5, sticky="we", columnspan="2")
-
-        self.label_whapa_sep = Label(self.frame_whapa_info, width=25)
-        self.label_whapa_sep.grid(row=0, column=0, padx=5, pady=5)
-        self.button_whapa_parser = Button(self.frame_whapa_info, image=self.iconparser, command=self.whapa_messages, height=32, width=64)
-        self.button_whapa_parser.grid(row=0, column=1, padx=5, pady=5)
-        ToolTip(self.button_whapa_parser, "Parser database")
-        self.button_whapa_extract = Button(self.frame_whapa_info, image=self.iconstatus, command=self.whapa_status, height=32, width=64)
-        self.button_whapa_extract.grid(row=0, column=2, padx=5, pady=5)
-        ToolTip(self.button_whapa_extract, "Status")
-        self.button_whapa_extract = Button(self.frame_whapa_info, image=self.iconcall, command=self.whapa_call, height=32, width=64)
-        self.button_whapa_extract.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.button_whapa_extract, "Calls log")
-        self.button_whapa_extract = Button(self.frame_whapa_info, image=self.iconextract, command=self.whapa_extract, height=32, width=64)
-        self.button_whapa_extract.grid(row=0, column=4, padx=5, pady=5)
-        ToolTip(self.button_whapa_extract, "Extract Thumbnails")
-        self.button_whapa_carv = Button(self.frame_whapa_info, image=self.iconcarving, command=self.whapa_carving, height=32, width=64)
-        self.button_whapa_carv.grid(row=0, column=5, padx=5, pady=5)
-        ToolTip(self.button_whapa_carv, "Database Carving")
-
-
-        # Tab 2 Whacipher
-        self.label_whacipher = Label(self.tab2, text="Whatsapp Encryption and Decryption", font=('courier', 15, 'bold'))
-        self.label_whacipher.grid(row=0, column=0, sticky="we", padx=5, pady=5, columnspan=2)
-
-        self.notewhacipher = ttk.Notebook(self.tab2)
-        self.tabwhacipher1 = Frame(self.notewhacipher)
-        self.tabwhacipher2 = Frame(self.notewhacipher)
-        self.notewhacipher.add(self.tabwhacipher1, text="Decrypt", compound='left', padding=0)
-        self.notewhacipher.add(self.tabwhacipher2, text="Encrypt", compound='left', padding=0)
-        self.notewhacipher.grid(row=1, padx=5, pady=5, sticky="we")
-
-            # Decrypt
-        self.whacipher_but_file = Radiobutton(self.tabwhacipher1, text='File', variable=self.whacipher_box_value, value='File', anchor="w", compound='left', command=self.estate_assets_whacipher)
-        self.whacipher_but_file.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whacipher_but_file.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.entry_whacipher_file = Entry(self.tabwhacipher1, textvariable=self.whacipher_file, width=100)
-        self.entry_whacipher_file.grid(row=0, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_file = Button(self.tabwhacipher1, image=self.iconfile, command=self.search_file_whacypher, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_file.grid(row=0, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_file, "Database file to decrypt")
-
-        self.whacipher_but_path = Radiobutton(self.tabwhacipher1, text='Path', variable=self.whacipher_box_value, value='Path', anchor="w", compound='left', command=self.estate_assets_whacipher)
-        self.whacipher_but_path.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whacipher_but_path.grid(row=1, column=0, padx=5, pady=5, sticky="w")
-        self.entry_whacipher_path = Entry(self.tabwhacipher1, textvariable=self.whacipher_path, width=100)
-        self.entry_whacipher_path.grid(row=1, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_path = Button(self.tabwhacipher1, image=self.iconfile, command=self.search_path_whacypher, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_path.grid(row=1, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_path, "Database Path to decrypt")
-
-        self.whacipher_box_value.set('File')
-        self.label_cipher_key = Label(self.tabwhacipher1, text="Key")
-        self.label_cipher_key.grid(row=2, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_key = Entry(self.tabwhacipher1, textvariable=self.whacipher_key, width=100)
-        self.entry_whacipher_key.grid(row=2, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_key = Button(self.tabwhacipher1, image=self.iconfile, command=self.search_key_whacypher, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_key.grid(row=2, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_key, "Encryption Key")
-
-        self.label_cipher_out = Label(self.tabwhacipher1, text="Output")
-        self.label_cipher_out.grid(row=3, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_out = Entry(self.tabwhacipher1, textvariable=self.whacipher_out, width=100)
-        self.entry_whacipher_out.grid(row=3, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_out = Button(self.tabwhacipher1, image=self.iconfile, command=self.search_out_whacypher, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_out.grid(row=3, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_out, "Output file")
-
-        self.button_whacipher = Button(self.tabwhacipher1, image=self.icondecrypt, command=self.decrypt_whacypher, height=32, width=64)
-        self.button_whacipher.grid(row=4, column=0, padx=10, pady=10, columnspan=2)
-        ToolTip(self.button_whacipher, "Decrypt")
-
-        # Encrypt
-        self.label_cipher_key_en = Label(self.tabwhacipher2, text="File")
-        self.label_cipher_key_en.grid(row=0, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_file_en = Entry(self.tabwhacipher2, textvariable=self.whacipher_file_en, width=100)
-        self.entry_whacipher_file_en.grid(row=0, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_file_en = Button(self.tabwhacipher2, image=self.iconfile, command=self.search_file_whacypher_en, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_file_en.grid(row=0, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_file_en, "File to encrypt")
-
-        self.label_cipher_key_en = Label(self.tabwhacipher2, text="Crypto")
-        self.label_cipher_key_en.grid(row=1, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_path_en = Entry(self.tabwhacipher2, textvariable=self.whacipher_crypt_en, width=100)
-        self.entry_whacipher_path_en.grid(row=1, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_path_en = Button(self.tabwhacipher2, image=self.iconfile, command=self.search_criptofile_whacypher_en, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_path_en.grid(row=1, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_path_en, "Cryptofile to copy the header")
-
-        self.label_cipher_key_en = Label(self.tabwhacipher2, text="Key")
-        self.label_cipher_key_en.grid(row=2, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_key_en = Entry(self.tabwhacipher2, textvariable=self.whacipher_key_en, width=100)
-        self.entry_whacipher_key_en.grid(row=2, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_key_en = Button(self.tabwhacipher2, image=self.iconfile, command=self.search_key_whacypher_en, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_key_en.grid(row=2, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_key_en, "Encryption Key")
-
-        self.label_cipher_out_en = Label(self.tabwhacipher2, text="Output")
-        self.label_cipher_out_en.grid(row=3, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whacipher_out_en = Entry(self.tabwhacipher2, textvariable=self.whacipher_out_en, width=100)
-        self.entry_whacipher_out_en.grid(row=3, column=1, sticky="we", padx=5, pady=5)
-        self.button_whacipher_out_en = Button(self.tabwhacipher2, image=self.iconfile, command=self.search_out_whacypher_en, borderwidth=0, highlightthickness=0)
-        self.button_whacipher_out_en.grid(row=3, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.button_whacipher_out_en, "Output File")
-
-        self.button_whacipher_en = Button(self.tabwhacipher2, image=self.iconencrypt, command=self.encrypt_whacypher,  height=32, width=64)
-        self.button_whacipher_en.grid(row=4, column=0, padx=10, pady=10, columnspan=2)
-        ToolTip(self.button_whacipher_en, "Encrypt")
-
-        # Tab 3 Whamerge
-        self.label_whamerge = Label(self.tab3, text="Whatsapp Merger", font=('courier', 15, 'bold'))
-        self.label_whamerge.grid(row=0, column=0, padx=5, pady=5, columnspan=5)
-        self.frame_whamerge = LabelFrame(self.tab3)
-        self.frame_whamerge.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-
-        self.label_whamerge = Label(self.frame_whamerge, text="Path")
-        self.label_whamerge.grid(row=0, column=0, padx=5, pady=5, sticky="w")
-        self.entry_whamerge = Entry(self.frame_whamerge, textvariable=self.whamerge_path, width=115)
-        self.entry_whamerge.grid(row=1, column=0, sticky="we", padx=5, pady=5,)
-        self.button_whamerge_file = Button(self.frame_whamerge, image=self.iconfile, command=self.search_path_whamerge, borderwidth=0, highlightthickness=0)
-        self.button_whamerge_file.grid(row=1, column=1, sticky="w", padx=5, pady=5,)
-        ToolTip(self.button_whamerge_file, "Database path to merge")
-
-        self.label_whamerge_out = Label(self.frame_whamerge, text="Output")
-        self.label_whamerge_out.grid(row=2, column=0, padx=5, pady=5, sticky="w")
-        self.entry_whamerge_out = Entry(self.frame_whamerge, textvariable=self.whamerge_file, width=115)
-        self.entry_whamerge_out.grid(row=3, column=0, sticky="we", padx=5, pady=5,)
-        self.button_whamerge_fileout = Button(self.frame_whamerge, image=self.iconfile, command=self.search_file_whamerge, borderwidth=0, highlightthickness=0)
-        self.button_whamerge_fileout.grid(row=3, column=1, sticky="w", padx=5, pady=5,)
-        ToolTip(self.button_whamerge_fileout, "Database output file")
-
-        self.button_whamerge_run = Button(self.frame_whamerge, image=self.iconmerge, command=self.whamerge, height=32, width=64)
-        self.button_whamerge_run.grid(row=4, column=0, padx=5, pady=15)
-        ToolTip(self.button_whamerge_run, "Click to merge")
-
-        self.label_box_whamerge_info = Label(self.tab3, image=self.iconabout)
-        self.label_box_whamerge_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whamerge_info, "The generated file is for analysis purposes, not for restoring on the phone,\n due to the fact that many tables have been omitted.")
-
-        # Tab 4 Whagodri
-        self.label_wagodri = Label(self.tab4, text="Whatsapp Google Drive Extractor", font=('courier', 15, 'bold'))
-        self.label_wagodri.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
-
-        self.frame_whagodri = LabelFrame(self.tab4, text="Information")
-        self.frame_whagodri.grid(row=1, column=0, padx=5, pady=5, sticky="nsew")
-
-        self.wagodri_but_info = Radiobutton(self.frame_whagodri, text='Info about account', variable=self.wagodri_box_value,  value='Info', anchor="w", compound='left')
-        self.wagodri_but_info.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_but_info.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_but_list = Radiobutton(self.frame_whagodri, text='List all files', variable=self.wagodri_box_value, value='List', anchor="w", compound='left')
-        self.wagodri_but_list.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_but_list.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_but_listw = Radiobutton(self.frame_whagodri, text='List Whatsapp database file', variable=self.wagodri_box_value, value='ListW', anchor="w", compound='left')
-        self.wagodri_but_listw.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_but_listw.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_box_value.set('Info')
-
-        self.frame_method_whagodri = LabelFrame(self.tab4, text="Download")
-        self.frame_method_whagodri.grid(row=1, column=1, padx=5, pady=5, sticky="nsw")
-
-        self.wagodri_sync = Radiobutton(self.frame_method_whagodri, text='All', variable=self.wagodri_box_value, value='All', anchor="w", compound='left')
-        self.wagodri_sync.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_sync.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_si = Radiobutton(self.frame_method_whagodri, text='Images', variable=self.wagodri_box_value, value='Images', anchor="w", compound='left')
-        self.wagodri_si.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_si.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_vi = Radiobutton(self.frame_method_whagodri, text='Videos', variable=self.wagodri_box_value, value='Videos', anchor="w", compound='left')
-        self.wagodri_vi.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_vi.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_au = Radiobutton(self.frame_method_whagodri, text='Audios', variable=self.wagodri_box_value, value='Audios', anchor="w", compound='left')
-        self.wagodri_au.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_au.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_sx = Radiobutton(self.frame_method_whagodri, text='Documents', variable=self.wagodri_box_value, value='Documents', anchor="w", compound='left')
-        self.wagodri_sx.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_sx.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_db = Radiobutton(self.frame_method_whagodri, text='Databases', variable=self.wagodri_box_value, value='Databases', anchor="w", compound='left')
-        self.wagodri_db.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_db.grid(row=5, column=0, padx=5, pady=5, sticky="nswe")
-        self.wagodri_file = Radiobutton(self.frame_method_whagodri, text='File', variable=self.wagodri_box_value, value='File', anchor="w", compound='left')
-        self.wagodri_file.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wagodri_file.grid(row=6, column=0, padx=5, pady=5, sticky="nswe")
-        self.entry_whagodri_down = Entry(self.frame_method_whagodri, width=70)
-        self.entry_whagodri_down.grid(row=6, column=1, sticky="w", pady=5, padx=5)
-
-        self.frame_whagodri_out = LabelFrame(self.tab4, text="Output path")
-        self.frame_whagodri_out.grid(row=2, column=0, padx=5, pady=10, sticky="nsew", columnspan=2)
-        self.entry_whagodri_output = Entry(self.frame_whagodri_out, textvariable=self.whagodri_path, width=110)
-        self.entry_whagodri_output.grid(row=0, column=0, sticky="we", padx=5, pady=5 )
-        self.whagodri_button_path = Button(self.frame_whagodri_out, image=self.iconfile, command=self.search_path_whagodri, borderwidth=0, highlightthickness=0)
-        self.whagodri_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
-        ToolTip(self.whagodri_button_path, "Output path to save files")
-
-        self.button_whagodri_exec = Button(self.frame_whagodri_out, image=self.icondownwhagodri, command=self.wagodri_down, height=32, width=64)
-        self.button_whagodri_exec.grid(row=1, column=0, columnspan=2, padx=185, pady=10)
-
-        self.label_box_whagodri_info = Label(self.tab4, image=self.iconabout)
-        self.label_box_whagodri_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whagodri_info, "1. Install the requirements.\n2. Edit the values of the ./cfg/settings.cfg file.\n    [google-auth]\n        gmail = alias@gmail.com\n        passw = yourpassword\n3. Click here, https://accounts.google.com/DisplayUnlockCaptcha.\n    Log into your browser and then allow access to your Google account.")
-
-        # Tab 5 WhaChat
-        self.label_wachat = Label(self.tab5, text="Whatsapp Chat Exporter", font=('courier', 15, 'bold'))
-        self.label_wachat.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
-
-        self.label_box_whachat_info = Label(self.tab5, image=self.iconabout)
-        self.label_box_whachat_info.grid(row=0, column=3, padx=5, pady=5)
-        ToolTip(self.label_box_whachat_info,self.instructions_wachat.get())
-        self.frame_whachat = LabelFrame(self.tab5, text="Chat")
-        self.frame_whachat.grid(row=1, column=0, padx=5, pady=5, rowspan=2, sticky="nsew")
-        self.label_whachat_file = Label(self.frame_whachat, text="Chat file")
-        self.label_whachat_file.grid(row=0, column=0, sticky="we", padx=5, pady=(15,5))
-        self.entry_whachat_output = Entry(self.frame_whachat, textvariable=self.whachat_file, width=70)
-        self.entry_whachat_output.grid(row=0, column=1, sticky="we", padx=5, pady=5)
-        self.whachat_button_path = Button(self.frame_whachat, image=self.iconfile, command=self.search_file_whachat, borderwidth=0, highlightthickness=0)
-        self.whachat_button_path.grid(row=0, column=2, sticky="w", padx=5, pady=5)
-        ToolTip(self.whachat_button_path, "Chat file to parser")
-        self.label_whachat_user = Label(self.frame_whachat, text="Recipient")
-        self.label_whachat_user.grid(row=1, column=0, sticky="we", padx=5, pady=5)
-        self.combo_whachat_user = ttk.Combobox(self.frame_whachat, width=50, state="readonly")
-        self.combo_whachat_user.grid(row=1, column=1, sticky="w", padx=5, pady=5)
-        self.label_whachat_user = Label(self.frame_whachat, text="Start time")
-        self.label_whachat_user.grid(row=2, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whachat_ts = Entry(self.frame_whachat, width=20)
-        self.entry_whachat_ts.grid(row=2, column=1, sticky="w", padx=5, pady=5, columnspan=1)
-        self.label_whachat_user = Label(self.frame_whachat, text="End time")
-        self.label_whachat_user.grid(row=3, column=0, sticky="we", padx=5, pady=5)
-        self.entry_whachat_te = Entry(self.frame_whachat, width=20)
-        self.entry_whachat_te.grid(row=3, column=1, sticky="w", padx=5, pady=5, columnspan=1)
-
-        self.frame_whacha_repo = LabelFrame(self.tab5, text="Report")
-        self.frame_whacha_repo.grid(row=1, column=1, padx=5, pady=5, sticky="nsew")
-        self.whacha_but_rep_none = Radiobutton(self.frame_whacha_repo, text='  Terminal', image=self.iconone, variable=self.whachat_box_rep, value='None', anchor="w", compound='left')
-        self.whacha_but_rep_none.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whacha_but_rep_none.grid(row=0, column=0, padx=5, pady=(15,5), sticky="nswe")
-        self.whacha_but_rep_es = Radiobutton(self.frame_whacha_repo, text='  Spanish', image=self.icones, variable=self.whachat_box_rep, value='ES', anchor="w", compound='left')
-        self.whacha_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whacha_but_rep_es.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.whacha_but_rep_en = Radiobutton(self.frame_whacha_repo, text='  English', image=self.iconen, variable=self.whachat_box_rep, value='EN', anchor="w", compound='left')
-        self.whacha_but_rep_en.config(bd=4, borderwidth=0, highlightthickness=0,)
-        self.whacha_but_rep_en.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.whachat_box_rep.set("None")
-
-        self.frame_whacha_os = LabelFrame(self.tab5, text="Operating System")
-        self.frame_whacha_os.grid(row=2, column=1, padx=5, pady=5, sticky="nsew")
-        self.whacha_but_rep_es = Radiobutton(self.frame_whacha_os, text='  Android', image=self.iconandroid, variable=self.whachat_box_os, value='android', anchor="w", compound='left', command=self.estate_assets_whachat)
-        self.whacha_but_rep_es.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.whacha_but_rep_es.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.whacha_but_rep_en = Radiobutton(self.frame_whacha_os, text='  iOS', image=self.iconios, variable=self.whachat_box_os, value='ios', anchor="w", compound='left', command=self.estate_assets_whachat)
-        self.whacha_but_rep_en.config(bd=4, borderwidth=0, highlightthickness=0,)
-        self.whacha_but_rep_en.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.whachat_box_os.set("android")
-
-        self.label_whachat_format = Label(self.frame_whachat, text="Time format")
-        self.label_whachat_format.grid(row=4, column=0, sticky="we", padx=5, pady=5)
-        self.combo_whachat_format = ttk.Combobox(self.frame_whachat, width=25, state="readonly")
-        self.combo_whachat_format["values"] = ["%d/%m/%y %H:%M:%S", "%d/%m/%Y %H:%M:%S", "%d/%m/%y %H:%M", "%d/%m/%Y %H:%M",
-                                               "%m/%d/%y %H:%M:%S", "%m/%d/%Y %H:%M:%S", "%m/%d/%y %H:%M", "%m/%d/%Y %H:%M"]
-        self.combo_whachat_format.current(2)
-        self.combo_whachat_format.grid(row=4, column=1, sticky="w", padx=5, pady=5)
-
-        self.button_whachat_exec = Button(self.frame_whachat, image=self.iconparser, command=self.whachat_run, height=32, width=64)
-        self.button_whachat_exec.grid(row=5, column=1, columnspan=2, padx=185, pady=10)
-
-        # Tab 5 WhaCloud
-        self.label_wacloud = Label(self.tab6, text="Whatsapp ICloud Extractor", font=('courier', 15, 'bold'))
-        self.label_wacloud.grid(row=0, column=0, columnspan=2, sticky="we", padx=5, pady=5)
-
-        self.frame_whacloud = LabelFrame(self.tab6, text="Download")
-        self.frame_whacloud.grid(row=1, padx=5, pady=5, sticky="nsew", columnspan=3)
-
-        self.wacloud_list = Radiobutton(self.frame_whacloud, text='List all files', variable=self.wacloud_box_value, value='List', anchor="w", compound='left')
-        self.wacloud_list.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wacloud_list.grid(row=0, column=0, padx=5, pady=5, sticky="nswe")
-        self.wacloud_box_value.set("List")
-        self.wacloud_sync = Radiobutton(self.frame_whacloud, text='Sync', variable=self.wacloud_box_value, value='Sync', anchor="w", compound='left')
-        self.wacloud_sync.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wacloud_sync.grid(row=1, column=0, padx=5, pady=5, sticky="nswe")
-        self.wacloud_img = Radiobutton(self.frame_whacloud, text='Images', variable=self.wacloud_box_value, value='Images', anchor="w", compound='left')
-        self.wacloud_img.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wacloud_img.grid(row=2, column=0, padx=5, pady=5, sticky="nswe")
-        self.wacloud_vid = Radiobutton(self.frame_whacloud, text='Videos / Audios', variable=self.wacloud_box_value, value='Videos', anchor="w", compound='left')
-        self.wacloud_vid.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wacloud_vid.grid(row=3, column=0, padx=5, pady=5, sticky="nswe")
-        self.wacloud_file = Radiobutton(self.frame_whacloud, text='File', variable=self.wacloud_box_value, value='File', anchor="w", compound='left')
-        self.wacloud_file.config(bd=4, borderwidth=0, highlightthickness=0)
-        self.wacloud_file.grid(row=4, column=0, padx=5, pady=5, sticky="nswe")
-        self.entry_whacloud_down = Entry(self.frame_whacloud, width=77)
-        self.entry_whacloud_down.grid(row=4, column=1, sticky="w", pady=5, padx=5)
-
-        self.frame_whacloud_out = LabelFrame(self.tab6, text="Output path")
-        self.frame_whacloud_out.grid(row=2, padx=5, pady=10, sticky="nsew", columnspan=2)
-
-        self.entry_whacloud_output = Entry(self.frame_whacloud_out, textvariable=self.whacloud_path, width=114)
-        self.entry_whacloud_output.grid(row=0, column=0, sticky="we", padx=5, pady=(15,5))
-        self.whacloud_button_path = Button(self.frame_whacloud_out, image=self.iconfile, command=self.search_path_whacloud, borderwidth=0, highlightthickness=0)
-        self.whacloud_button_path.grid(row=0, column=1, sticky="w", padx=5, pady=5,)
-        ToolTip(self.whacloud_button_path, "Output path to save files")
-
-        self.button_whacloud_exec = Button(self.frame_whacloud_out, image=self.icondownwhagodri, command=self.wacloud_down, height=32, width=64)
-        self.button_whacloud_exec.grid(row=1, column=0, columnspan=2, padx=185, pady=10)
-
-
-        # Status Bar
-        self.label_status.set(time.strftime("%d-%m-%Y %H:%M"))
-        self.statusbar = Frame(self.root, bd=1, relief="sunken")
-        self.statusbar.grid(sticky="ensw", columnspan=5)
-        self.status_bar_label = Label(self.statusbar, text=self.label_status, textvariable=self.label_status,  wraplength=975)
-        self.status_bar_label.grid(columnspan=2)
-
-        # Define Shortcut keys
-        self.root.bind("<Control-q>", lambda event: self.exit())
-        #self.label_bg.bind("<Button-1>", lambda event: webbrowser.open_new_tab("https://github.com/B16f00t/whapa"))
-        self.label_box_whagodri_info.bind("<Button-1>", lambda event: webbrowser.open_new_tab("https://accounts.google.com/DisplayUnlockCaptcha"))
-
-        # Run GUI
-        self.button_whacipher_path.config(state=DISABLED)
-        self.entry_whacipher_path.config(state=DISABLED)
-        self.entry_whapa_ts.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whapa_ts.bind('<FocusIn>', self.on_entry_click_whapa)
-        self.entry_whapa_ts.bind('<FocusOut>', self.on_focusout_whapa)
-        self.entry_whapa_ts.config(fg='grey')
-        self.entry_whapa_te.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whapa_te.bind('<FocusIn>', self.on_entry_click_out_whapa)
-        self.entry_whapa_te.bind('<FocusOut>', self.on_focusout_out_whapa)
-        self.entry_whapa_te.config(fg='grey')
-
-        self.entry_whachat_ts.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whachat_ts.bind('<FocusIn>', self.on_entry_click_whachat)
-        self.entry_whachat_ts.bind('<FocusOut>', self.on_focusout_whachat)
-        self.entry_whachat_ts.config(fg='grey')
-        self.entry_whachat_te.insert(0, 'dd-mm-yyyy HH:MM')
-        self.entry_whachat_te.bind('<FocusIn>', self.on_entry_click_out_whachat)
-        self.entry_whachat_te.bind('<FocusOut>', self.on_focusout_out_whachat)
-        self.entry_whachat_te.config(fg='grey')
-        print("Checking updates...")
-        self.update()
-        self.root.mainloop()
-
-
-    def on_entry_click_whapa(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whapa_ts.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whapa_ts.delete(0, "end")  # delete all the text in the entry
-            self.entry_whapa_ts.insert(0, '')  # Insert blank for user input
-            self.entry_whapa_ts.config(fg='black')
-
-    def on_entry_click_out_whapa(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whapa_te.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whapa_te.delete(0, "end")  # delete all the text in the entry
-            self.entry_whapa_te.insert(0, '')  # Insert blank for user input
-            self.entry_whapa_te.config(fg='black')
-
-    def on_focusout_whapa(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whapa_ts.get() == '':
-            self.entry_whapa_ts.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whapa_ts.config(fg='grey')
-
-    def on_focusout_out_whapa(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whapa_te.get() == '':
-            self.entry_whapa_te.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whapa_te.config(fg='grey')
-
-    def on_entry_click_whachat(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whachat_ts.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whachat_ts.delete(0, "end")  # delete all the text in the entry
-            self.entry_whachat_ts.insert(0, '')  # Insert blank for user input
-            self.entry_whachat_ts.config(fg='black')
-
-    def on_entry_click_out_whachat(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whachat_te.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whachat_te.delete(0, "end")  # delete all the text in the entry
-            self.entry_whachat_te.insert(0, '')  # Insert blank for user input
-            self.entry_whachat_te.config(fg='black')
-
-    def on_focusout_whachat(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whachat_ts.get() == '':
-            self.entry_whachat_ts.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whachat_ts.config(fg='grey')
-
-    def on_focusout_out_whachat(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whachat_te.get() == '':
-            self.entry_whachat_te.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whachat_te.config(fg='grey')
-
-    def api(self):
-        """Open settings file"""
-
-        cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
-        if system == "Linux":
-            os.system('xdg-open "{}"'.format(cfg_file))
-        else:
-            os.startfile(cfg_file)
-
-    def manual(self):
-        """Open the manual"""
-
-        readme_file = system_slash(r'{}/README.md'.format(whapa_path))
-        if system == "Linux":
-            os.system('xdg-open "{}"'.format(readme_file))
-        else:
-            os.startfile(readme_file)
-
-    def report(self):
-        """Open the report"""
-
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("html files", "*.html"), ), initialdir = "report")
-        if not self.path:
+    import customtkinter as ctk
+    from tkinter import filedialog, messagebox
+except ImportError:
+    sys.exit("Falta customtkinter.  Instalalo con:  pip install customtkinter")
+
+APP_DIR = os.path.dirname(os.path.abspath(__file__))
+LIBS = os.path.join(APP_DIR, "libs")
+version = "2.00"
+
+ACCENT, ACCENT_HOVER = "#00a884", "#01976e"
+BG, PANEL, FIELD = "#0b141a", "#111b21", "#202c33"
+MUTED, TEXT, ERROR = "#8696a0", "#e9edef", "#f15c6d"
+
+
+# ===========================================================================
+#  Idiomas de la interfaz
+# ===========================================================================
+LANG = {
+ "ES": {
+  "subtitle": "Analisis forense de WhatsApp - Android e iOS",
+  "output": "Salida", "clear": "Limpiar", "browse": "Examinar",
+  "deps": "Instalar dependencias", "settings": "Configuracion",
+  "readme": "Manual", "about": "Acerca de", "lang": "English",
+  "run": "Ejecutar", "hint_start": "Elige una pestana, completa los campos y pulsa el boton de accion.",
+  "db": "Base de datos", "db_dec": "Base descifrada", "contacts": "Contactos (opcional)",
+  "outdir": "Carpeta de salida", "wafolder": "Carpeta WhatsApp (opcional)",
+  "copymedia": "Copiar los adjuntos dentro del informe (entregable en un solo paquete)",
+  "mode": "Modo", "platform": "Plataforma", "auto": "Autodetectar",
+  "m_msg": "Mensajes", "m_status": "Info: estados", "m_calls": "Info: llamadas",
+  "m_chats": "Info: chats activos", "m_extract": "Extraer adjuntos", "m_carving": "Carving",
+  "recipients": "Destinatarios", "scope": "Alcance", "all": "Todos", "user": "Usuario",
+  "group": "Grupo", "byuser": "Mensajes de un numero", "broadcast": "Difusion",
+  "target": "Numero o grupo", "filters": "Filtros", "text": "Texto",
+  "sender": "Remitente", "from": "Desde", "to": "Hasta", "rawtypes": "Codigos nativos",
+  "direction": "Direccion", "d_all": "Todas", "d_sent": "Enviados",
+  "d_recv": "Recibidos", "d_sys": "Del sistema",
+  "searchopts": "OPCIONES DE BUSQUEDA", "types": "TIPOS DE MENSAJE (si no marcas ninguno, se incluyen todos)",
+  "outsec": "Salida", "report": "Informe interactivo", "none": "Ninguno",
+  "print": "Informe imprimible", "csv": "Exportar CSV", "kml": "Exportar ubicaciones a KML",
+  "maps": "Descargar mapas (necesita internet)", "single": "Informe en un solo archivo",
+  "cipher_sec": "Descifrado y cifrado de bases de datos", "action": "Accion",
+  "decrypt": "Descifrar", "encrypt": "Cifrar (crypt15)", "input": "Archivo de entrada",
+  "isdir": "La entrada es un directorio (solo descifrado)", "key": "Clave",
+  "keyhint": "La clave puede ser el archivo .key, encrypted_backup.key o los 64 caracteres hexadecimales de la clave raiz.",
+  "outfile": "Salida", "merge_sec": "Fusion de bases de datos",
+  "mergefolder": "Carpeta con las bases", "mergeout": "Base resultante",
+  "gd_sec": "Google Drive", "gd_cred": "Las credenciales se leen de cfg/settings.cfg, seccion [google-auth].",
+  "gd_info": "Informacion de copias", "gd_list": "Listar todo", "gd_listwa": "Listar copias de WhatsApp",
+  "gd_pull": "Descargar un archivo", "gd_sync": "Sincronizar todo", "gd_img": "Solo imagenes",
+  "gd_vid": "Solo videos", "gd_aud": "Solo audios", "gd_doc": "Solo documentos", "gd_db": "Solo bases",
+  "remotefile": "Archivo a descargar", "threads": "Hilos",
+  "noparallel": "Sin descargas en paralelo", "dryrun": "Simulacion (no descarga)",
+  "chat_sec": "Chat exportado desde la aplicacion", "chatfile": "Archivo del chat",
+  "system": "Sistema", "chatuser": "Usuario destinatario", "datemask": "Mascara de fecha",
+  "onlypart": "Solo listar participantes", "ic_sec": "iCloud",
+  "chatmedia": "Carpeta con los adjuntos exportados",
+  "copymedia_short": "Copiar adjuntos al informe", "regex": "Regex",
+  "ic_cred": "Las credenciales se leen de cfg/settings.cfg, seccion [icloud-auth].",
+  "ic_list": "Listar", "ic_sync": "Sincronizar todo", "ic_img": "Solo imagenes",
+  "ic_vid": "Solo videos y audios",
+  "cfg_title": "Configuracion", "cfg_report": "Datos del informe",
+  "cfg_google": "Google Drive", "cfg_icloud": "iCloud", "cfg_save": "Guardar",
+  "cfg_cancel": "Cancelar", "cfg_saved": "Configuracion guardada en cfg/settings.cfg",
+  "deps_title": "Instalar dependencias",
+  "deps_q": "Se van a instalar las dependencias de doc/requirements.txt.\n\nRequiere conexion a internet y puede tardar un rato.\n\n Continuar?",
+  "missing": "Faltan estas dependencias", "allok": "Todas las dependencias estan instaladas.",
+  "ph_db": "msgstore.db (Android)  /  ChatStorage.sqlite (iOS)",
+  "ph_wa": "wa.db (Android)  /  ContactsV2.sqlite (iOS)  -  da los nombres",
+  "ph_enc": "msgstore.db.crypt15  /  .crypt14  /  .crypt12",
+  "ph_key": "archivo key  /  encrypted_backup.key  /  64 caracteres hex",
+  "ph_out": "carpeta donde se guardara el informe",
+  "ph_outfile": "msgstore.db  (archivo que se generara)",
+  "ph_media": "carpeta WhatsApp copiada del telefono (la que contiene Media)",
+  "ph_chat": "Chat de WhatsApp con <nombre>.txt",
+  "ph_chatmedia": "por defecto, la misma carpeta que el .txt",
+  "ph_mergedir": "carpeta con varios msgstore.db",
+  "ph_mergeout": "msgstore_merge.db  (archivo que se generara)",
+  "f_read": "Leidos", "f_unread": "Sin confirmar lectura",
+  "ph_case": "Diligencias 1234/2026  -  saldra en la portada",
+  "ph_examiner": "quien firma el analisis",
+  "warn_data": "Faltan datos", "warn_db": "Elige una base de datos.",
+  "warn_in": "Entrada, clave y salida son obligatorias.",
+  "warn_folder": "Elige la carpeta con las bases.", "warn_chat": "Elige el archivo del chat.",
+  "warn_remote": "Indica el archivo a descargar.",
+ },
+ "EN": {
+  "subtitle": "WhatsApp forensics - Android and iOS",
+  "output": "Output", "clear": "Clear", "browse": "Browse",
+  "deps": "Install requirements", "settings": "Settings",
+  "readme": "Manual", "about": "About", "lang": "Espanol",
+  "run": "Run", "hint_start": "Pick a tab, fill in the fields and press the action button.",
+  "db": "Database", "db_dec": "Decrypted database", "contacts": "Contacts (optional)",
+  "outdir": "Output folder", "wafolder": "WhatsApp folder (optional)",
+  "copymedia": "Copy attachments into the report (single deliverable package)",
+  "mode": "Mode", "platform": "Platform", "auto": "Autodetect",
+  "m_msg": "Messages", "m_status": "Info: status", "m_calls": "Info: calls",
+  "m_chats": "Info: active chats", "m_extract": "Extract attachments", "m_carving": "Carving",
+  "recipients": "Recipients", "scope": "Scope", "all": "All", "user": "User",
+  "group": "Group", "byuser": "Messages from a number", "broadcast": "Broadcast",
+  "target": "Number or group", "filters": "Filters", "text": "Text",
+  "sender": "Sender", "from": "From", "to": "To", "rawtypes": "Native type codes",
+  "direction": "Direction", "d_all": "All", "d_sent": "Sent",
+  "d_recv": "Received", "d_sys": "System",
+  "searchopts": "SEARCH OPTIONS", "types": "MESSAGE TYPES (leave all unticked to include every type)",
+  "outsec": "Output", "report": "Interactive report", "none": "None",
+  "print": "Printable report", "csv": "Export CSV", "kml": "Export locations to KML",
+  "maps": "Download maps (needs internet)", "single": "Single file report",
+  "cipher_sec": "Database decryption and encryption", "action": "Action",
+  "decrypt": "Decrypt", "encrypt": "Encrypt (crypt15)", "input": "Input file",
+  "isdir": "Input is a folder (decryption only)", "key": "Key",
+  "keyhint": "The key can be the .key file, encrypted_backup.key, or the 64 hex characters of the root key.",
+  "outfile": "Output", "merge_sec": "Database merge",
+  "mergefolder": "Folder with the databases", "mergeout": "Resulting database",
+  "gd_sec": "Google Drive", "gd_cred": "Credentials are read from cfg/settings.cfg, section [google-auth].",
+  "gd_info": "Backup information", "gd_list": "List everything", "gd_listwa": "List WhatsApp backups",
+  "gd_pull": "Download a file", "gd_sync": "Sync everything", "gd_img": "Images only",
+  "gd_vid": "Videos only", "gd_aud": "Audio only", "gd_doc": "Documents only", "gd_db": "Databases only",
+  "remotefile": "File to download", "threads": "Threads",
+  "noparallel": "No parallel downloads", "dryrun": "Dry run (no download)",
+  "chat_sec": "Chat exported from the app", "chatfile": "Chat file",
+  "system": "System", "chatuser": "Target user", "datemask": "Date mask",
+  "onlypart": "List participants only", "ic_sec": "iCloud",
+  "chatmedia": "Folder with the exported attachments",
+  "copymedia_short": "Copy attachments into report", "regex": "Regex",
+  "ic_cred": "Credentials are read from cfg/settings.cfg, section [icloud-auth].",
+  "ic_list": "List", "ic_sync": "Sync everything", "ic_img": "Images only",
+  "ic_vid": "Videos and audio only",
+  "cfg_title": "Settings", "cfg_report": "Report details",
+  "cfg_google": "Google Drive", "cfg_icloud": "iCloud", "cfg_save": "Save",
+  "cfg_cancel": "Cancel", "cfg_saved": "Settings saved to cfg/settings.cfg",
+  "deps_title": "Install requirements",
+  "deps_q": "This will install everything in doc/requirements.txt.\n\nIt needs an internet connection and may take a while.\n\nContinue?",
+  "missing": "These requirements are missing", "allok": "All requirements are installed.",
+  "ph_db": "msgstore.db (Android)  /  ChatStorage.sqlite (iOS)",
+  "ph_wa": "wa.db (Android)  /  ContactsV2.sqlite (iOS)  -  adds the names",
+  "ph_enc": "msgstore.db.crypt15  /  .crypt14  /  .crypt12",
+  "ph_key": "key file  /  encrypted_backup.key  /  64 hex characters",
+  "ph_out": "folder where the report will be written",
+  "ph_outfile": "msgstore.db  (file to be created)",
+  "ph_media": "WhatsApp folder copied from the phone (the one holding Media)",
+  "ph_chat": "WhatsApp Chat with <name>.txt",
+  "ph_chatmedia": "defaults to the same folder as the .txt",
+  "ph_mergedir": "folder holding several msgstore.db",
+  "ph_mergeout": "msgstore_merge.db  (file to be created)",
+  "f_read": "Read", "f_unread": "No read receipt",
+  "ph_case": "Case 1234/2026  -  printed on the cover",
+  "ph_examiner": "who signs the analysis",
+  "warn_data": "Missing data", "warn_db": "Choose a database.",
+  "warn_in": "Input, key and output are required.",
+  "warn_folder": "Choose the folder with the databases.", "warn_chat": "Choose the chat file.",
+  "warn_remote": "Enter the file to download.",
+ },
+}
+
+ctk.set_appearance_mode("dark")
+ctk.set_default_color_theme("green")
+
+F11 = dict(size=11)
+F12 = dict(size=12)
+
+
+def tool(name):
+    return os.path.join(LIBS, name)
+
+
+# Las herramientas se lanzan desde la raiz del proyecto, no desde libs/: si no,
+# un informe sin ruta de salida acabaria dentro de libs/, que no es sitio.
+# Los modulos de libs/ se importan igual porque cada herramienta anade su propio
+# directorio a sys.path.
+
+
+class Field:
+    """Campo de texto con pista visible.
+
+    CustomTkinter solo muestra el placeholder si el campo NO tiene textvariable
+    (ver CTkEntry._activate_placeholder). Como aqui interesa mas que el usuario
+    vea que archivo se espera, se prescinde de la variable de Tk y se habla
+    directamente con el widget, manteniendo la misma interfaz .get() / .set()
+    para que el resto del codigo no cambie.
+    """
+
+    def __init__(self, value=""):
+        self._widget = None
+        self._value = value
+
+    def attach(self, widget):
+        self._widget = widget
+        if self._value:
+            widget.insert(0, self._value)
+
+    def get(self):
+        if self._widget is not None:
+            try:
+                return self._widget.get()
+            except Exception:
+                pass
+        return self._value
+
+    def set(self, valor):
+        self._value = valor or ""
+        if self._widget is None:
+            return
+        try:
+            self._widget.delete(0, "end")
+            if valor:
+                self._widget.insert(0, valor)
+            else:
+                # al vaciarlo, la pista debe volver a verse
+                self._widget._activate_placeholder()
+        except Exception:
+            pass
+
+
+class Row:
+    """Ayudante para colocar controles en rejilla dentro de un marco."""
+
+    def __init__(self, master):
+        self.m = master
+        self.r = 0
+        master.grid_columnconfigure(1, weight=1)
+
+    def file(self, label, var, title, types=None, save=False, folder=False,
+             hint=None):
+        """hint aparece dentro del campo mientras esta vacio, para que se vea
+        que archivo se espera sin tener que abrir el dialogo."""
+        ctk.CTkLabel(self.m, text=label, text_color=TEXT, anchor="w",
+                     font=ctk.CTkFont(**F12)).grid(row=self.r, column=0, sticky="w",
+                                                   padx=(12, 6), pady=4)
+        e = ctk.CTkEntry(self.m, fg_color=FIELD, border_width=0,
+                         placeholder_text=hint or "")
+        e.grid(row=self.r, column=1, columnspan=2, sticky="ew", pady=4)
+        var.attach(e)
+
+        def pick():
+            if folder:
+                p = filedialog.askdirectory(title=title)
+            elif save:
+                p = filedialog.asksaveasfilename(title=title, filetypes=types or [("Todos", "*.*")])
+            else:
+                p = filedialog.askopenfilename(title=title, filetypes=types or [("Todos", "*.*")])
+            if p:
+                var.set(p)
+
+        ctk.CTkButton(self.m, text="Examinar", width=86, command=pick,
+                      fg_color=FIELD, hover_color="#2a3942", font=ctk.CTkFont(**F11)
+                      ).grid(row=self.r, column=3, padx=(6, 12), pady=4)
+        self.r += 1
+
+    def entry(self, label, var, placeholder="", width=200):
+        ctk.CTkLabel(self.m, text=label, text_color=TEXT, anchor="w",
+                     font=ctk.CTkFont(**F12)).grid(row=self.r, column=0, sticky="w",
+                                                   padx=(12, 6), pady=4)
+        e = ctk.CTkEntry(self.m, fg_color=FIELD, border_width=0,
+                         placeholder_text=placeholder, width=width)
+        e.grid(row=self.r, column=1, sticky="w", pady=4)
+        var.attach(e)
+        self.r += 1
+
+    def options(self, label, var, values, width=190):
+        ctk.CTkLabel(self.m, text=label, text_color=TEXT, anchor="w",
+                     font=ctk.CTkFont(**F12)).grid(row=self.r, column=0, sticky="w",
+                                                   padx=(12, 6), pady=4)
+        ctk.CTkOptionMenu(self.m, variable=var, values=values, width=width,
+                          fg_color=FIELD, button_color=FIELD,
+                          button_hover_color="#2a3942", font=ctk.CTkFont(**F12)
+                          ).grid(row=self.r, column=1, sticky="w", pady=4)
+        self.r += 1
+
+    def checks(self, items, cols=5, label=None):
+        """items: lista de (variable, texto)."""
+        if label:
+            ctk.CTkLabel(self.m, text=label, text_color=MUTED, anchor="w",
+                         font=ctk.CTkFont(size=10)).grid(row=self.r, column=0,
+                                                         columnspan=4, sticky="w",
+                                                         padx=12, pady=(8, 0))
+            self.r += 1
+        box = ctk.CTkFrame(self.m, fg_color="transparent")
+        box.grid(row=self.r, column=0, columnspan=4, sticky="w", padx=10, pady=2)
+        for i, (var, txt) in enumerate(items):
+            ctk.CTkCheckBox(box, text=txt, variable=var, text_color=TEXT,
+                            fg_color=ACCENT, hover_color=ACCENT_HOVER,
+                            checkbox_width=16, checkbox_height=16,
+                            font=ctk.CTkFont(size=11)
+                            ).grid(row=i // cols, column=i % cols, sticky="w",
+                                   padx=6, pady=2)
+        self.r += 1
+
+    def section(self, text):
+        ctk.CTkLabel(self.m, text=text, text_color=ACCENT,
+                     font=ctk.CTkFont(size=12, weight="bold")
+                     ).grid(row=self.r, column=0, columnspan=4, sticky="w",
+                            padx=12, pady=(10, 2))
+        self.r += 1
+
+    def run(self, text, command):
+        b = ctk.CTkButton(self.m, text=text, command=command, width=180,
+                          fg_color=ACCENT, hover_color=ACCENT_HOVER,
+                          text_color="#04160f",
+                          font=ctk.CTkFont(size=13, weight="bold"))
+        b.grid(row=self.r, column=0, columnspan=2, sticky="w", padx=12, pady=12)
+        self.r += 1
+        return b
+
+
+class SettingsDialog(ctk.CTkToplevel):
+    """Editor de cfg/settings.cfg: datos del informe y credenciales."""
+
+    CAMPOS = [
+        ("report", "company",   "Empresa / Organismo"),
+        ("report", "record",    "Referencia del atestado"),
+        ("report", "unit",      "Unidad"),
+        ("report", "examiner",  "Instructor / analista"),
+        ("report", "notes",     "Notas"),
+        ("google-auth", "gmail",      "Cuenta de Gmail"),
+        ("google-auth", "password",   "Contrasena (o de aplicacion si usas 2FA)"),
+        ("google-auth", "oauth",      "Cookie oauth (opcional)"),
+        ("google-auth", "android_id", "android_id"),
+        ("google-auth", "celnumbr",   "Numeros a sincronizar (opcional)"),
+        ("icloud-auth", "icloud", "Cuenta de iCloud"),
+        ("icloud-auth", "passw",  "Contrasena"),
+    ]
+    SECCIONES = {"report": "cfg_report", "google-auth": "cfg_google",
+                 "icloud-auth": "cfg_icloud"}
+
+    def __init__(self, master):
+        super().__init__(master)
+        self.master_gui = master
+        self.title(master.T("cfg_title"))
+        self.geometry("640x620")
+        self.configure(fg_color=BG)
+        self.transient(master)
+        self.ruta = os.path.join(APP_DIR, "cfg", "settings.cfg")
+        self.vars = {}
+        self._build()
+        self.after(120, self.grab_set)     # tras dibujarse, para no fallar en Linux
+
+    def _build(self):
+        T = self.master_gui.T
+        sc = ctk.CTkScrollableFrame(self, fg_color="transparent")
+        sc.pack(fill="both", expand=True, padx=12, pady=12)
+        sc.grid_columnconfigure(1, weight=1)
+
+        cfg = ConfigParser()
+        if os.path.exists(self.ruta):
+            try:
+                cfg.read(self.ruta, encoding="utf-8")
+            except Exception:
+                pass
+
+        fila = 0
+        seccion_actual = None
+        for sec, clave, etiqueta in self.CAMPOS:
+            if sec != seccion_actual:
+                seccion_actual = sec
+                ctk.CTkLabel(sc, text=T(self.SECCIONES[sec]), text_color=ACCENT,
+                             font=ctk.CTkFont(size=13, weight="bold")
+                             ).grid(row=fila, column=0, columnspan=2, sticky="w",
+                                    pady=(14, 4))
+                fila += 1
+            valor = ""
+            if cfg.has_option(sec, clave):
+                valor = cfg.get(sec, clave).strip().strip('"')
+            var = ctk.StringVar(value=valor)
+            self.vars[(sec, clave)] = var
+            ctk.CTkLabel(sc, text=etiqueta, text_color=TEXT, anchor="w",
+                         font=ctk.CTkFont(**F12)).grid(row=fila, column=0,
+                                                       sticky="w", padx=(0, 10), pady=3)
+            oculta = "*" if clave in ("password", "passw") else ""
+            ctk.CTkEntry(sc, textvariable=var, fg_color=FIELD, border_width=0,
+                         show=oculta, width=330).grid(row=fila, column=1,
+                                                      sticky="ew", pady=3)
+            fila += 1
+
+        barra = ctk.CTkFrame(self, fg_color="transparent")
+        barra.pack(fill="x", padx=12, pady=(0, 12))
+        ctk.CTkButton(barra, text=T("cfg_save"), command=self._save, width=130,
+                      fg_color=ACCENT, hover_color=ACCENT_HOVER,
+                      text_color="#04160f",
+                      font=ctk.CTkFont(size=13, weight="bold")).pack(side="right")
+        ctk.CTkButton(barra, text=T("cfg_cancel"), command=self.destroy, width=110,
+                      fg_color=FIELD, hover_color="#2a3942").pack(side="right", padx=8)
+        ctk.CTkLabel(barra, text=self.ruta, text_color=MUTED,
+                     font=ctk.CTkFont(size=10)).pack(side="left")
+
+    def _save(self):
+        cfg = ConfigParser()
+        if os.path.exists(self.ruta):
+            try:
+                cfg.read(self.ruta, encoding="utf-8")
+            except Exception:
+                pass
+        for (sec, clave), var in self.vars.items():
+            if not cfg.has_section(sec):
+                cfg.add_section(sec)
+            valor = var.get()
+            # los datos del informe se guardan entrecomillados, como en el original
+            if sec == "report":
+                valor = '"{}"'.format(valor.replace('"', ""))
+            cfg.set(sec, clave, valor)
+        try:
+            os.makedirs(os.path.dirname(self.ruta), exist_ok=True)
+            with open(self.ruta, "w", encoding="utf-8") as fh:
+                cfg.write(fh)
+            self.master_gui._emit("[-] " + self.master_gui.T("cfg_saved"), "ok")
+            self.destroy()
+        except OSError as e:
+            messagebox.showerror("whapa", str(e))
+
+
+class WhapaGUI(ctk.CTk):
+    def __init__(self):
+        super().__init__()
+        self.title("WhaPa {} - Whatsapp Parser".format(version))
+        # El tamano inicial nunca debe superar la pantalla: en un equipo de
+        # 1024x768 una ventana de 1060x860 se sale y no se ven los botones.
+        try:
+            _sw, _sh = self.winfo_screenwidth(), self.winfo_screenheight()
+        except Exception:
+            _sw, _sh = 1280, 800
+        self.geometry("{}x{}".format(min(1060, _sw - 20), min(860, _sh - 80)))
+        self.minsize(min(900, _sw - 40), min(640, _sh - 100))
+        self.configure(fg_color=BG)
+        self.q = queue.Queue()
+        self.busy = False
+        self.buttons = []
+        self.lang = "ES"
+        self._set_icon()
+        self._build()
+        # Se maximiza cuando la ventana ya existe: hacerlo dentro de __init__,
+        # antes de que el gestor de ventanas la dibuje, no surte efecto.
+        self.after(10, self._maximizar)
+        self.after(100, self._drain)
+
+    def _maximizar(self):
+        """Abre la ventana maximizada, con el metodo que admita cada sistema.
+
+        No hay uno que valga para todos: Windows entiende state("zoomed"),
+        varios gestores de ventanas de Linux usan el atributo -zoomed, y en
+        macOS no funciona ninguno, asi que se recurre a ajustar la geometria al
+        tamano de la pantalla. Se prueban en ese orden y se comprueba el
+        resultado, porque un metodo puede no dar error y aun asi no hacer nada.
+        """
+        try:
+            pantalla_ancho = self.winfo_screenwidth()
+            pantalla_alto = self.winfo_screenheight()
+        except Exception:
             return
 
-        if system == "Linux":
-            #os.system('xdg-open "{}"'.format(self.path)) # Unsafe, leads to command injection
-            subprocess.run(["xdg-open", self.path], check=True)
-        else:
-            os.startfile(self.path)
-
-    def about(self):
-        """ About dialog"""
-
-        messagebox.showinfo("About", title + " v" + version + "\nAuthor: " + author + "\nContact: " + contact)
-
-    def system_slash(self, string):
-        """ Change slashes depending on the platform """
-        if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
-            return string.replace("/", "\\")
-        else:
-            return string.replace("\\", "/")
-
-    def update(self):
-        """ About dialog"""
-
-        if system == "Linux":
+        def maximizada():
             try:
-                exec = self.system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
-            except:
-                exec = self.system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
+                return (self.winfo_width() >= pantalla_ancho * 0.92
+                        and self.winfo_height() >= pantalla_alto * 0.80)
+            except Exception:
+                return False
 
-        else:
-            exec = self.system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def exit(self):
-        """Exit the App"""
-        self.root.destroy()
-
-    def search_whapa_file(self):
-        """Search a file"""
-
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db files", "*.db"),))
-        if system == "Linux":
-            self.whapa_file.set(self.path)
-        else:
-            self.whapa_file.set(self.path)
-
-    def search_whapa_wa(self):
-        """Search a file"""
-
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db files", "*.db"),))
-        if system == "Linux":
-            self.whapa_wa.set(self.path)
-        else:
-            self.whapa_wa.set(self.path.replace("/", "\\"))
-
-    def search_whapa_out(self):
-        """Search a path"""
-
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whapa_out.set(self.path + '/report/')
-        else:
-            self.whapa_out.set((self.path + "\\report\\").replace("/", "\\"))
-
-    def whapa_messages(self):
-        """ Run whapa message command"""
-
-        self.cmd = '-m "{}"'.format(self.whapa_file.get()).strip("\n")
-        if self.whapa_wa.get():
-            self.cmd += ' -wa "{}"'.format(self.whapa_wa.get()).strip("\n")
-
-        if self.whapa_box_value.get() == "All":
-            self.cmd += " -a"
-        elif self.whapa_box_value.get() == "User_all":
-            self.cmd += " -ua {}".format(self.whapa_user.get()).strip("\n")
-        elif self.whapa_box_value.get() == "Group":
-            self.cmd += " -g {}".format(self.whapa_user.get()).strip("\n")
-        elif self.whapa_box_value.get() == "User":
-            self.cmd += " -u {}".format(self.whapa_user.get()).strip("\n")
-
-        if self.whapa_text.get() == "1":
-            self.cmd += ' -t "{}"'.format(self.entry_whapa_text.get()).strip("\n")
-        else:
-            pass
-
-        if self.whapa_ts.get() == "1":
-            self.cmd += ' -ts "{}"'.format(self.entry_whapa_ts.get()).strip("\n")
-        else:
-            pass
-        if self.whapa_te.get() == "1":
-            self.cmd += ' -te "{}"'.format(self.entry_whapa_te.get()).strip("\n")
-        else:
-            pass
-        if self.whapa_w.get() == "1":
-            self.cmd += " -w"
-        if self.whapa_s.get() == "1":
-            self.cmd += " -s"
-        if self.whapa_b.get() == "1":
-            self.cmd += " -b"
-
-        if self.whapa_box_filter.get() == "Text":
-            self.cmd += " -tt"
-        elif self.whapa_box_filter.get() == "Images":
-            self.cmd += " -ti"
-        elif self.whapa_box_filter.get() == "Audios":
-            self.cmd += " -ta"
-        elif self.whapa_box_filter.get() == "Videos":
-            self.cmd += " -tv"
-        elif self.whapa_box_filter.get() == "Contacts":
-            self.cmd += " -tc"
-        elif self.whapa_box_filter.get() == "Locations":
-            self.cmd += " -tl"
-        elif self.whapa_box_filter.get() == "Calls":
-            self.cmd += " -tx"
-        elif self.whapa_box_filter.get() == "Applications":
-            self.cmd += " -tp"
-        elif self.whapa_box_filter.get() == "GIFs":
-            self.cmd += " -tg"
-        elif self.whapa_box_filter.get() == "Deleted":
-            self.cmd += " -td"
-        elif self.whapa_box_filter.get() == "Realtime":
-            self.cmd += " -tr"
-        elif self.whapa_box_filter.get() == "Stickers":
-            self.cmd += " -tk"
-        elif self.whapa_box_filter.get() == "System":
-            self.cmd += " -tm"
-        else:
-            pass
-
-        if self.whapa_box_rep.get() == "ES":
-            self.cmd += " -r ES"
-        elif self.whapa_box_rep.get() == "EN":
-            self.cmd += " -r EN"
-        else:
-            pass
-
-        if self.whapa_out.get():
-            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
-        else:
-            self.cmd += ' -o "{}/"'.format(os.getcwd())
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def whapa_extract(self):
-        """ Run whapa extract command"""
-        self.cmd = '-e "{}"'.format(self.whapa_file.get()).strip("\n")
-        if self.whapa_ts.get() == "1":
-            self.cmd += ' -ts "{}"'.format(self.entry_whapa_ts.get()).strip("\n")
-        else:
-            pass
-        if self.whapa_te.get() == "1":
-            self.cmd += ' -te "{}"'.format(self.entry_whapa_te.get()).strip("\n")
-        else:
-            pass
-
-        if self.whapa_box_value.get() == "User_all":
-            self.cmd += " -ua {}".format(self.whapa_user.get()).strip("\n")
-
-        elif self.whapa_box_value.get() == "Group":
-            self.cmd += " -g {}".format(self.whapa_user.get()).strip("\n")
-
-        elif self.whapa_box_value.get() == "User":
-            self.cmd += " -u {}".format(self.whapa_user.get()).strip("\n")
-
-        if self.whapa_out.get():
-            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
-        else:
-            self.cmd += ' -o "{}/"'.format(os.getcwd())
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def whapa_status(self):
-        """ Run whapa status command"""
-
-        self.cmd = '-i 1 -wa "{}"'.format(self.whapa_wa.get()).strip("\n")
-        self.cmd += ' "{}"'.format(self.whapa_file.get()).strip("\n")
-
-        if self.whapa_box_rep.get() == "ES":
-            self.cmd += " -r ES"
-        elif self.whapa_box_rep.get() == "EN":
-            self.cmd += " -r EN"
-        else:
-            pass
-
-        if self.whapa_out.get():
-            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
-        else:
-            self.cmd += ' -o "{}/"'.format(os.getcwd())
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def whapa_call(self):
-        """ Run whapa call log command"""
-
-        self.cmd = '-i 2 -wa "{}"'.format(self.whapa_wa.get()).strip("\n")
-        self.cmd += ' "{}"'.format(self.whapa_file.get()).strip("\n")
-
-        if self.whapa_ts.get() == "1":
-            self.cmd += ' -ts "{}"'.format(self.entry_whapa_ts.get()).strip("\n")
-        else:
-            pass
-        if self.whapa_te.get() == "1":
-            self.cmd += ' -te "{}"'.format(self.entry_whapa_te.get()).strip("\n")
-        else:
-            pass
-
-        if self.whapa_box_rep.get() == "ES":
-            self.cmd += " -r ES"
-        elif self.whapa_box_rep.get() == "EN":
-            self.cmd += " -r EN"
-        else:
-            pass
-
-        if self.whapa_out.get():
-            self.cmd += ' -o "{}/"'.format(self.whapa_out.get())
-        else:
-            self.cmd += ' -o "{}/"'.format(os.getcwd())
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-            print(exec)
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def whapa_info(self):
-        """ Run whapa info command"""
-
-        self.cmd = '-i 3 -wa "{}"'.format(self.whapa_wa.get()).strip("\n")
-        self.cmd += ' "{}"'.format(self.whapa_file.get()).strip("\n")
-
-        if self.whapa_box_rep.get() == "ES":
-            self.cmd += " -r ES"
-        elif self.whapa_box_rep.get() == "EN":
-            self.cmd += " -r EN"
-        else:
-            pass
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whapa.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def whapa_carving(self):
-        """ Run whapa carving database"""
-
-        self.cmd = '"{}"'.format
-        print("[i] Database carving starts...")
-        print("[i] The process can be slow, be patient!")
-        if self.whapa_out.get():
-            local = self.whapa_out.get()
-        else:
-            local = os.getcwd()
-
-        os.makedirs(os.path.dirname(local), exist_ok=True)
-        log_file = local + "/msgstore.csv"
-        msgstore_file = (self.whapa_file.get()).strip("\n")
-        if system == "Linux":
-            print("[i] Make sure the undark file has execute permissions")
-            exec_command = self.system_slash(r'"{}/libs/undark" -i "{}" --no-blobs --freespace > "{}"'.format(whapa_path, msgstore_file, log_file))
-            os.system(exec_command)
-
-        else:
-            log = open(log_file, 'w')
-            exec = self.system_slash(r'{}/libs/undark.exe'.format(whapa_path))
-            c = subprocess.Popen([exec, "-i", msgstore_file, "--no-blobs", "--freespace"], stdout=log, shell=True)
-            c.wait()
-            log.close()
-            exec_command = self.system_slash(r'{}/libs/undark.exe -i "{}" --no-blobs --freespace > "{}"'.format(whapa_path, msgstore_file, log_file))
-
-        self.label_status.set(exec_command)
-        print("[i] Finished")
-
-    def estate_assets_whacipher(self):
-        """Check that radiobutton is marked"""
-        if self.whacipher_box_value.get() == "File":
-            self.entry_whacipher_path.config(state=DISABLED)
-            self.entry_whacipher_file.config(state=NORMAL)
-            self.button_whacipher_path.config(state=DISABLED)
-            self.button_whacipher_file.config(state=NORMAL)
-            self.entry_whacipher_out.delete(0, END)
+        for metodo in (lambda: self.state("zoomed"),
+                       lambda: self.attributes("-zoomed", True)):
             try:
-                if system == "Linux":
-                    self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "/msgstore.db"))
-                else:
-                    self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + r"\msgstore.db"))
-            except:
-                pass
+                metodo()
+                self.update_idletasks()
+                if maximizada():
+                    return
+            except Exception:
+                continue
 
-        elif self.whacipher_box_value.get() == "Path":
-            self.entry_whacipher_file.config(state=DISABLED)
-            self.entry_whacipher_path.config(state=NORMAL)
-            self.button_whacipher_file.config(state=DISABLED)
-            self.button_whacipher_path.config(state=NORMAL)
-            self.entry_whacipher_out.delete(0, END)
-            try:
-                if system == "Linux":
-                    self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "/"))
-                else:
-                    self.entry_whacipher_out.insert(0, self.whacipher_out.set(os.getcwd() + "\\"))
-            except:
-                pass
-
-    def checkNumberOnly(self, action, value_if_allowed):
-        """Check that only numbers are entered"""
-        if action != '1':
-            return True
+        # Ultimo recurso: ocupar la pantalla a mano, dejando hueco para la
+        # barra de tareas.
         try:
-            return value_if_allowed.isnumeric()
-        except ValueError:
-            return False
+            self.geometry("{}x{}+0+0".format(pantalla_ancho,
+                                             max(500, pantalla_alto - 70)))
+        except Exception:
+            pass
 
-    def search_path_whacypher(self):
-        """Search a path"""
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whacipher_path.set(self.path + '/')
-        else:
-            self.whacipher_path.set((self.path + "\\").replace("/", "\\"))
+    # ------------------------------------------------------------------
+    def T(self, clave):
+        """Texto en el idioma activo."""
+        return LANG[self.lang].get(clave, clave)
 
-    def search_file_whacypher(self):
-        """Search a path file"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db crypt files", "*.crypt*"),))
-        if system == "Linux":
-            self.whacipher_file.set(self.path)
-        else:
-            self.whacipher_file.set(self.path.replace("/", "\\"))
-
-    def search_key_whacypher(self):
-        """Search a key file"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("All files", "*"),))
-        if system == "Linux":
-            self.whacipher_key.set(self.path)
-        else:
-            self.whacipher_key.set(self.path.replace("/", "\\"))
-
-    def search_out_whacypher(self):
-        """Search a output file or path"""
-
-        self.path = filedialog.askdirectory()
-        if self.whacipher_box_value.get() == "File":
-            if system == "Linux":
-                self.whacipher_out.set(self.path + '/msgstore.db')
-            else:
-                self.whacipher_out.set((self.path + "\\msgstore.db").replace("/", "\\"))
-        else:
-            if system == "Linux":
-                self.whacipher_out_en.set((self.path + "/"))
-            else:
-                self.whacipher_out_en.set((self.path + "\\").replace("/", "\\"))
-
-    def search_out_whacypher_en(self):
-        """Search a output file or path"""
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whacipher_out_en.set((self.path + "/msgstore.db.crypt14"))
-        else:
-
-            self.whacipher_out_en.set((self.path + "\\msgstore.db.crypt14").replace("/", "\\"))
-
-    def search_criptofile_whacypher_en(self):
-        """Search a file"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db crypt files", "*.crypt*"),))
-        if system == "Linux":
-            self.whacipher_crypt_en.set(self.path)
-        else:
-            self.whacipher_crypt_en.set(self.path.replace("/", "\\"))
-
-    def search_file_whacypher_en(self):
-        """Search a file"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("Db files", "*.db"),))
-        if system == "Linux":
-            self.whacipher_file_en.set(self.path)
-        else:
-            self.whacipher_file_en.set(self.path.replace("/", "\\"))
-
-    def search_key_whacypher_en(self):
-        """Search a key file"""
-        self.path = filedialog.askopenfilename(title="Select file", filetypes=(("All files", "*"),))
-        if system == "Linux":
-            self.whacipher_key_en.set(self.path)
-        else:
-            self.whacipher_key_en.set(self.path.replace("/", "\\"))
-
-    def decrypt_whacypher(self):
-        """Run decrypt command"""
-        if self.whacipher_box_value.get() == "File":
-            self.cmd = '-f "{}"'.format(self.whacipher_file.get()).strip("\n")
-            self.cmd += ' -d "{}"'.format(self.whacipher_key.get()).strip("\n")
-            self.cmd += ' -o "{}"'.format(self.whacipher_out.get()).strip("\n")
-        else:
-            if system == "Linux":
-                self.cmd = '-p "{}"'.format(self.whacipher_path.get()).strip("\n")
-                self.cmd += ' -d "{}"'.format(self.whacipher_key.get()).strip("\n")
-                self.cmd += ' -o "{}"'.format(self.whacipher_out.get()).strip("\n")
-            else:
-                self.cmd = '-p "{}\\"'.format(self.whacipher_path.get()).strip("\n")
-                self.cmd += ' -d "{}"'.format(self.whacipher_key.get()).strip("\n")
-                self.cmd += ' -o "{}\\"'.format(self.whacipher_out.get()).strip("\n")
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whacipher.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whacipher.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def encrypt_whacypher(self):
-        """Run encrypt command"""
-        self.cmd = '-f "{}"'.format(self.whacipher_file_en.get()).strip("\n")
-        self.cmd += ' -e "{}" "{}"'.format(self.whacipher_key_en.get(), self.whacipher_crypt_en.get()).strip("\n")
-        self.cmd += ' -o "{}"'.format(self.whacipher_out_en.get()).strip("\n")
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whacipher.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whacipher.py" {}'.format(whapa_path, self.cmd))
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def search_path_whamerge(self):
-        """Search a path file to merge"""
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whamerge_path.set(self.path + "/")
-        else:
-            self.whamerge_path.set((self.path + "\\").replace("/", "\\"))
-
-    def search_file_whamerge(self):
-        """Search a output file to merge"""
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whamerge_file.set(self.path)
-        else:
-            self.whamerge_file.set((self.path + "\\msgstore_merge.db").replace("/", "\\"))
-
-    def whamerge(self):
-        """Run merge command"""
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whamerge.py" "{}" -o "{}"'.format(whapa_path, self.whamerge_path.get(), self.whamerge_file.get()))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whamerge.py" "{}" -o "{}"'.format(whapa_path, self.whamerge_path.get(), self.whamerge_file.get()))
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def search_file_whachat(self):
-        """Search a file and load participants"""
+    def _set_icon(self):
+        """Icono de la ventana, desde images/."""
+        ico = os.path.join(APP_DIR, "images", "logo.ico")
+        png = os.path.join(APP_DIR, "images", "logo.png")
         try:
-            self.path = filedialog.askopenfilename(title="Select file", filetypes=(("txt files", "*.txt"),))
-            if system == "Linux":
-                self.whachat_file.set(self.path)
-            else:
-                self.whachat_file.set(self.path.replace("/", "\\"))
+            if sys.platform.startswith("win") and os.path.exists(ico):
+                self.iconbitmap(ico)
+            elif os.path.exists(png):
+                import tkinter as tk
+                self._icon_img = tk.PhotoImage(file=png)
+                self.iconphoto(True, self._icon_img)
+        except Exception:
+            pass          # el icono es un detalle: nunca debe impedir arrancar
 
-            if system == "Linux":
-                exec = self.system_slash(r'python3 "{}/libs/whachat.py" "{}" -p -s {}'.format(whapa_path, self.whachat_file.get(), self.whachat_box_os.get()))
-            else:
-                exec = self.system_slash(r'python "{}/libs/whachat.py" "{}" -p -s {}'.format(whapa_path, self.whachat_file.get(), self.whachat_box_os.get()))
+    def _switch_lang(self):
+        self.lang = "EN" if self.lang == "ES" else "ES"
+        registro = self.log.get("1.0", "end")
+        for w in self.winfo_children():
+            w.destroy()
+        self.buttons = []
+        self._build()
+        if registro.strip():
+            self.log.insert("end", registro)
 
-            self.label_status.set(exec)
-            os.system(exec)
-            path, file = os.path.split(self.whachat_file.get())
-            participants = path + "/participants.txt"
-            with open(participants, "r", errors="ignore") as file_r:
-                list_participant = []
-                for i in file_r:
-                    list_participant.append(i)
-                self.combo_whachat_user["values"] = list_participant
-                self.combo_whachat_user.current(0)
+    # ------------------------------------------------------------------
+    def _build(self):
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, minsize=210)
+
+        head = ctk.CTkFrame(self, fg_color="transparent")
+        head.grid(row=0, column=0, sticky="ew", padx=14, pady=(12, 4))
+        ctk.CTkLabel(head, text="WhaPa", text_color=ACCENT,
+                     font=ctk.CTkFont(size=22, weight="bold")).pack(side="left")
+        ctk.CTkLabel(head, text="   " + self.T("subtitle"),
+                     text_color=MUTED, font=ctk.CTkFont(**F12)).pack(side="left")
+
+        # barra de herramientas
+        for txt, cmd in ((self.T("lang"), self._switch_lang),
+                         (self.T("about"), self._about),
+                         (self.T("readme"), self._readme),
+                         (self.T("settings"), self._settings),
+                         (self.T("deps"), self._install_deps)):
+            ctk.CTkButton(head, text=txt, command=cmd, width=136,
+                          fg_color=FIELD, hover_color="#2a3942",
+                          font=ctk.CTkFont(**F11)).pack(side="right", padx=3)
+
+        self.tabs = ctk.CTkTabview(self, fg_color=PANEL, segmented_button_fg_color=FIELD,
+                                   segmented_button_selected_color=ACCENT,
+                                   segmented_button_selected_hover_color=ACCENT_HOVER)
+        self.tabs.grid(row=1, column=0, sticky="nsew", padx=14, pady=4)
+        for name in ("WhaPa", "WhaCipher", "WhaMerge", "WhaGoDri", "WhaChat", "WhaCloud"):
+            self.tabs.add(name)
+
+        self._tab_whapa(self.tabs.tab("WhaPa"))
+        self._tab_whacipher(self.tabs.tab("WhaCipher"))
+        self._tab_whamerge(self.tabs.tab("WhaMerge"))
+        self._tab_whagodri(self.tabs.tab("WhaGoDri"))
+        self._tab_whachat(self.tabs.tab("WhaChat"))
+        self._tab_whacloud(self.tabs.tab("WhaCloud"))
+
+        bottom = ctk.CTkFrame(self, fg_color="transparent")
+        bottom.grid(row=2, column=0, sticky="nsew", padx=14, pady=(4, 12))
+        bottom.grid_columnconfigure(0, weight=1)
+        bottom.grid_rowconfigure(1, weight=1)
+
+        bar = ctk.CTkFrame(bottom, fg_color="transparent")
+        bar.grid(row=0, column=0, sticky="ew")
+        ctk.CTkLabel(bar, text=self.T("output"), text_color=ACCENT,
+                     font=ctk.CTkFont(size=12, weight="bold")).pack(side="left")
+        ctk.CTkButton(bar, text=self.T("clear"), width=80, command=self._clear,
+                      fg_color=FIELD, hover_color="#2a3942",
+                      font=ctk.CTkFont(**F11)).pack(side="right", padx=4)
+        self.progress = ctk.CTkProgressBar(bar, width=160, mode="indeterminate",
+                                           progress_color=ACCENT)
+        self.progress.pack(side="right", padx=8)
+        self.progress.set(0)
+
+        self.log = ctk.CTkTextbox(bottom, fg_color=PANEL, text_color=TEXT,
+                                  corner_radius=10, wrap="word",
+                                  font=ctk.CTkFont(family="Consolas", size=12))
+        self.log.grid(row=1, column=0, sticky="nsew", pady=(4, 0))
+        self.log.tag_config("ok", foreground=ACCENT)
+        self.log.tag_config("err", foreground=ERROR)
+        self.log.tag_config("cmd", foreground=MUTED)
+        self._emit(self.T("hint_start"), "cmd")
+
+
+    # ------------------------------------------------------------------
+    #  Barra de herramientas
+    # ------------------------------------------------------------------
+    def _install_deps(self):
+        """Instala doc/requirements.txt con el pip del interprete en uso."""
+        req = os.path.join(APP_DIR, "doc", "requirements.txt")
+        if not os.path.exists(req):
+            return messagebox.showerror("whapa", "No se encuentra {}".format(req))
+        faltan = []
+        try:
+            sys.path.insert(0, LIBS)
+            import whadeps
+            faltan = whadeps.check("Crypto", "colorama", "customtkinter", "requests",
+                                   "pandas", "numpy", "configobj", "click",
+                                   "pyicloud", "selenium", "Cryptodome")
+        except Exception:
+            pass
+        detalle = ("\n\n{}: {}".format(self.T("missing"), ", ".join(faltan))
+                   if faltan else "\n\n" + self.T("allok"))
+        if not messagebox.askyesno(self.T("deps_title"),
+                                   self.T("deps_q") + detalle):
+            return
+        # se usa el pip del interprete que esta ejecutando la interfaz, para no
+        # instalar en un Python distinto del que luego ejecuta las herramientas
+        self._launch_raw([sys.executable, "-m", "pip", "install", "--upgrade",
+                          "-r", req])
+
+    def _settings(self):
+        """Editor de cfg/settings.cfg."""
+        SettingsDialog(self)
+
+    def _readme(self):
+        ruta = os.path.join(APP_DIR, "README.md")
+        if os.path.exists(ruta):
+            webbrowser.open("file://" + os.path.abspath(ruta))
+        else:
+            webbrowser.open("https://github.com/B16f00t/whapa")
+
+    def _about(self):
+        messagebox.showinfo(
+            "WhaPa " + version,
+            "WhaPa {} - Whatsapp Parser Toolset\n\n"
+            "Android e iOS\n"
+            "Ivan Moreno (B16f00t)\n"
+            "https://github.com/B16f00t/whapa\n\n"
+            "Licencia GPL-3.0".format(version))
+
+    # ---------------- pestana WhaPa ----------------
+    def _tab_whapa(self, tab):
+        sc = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        sc.pack(fill="both", expand=True)
+        r = Row(sc)
+        self.p_db, self.p_wa, self.p_out = Field(), Field(), Field()
+        r.section(self.T("db"))
+        r.file(self.T("db_dec"), self.p_db, "msgstore.db / ChatStorage.sqlite",
+               [("SQLite", "*.db *.sqlite"), ("Todos", "*.*")],
+               hint=self.T("ph_db"))
+        r.file(self.T("contacts"), self.p_wa, "wa.db / ContactsV2.sqlite",
+               [("SQLite", "*.db *.sqlite"), ("Todos", "*.*")],
+               hint=self.T("ph_wa"))
+        r.file(self.T("outdir"), self.p_out, self.T("outdir"), folder=True,
+               hint=self.T("ph_out"))
+        self.p_media = Field()
+        r.file(self.T("wafolder"), self.p_media, self.T("wafolder"), folder=True,
+               hint=self.T("ph_media"))
+        self.p_copymedia = ctk.BooleanVar()
+        r.checks([(self.p_copymedia,
+                   self.T("copymedia"))],
+                 cols=1)
+
+        r.section(self.T("mode"))
+        self.p_mode = ctk.StringVar(value="Mensajes")
+        r.options(self.T("mode"), self.p_mode, ["Mensajes", "Info: estados", "Info: llamadas",
+                                        "Info: chats activos", "Extraer adjuntos", "Carving"])
+        self.p_platform = ctk.StringVar(value="Autodetectar")
+        r.options(self.T("platform"), self.p_platform,
+                  ["Autodetectar", "Android actual", "Android antiguo", "iOS"])
+
+        r.section(self.T("recipients"))
+        self.p_recip = ctk.StringVar(value="Todos")
+        r.options(self.T("scope"), self.p_recip, ["Todos", "Usuario", "Grupo",
+                                            "Mensajes de un numero", "Difusion"])
+        self.p_target = Field()
+        r.entry(self.T("target"), self.p_target, "34123456789  /  1234-5678@g.us", 260)
+
+        r.section(self.T("filters"))
+        self.p_text, self.p_sender = Field(), Field()
+        self.p_ts, self.p_te, self.p_raw = Field(), Field(), Field()
+        r.entry(self.T("text"), self.p_text, "contenido, archivo o cita", 280)
+        r.entry(self.T("sender"), self.p_sender, "numero o nombre", 200)
+        r.entry(self.T("from"), self.p_ts, "dd-mm-aaaa HH:MM", 180)
+        r.entry(self.T("to"), self.p_te, "dd-mm-aaaa HH:MM", 180)
+        r.entry(self.T("rawtypes"), self.p_raw, "66,112", 140)
+        self.p_dir = ctk.StringVar(value="Todas")
+        r.options(self.T("direction"), self.p_dir, ["Todas", "Enviados", "Recibidos", "Del sistema"])
+
+        self.p_flags = {}
+        for k in ("regex", "case", "word", "web", "starred", "forwarded",
+                  "edited", "media", "location", "read", "unread"):
+            self.p_flags[k] = ctk.BooleanVar()
+        r.checks([(self.p_flags["regex"], "Regex"), (self.p_flags["case"], "May/min"),
+                  (self.p_flags["word"], "Palabra completa"),
+                  (self.p_flags["web"], "WhatsApp Web"),
+                  (self.p_flags["starred"], "Destacados"),
+                  (self.p_flags["forwarded"], "Reenviados"),
+                  (self.p_flags["edited"], "Editados"),
+                  (self.p_flags["media"], "Con adjunto"),
+                  (self.p_flags["location"], "Con coordenadas"),
+                  (self.p_flags["read"], self.T("f_read")),
+                  (self.p_flags["unread"], self.T("f_unread"))],
+                 cols=5, label=self.T("searchopts"))
+
+        self.p_types = {}
+        tipos = [("tt", "Texto"), ("ti", "Imagen"), ("ta", "Audio"), ("tv", "Video"),
+                 ("tc", "Contacto"), ("tl", "Ubicacion"), ("tx", "Llamada"),
+                 ("tp", "Documento"), ("tg", "GIF"), ("td", "Borrado"),
+                 ("tr", "Ubic. tiempo real"), ("tk", "Sticker"), ("tm", "Sistema"),
+                 ("tn", "Encuesta"), ("tq", "Vision unica"), ("tj", "Nota de video"),
+                 ("tz", "Evento")]
+        for k, _ in tipos:
+            self.p_types[k] = ctk.BooleanVar()
+        r.checks([(self.p_types[k], t) for k, t in tipos], cols=6,
+                 label=self.T("types"))
+
+        r.section(self.T("output"))
+        self.p_report = ctk.StringVar(value="Ninguno")
+        r.options(self.T("report"), self.p_report, ["Ninguno", "ES", "EN"])
+        self.p_out_flags = {k: ctk.BooleanVar()
+                            for k in ("print", "csv", "kml", "maps", "single")}
+        r.checks([(self.p_out_flags["print"], self.T("print")),
+                  (self.p_out_flags["csv"], self.T("csv")),
+                  (self.p_out_flags["kml"], self.T("kml")),
+                  (self.p_out_flags["maps"], self.T("maps")),
+                  (self.p_out_flags["single"], self.T("single"))], cols=3)
+        self.buttons.append(r.run(self.T("run")+" WhaPa", self._run_whapa))
+
+    def _run_whapa(self):
+        if not self.p_db.get():
+            return messagebox.showwarning("Faltan datos", "Elige una base de datos.")
+        a = [tool("whapa.py"), self.p_db.get()]
+        modo = self.p_mode.get()
+        if modo == "Mensajes":
+            a.append("-m")
+        elif modo.startswith("Info"):
+            a += ["-i", {"Info: estados": "1", "Info: llamadas": "2",
+                         "Info: chats activos": "3"}[modo]]
+        elif modo == "Extraer adjuntos":
+            a.append("-e")
+        else:
+            a.append("-c")
+
+        plat = {"Android actual": "android", "Android antiguo": "android_legacy",
+                "iOS": "ios"}.get(self.p_platform.get())
+        if plat:
+            a += ["--platform", plat]
+        if self.p_wa.get():
+            a += ["-wa", self.p_wa.get()]
+        if self.p_out.get():
+            a += ["-o", self.p_out.get()]
+        if self.p_media.get():
+            a += ["-mp", self.p_media.get()]
+            if self.p_copymedia.get():
+                a.append("-cm")
+
+        if modo == "Mensajes":
+            alc, tgt = self.p_recip.get(), self.p_target.get().strip()
+            if alc == "Todos":
+                a.append("-a")
+            elif alc == "Difusion":
+                a += ["-a", "-b"]
+            elif alc == "Usuario" and tgt:
+                a += ["-u", tgt]
+            elif alc == "Grupo" and tgt:
+                a += ["-g", tgt]
+            elif alc == "Mensajes de un numero" and tgt:
+                a += ["-ua", tgt]
+            else:
+                a.append("-a")
+
+            if self.p_text.get():
+                a += ["-t", self.p_text.get()]
+            if self.p_sender.get():
+                a += ["-sn", self.p_sender.get()]
+            if self.p_ts.get():
+                a += ["-ts", self.p_ts.get()]
+            if self.p_te.get():
+                a += ["-te", self.p_te.get()]
+            if self.p_raw.get():
+                a += ["-rt", self.p_raw.get()]
+            d = {"Enviados": "sent", "Recibidos": "received",
+                 "Del sistema": "system"}.get(self.p_dir.get())
+            if d:
+                a += ["-d", d]
+            for k, flag in (("regex", "-re"), ("case", "-cs"), ("word", "-ww"),
+                            ("web", "-w"), ("starred", "-s"), ("forwarded", "-fw"),
+                            ("edited", "-ed"), ("media", "-md"), ("location", "-gp"),
+                            ("read", "-lr"), ("unread", "-lu")):
+                if self.p_flags[k].get():
+                    a.append(flag)
+            for k, v in self.p_types.items():
+                if v.get():
+                    a.append("-" + k)
+            if self.p_report.get() != "Ninguno":
+                a += ["-r", self.p_report.get()]
+            if self.p_out_flags["print"].get():
+                a.append("-p")
+            if self.p_out_flags["csv"].get():
+                a.append("-x")
+            if self.p_out_flags["kml"].get():
+                a.append("-k")
+            if self.p_out_flags["maps"].get():
+                a.append("-gm")
+            if self.p_out_flags["single"].get():
+                a.append("-1")
+        self._launch(a)
+
+    # ---------------- pestana WhaCipher ----------------
+    def _tab_whacipher(self, tab):
+        r = Row(tab)
+        self.c_mode = ctk.StringVar(value="Descifrar")
+        self.c_in, self.c_key, self.c_out = Field(), Field(), Field()
+        self.c_isdir = ctk.BooleanVar()
+        r.section(self.T("cipher_sec"))
+        r.options(self.T("action"), self.c_mode, ["Descifrar", "Cifrar (crypt15)"])
+        r.file(self.T("input"), self.c_in, "Base cifrada o descifrada",
+               [("Bases", "*.crypt12 *.crypt14 *.crypt15 *.db"), ("Todos", "*.*")],
+               hint=self.T("ph_enc"))
+        r.checks([(self.c_isdir, self.T("isdir"))], cols=1)
+        r.file(self.T("key"), self.c_key, "Archivo de clave",
+               hint=self.T("ph_key"))
+        ctk.CTkLabel(tab, text="La clave puede ser el archivo .key, encrypted_backup.key "
+                               "o los 64 caracteres hexadecimales de la clave raiz.",
+                     text_color=MUTED, font=ctk.CTkFont(size=11), wraplength=820,
+                     justify="left").grid(row=r.r, column=0, columnspan=4,
+                                          sticky="w", padx=12, pady=(0, 4))
+        r.r += 1
+        r.file(self.T("output"), self.c_out, "Archivo o carpeta de salida", save=True)
+        self.buttons.append(r.run(self.T("run")+" WhaCipher", self._run_whacipher))
+
+    def _run_whacipher(self):
+        if not (self.c_in.get() and self.c_key.get() and self.c_out.get()):
+            return messagebox.showwarning("Faltan datos",
+                                          "Entrada, clave y salida son obligatorias.")
+        a = [tool("whacipher.py")]
+        a += ["-p" if self.c_isdir.get() else "-f", self.c_in.get()]
+        a += ["-d" if self.c_mode.get() == "Descifrar" else "-e", self.c_key.get()]
+        a += ["-o", self.c_out.get()]
+        self._launch(a)
+
+    # ---------------- pestana WhaMerge ----------------
+    def _tab_whamerge(self, tab):
+        r = Row(tab)
+        self.m_path, self.m_out = Field(), Field()
+        r.section(self.T("merge_sec"))
+        r.file(self.T("mergefolder"), self.m_path, "Carpeta con msgstore*.db",
+               folder=True, hint=self.T("ph_mergedir"))
+        r.file(self.T("mergeout"), self.m_out, "msgstore_merge.db", save=True,
+               hint=self.T("ph_mergeout"))
+        self.buttons.append(r.run(self.T("run")+" WhaMerge", self._run_whamerge))
+
+    def _run_whamerge(self):
+        if not self.m_path.get():
+            return messagebox.showwarning("Faltan datos", "Elige la carpeta con las bases.")
+        a = [tool("whamerge.py"), self.m_path.get()]
+        if self.m_out.get():
+            a += ["-o", self.m_out.get()]
+        self._launch(a)
+
+    # ---------------- pestana WhaGoDri ----------------
+    def _tab_whagodri(self, tab):
+        sc = ctk.CTkScrollableFrame(tab, fg_color="transparent")
+        sc.pack(fill="both", expand=True)
+        r = Row(sc)
+        r.section(self.T("gd_sec"))
+        ctk.CTkLabel(sc, text="Las credenciales se leen de cfg/settings.cfg, seccion "
+                              "[google-auth].", text_color=MUTED,
+                     font=ctk.CTkFont(size=11)).grid(row=r.r, column=0, columnspan=4,
+                                                     sticky="w", padx=12, pady=(0, 6))
+        r.r += 1
+        self.g_action = ctk.StringVar(value="Informacion de copias")
+        r.options(self.T("action"), self.g_action,
+                  ["Informacion de copias", "Listar todo", "Listar copias de WhatsApp",
+                   "Descargar un archivo", "Sincronizar todo", "Solo imagenes",
+                   "Solo videos", "Solo audios", "Solo documentos", "Solo bases"], 250)
+        self.g_file, self.g_out = Field(), Field()
+        r.entry(self.T("remotefile"), self.g_file, "ruta remota", 260)
+        r.file(self.T("outdir"), self.g_out, self.T("outdir"), folder=True,
+               hint=self.T("ph_out"))
+        self.g_threads = Field("12")
+        r.entry(self.T("threads"), self.g_threads, "12", 80)
+        self.g_np, self.g_dry = ctk.BooleanVar(), ctk.BooleanVar()
+        r.checks([(self.g_np, self.T("noparallel")),
+                  (self.g_dry, self.T("dryrun"))], cols=2)
+        self.buttons.append(r.run(self.T("run")+" WhaGoDri", self._run_whagodri))
+
+    def _run_whagodri(self):
+        mapa = {"Informacion de copias": "-i", "Listar todo": "-l",
+                "Listar copias de WhatsApp": "-lw", "Sincronizar todo": "-s",
+                "Solo imagenes": "-si", "Solo videos": "-sv", "Solo audios": "-sa",
+                "Solo documentos": "-sx", "Solo bases": "-sd"}
+        a = [tool("whagodri.py")]
+        acc = self.g_action.get()
+        if acc == "Descargar un archivo":
+            if not self.g_file.get():
+                return messagebox.showwarning("Faltan datos", "Indica el archivo a descargar.")
+            a += ["-p", self.g_file.get()]
+        else:
+            a.append(mapa[acc])
+        if self.g_out.get():
+            a += ["-o", self.g_out.get()]
+        if self.g_np.get():
+            a.append("-np")
+        if self.g_dry.get():
+            a.append("-dr")
+        if self.g_threads.get().isdigit():
+            a += ["-tc", self.g_threads.get()]
+        self._launch(a)
+
+    # ---------------- pestana WhaChat ----------------
+    def _tab_whachat(self, tab):
+        r = Row(tab)
+        self.h_file, self.h_user = Field(), Field()
+        self.h_fmt, self.h_ts, self.h_te = Field(), Field(), Field()
+        r.section(self.T("chat_sec"))
+        r.file(self.T("chatfile"), self.h_file, "Chat exportado (.txt)",
+               [("Texto", "*.txt"), ("Todos", "*.*")], hint=self.T("ph_chat"))
+        self.h_sys = ctk.StringVar(value="android")
+        r.options(self.T("system"), self.h_sys, ["android", "ios"], 140)
+        self.h_report = ctk.StringVar(value="Ninguno")
+        r.options(self.T("report"), self.h_report, ["Ninguno", "ES", "EN"], 140)
+        r.entry(self.T("chatuser"), self.h_user, "nombre tal y como aparece", 260)
+        r.entry(self.T("datemask"), self.h_fmt, "%d/%m/%y %H:%M:%S", 200)
+        r.entry(self.T("from"), self.h_ts, "dd-mm-aaaa HH:MM", 180)
+        r.entry(self.T("to"), self.h_te, "dd-mm-aaaa HH:MM", 180)
+        self.h_media = Field()
+        r.file(self.T("chatmedia"), self.h_media, self.T("chatmedia"),
+               folder=True, hint=self.T("ph_chatmedia"))
+        self.h_out = Field()
+        r.file(self.T("outdir"), self.h_out, self.T("outdir"), folder=True,
+               hint=self.T("ph_out"))
+        self.h_text = Field()
+        r.entry(self.T("text"), self.h_text, "", 240)
+        self.h_part = ctk.BooleanVar()
+        self.h_flags = {k: ctk.BooleanVar() for k in ("print", "csv", "copy", "regex")}
+        r.checks([(self.h_part, self.T("onlypart")),
+                  (self.h_flags["print"], self.T("print")),
+                  (self.h_flags["csv"], self.T("csv")),
+                  (self.h_flags["copy"], self.T("copymedia_short")),
+                  (self.h_flags["regex"], self.T("regex"))], cols=3)
+        self.buttons.append(r.run(self.T("run")+" WhaChat", self._run_whachat))
+
+    def _run_whachat(self):
+        if not self.h_file.get():
+            return messagebox.showwarning("Faltan datos", "Elige el archivo del chat.")
+        a = [tool("whachat.py"), self.h_file.get()]
+        if self.h_part.get():
+            a.append("-p")
+        if self.h_user.get():
+            a += ["-u", self.h_user.get()]
+        a += ["-s", self.h_sys.get()]
+        if self.h_report.get() != "Ninguno":
+            a += ["-r", self.h_report.get()]
+        if self.h_fmt.get():
+            a += ["-f", self.h_fmt.get()]
+        if self.h_ts.get():
+            a += ["-ts", self.h_ts.get()]
+        if self.h_te.get():
+            a += ["-te", self.h_te.get()]
+        if self.h_out.get():
+            a += ["-o", self.h_out.get()]
+        if self.h_media.get():
+            a += ["-mp", self.h_media.get()]
+        if self.h_text.get():
+            a += ["-t", self.h_text.get()]
+        if self.h_flags["regex"].get():
+            a.append("-re")
+        if self.h_flags["print"].get():
+            a.append("-pr")
+        if self.h_flags["csv"].get():
+            a.append("-x")
+        if self.h_flags["copy"].get():
+            a.append("-cm")
+        self._launch(a)
+
+    # ---------------- pestana WhaCloud ----------------
+    def _tab_whacloud(self, tab):
+        r = Row(tab)
+        r.section(self.T("ic_sec"))
+        ctk.CTkLabel(tab, text="Las credenciales se leen de cfg/settings.cfg, seccion "
+                               "[icloud-auth].", text_color=MUTED,
+                     font=ctk.CTkFont(size=11)).grid(row=r.r, column=0, columnspan=4,
+                                                     sticky="w", padx=12, pady=(0, 6))
+        r.r += 1
+        self.k_action = ctk.StringVar(value="Listar")
+        r.options(self.T("action"), self.k_action, ["Listar", "Descargar un archivo",
+                                            "Sincronizar todo", "Solo imagenes",
+                                            "Solo videos y audios"], 230)
+        self.k_file, self.k_out = Field(), Field()
+        r.entry(self.T("remotefile"), self.k_file, "ruta remota", 260)
+        r.file(self.T("outdir"), self.k_out, self.T("outdir"), folder=True,
+               hint=self.T("ph_out"))
+        self.buttons.append(r.run(self.T("run")+" WhaCloud", self._run_whacloud))
+
+    def _run_whacloud(self):
+        mapa = {"Listar": "-l", "Sincronizar todo": "-s", "Solo imagenes": "-si",
+                "Solo videos y audios": "-sv"}
+        a = [tool("whacloud.py")]
+        if self.k_action.get() == "Descargar un archivo":
+            if not self.k_file.get():
+                return messagebox.showwarning("Faltan datos", "Indica el archivo.")
+            a += ["-p", self.k_file.get()]
+        else:
+            a.append(mapa[self.k_action.get()])
+        if self.k_out.get():
+            a += ["-o", self.k_out.get()]
+        self._launch(a)
+
+    # ------------------------------------------------------------------
+    #  Ejecucion
+    # ------------------------------------------------------------------
+    def _emit(self, msg, tag=None):
+        self.q.put((msg, tag))
+
+    def _clear(self):
+        self.log.delete("1.0", "end")
+
+    def _drain(self):
+        """Unico punto que toca la interfaz. Corre en el hilo principal."""
+        try:
+            while True:
+                msg, tag = self.q.get_nowait()
+                if tag == "__done__":
+                    self._set_busy(False)
+                    continue
+                self.log.insert("end", msg + "\n", tag or ())
+                self.log.see("end")
+        except queue.Empty:
+            pass
+        self.after(120, self._drain)
+
+    def _set_busy(self, busy):
+        self.busy = busy
+        for b in self.buttons:
+            b.configure(state="disabled" if busy else "normal")
+        if busy:
+            self.progress.start()
+        else:
+            self.progress.stop()
+            self.progress.set(0)
+
+    def _launch_raw(self, argv):
+        """Ejecuta una orden completa (ya incluye el interprete)."""
+        if self.busy:
+            return
+        self._set_busy(True)
+        self._emit("\n$ " + " ".join(shlex.quote(x) for x in argv), "cmd")
+        threading.Thread(target=self._work_raw, args=(argv,), daemon=True).start()
+
+    def _work_raw(self, argv):
+        try:
+            proc = subprocess.Popen(argv, stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT, text=True,
+                                    bufsize=1, encoding="utf-8",
+                                    errors="replace",
+                                    env=dict(os.environ,
+                                             PYTHONIOENCODING="utf-8:replace"))
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                if line.strip():
+                    self._emit(line)
+            proc.wait()
+            self._emit("[fin] {}".format(
+                "OK" if proc.returncode == 0 else
+                "codigo {}".format(proc.returncode)),
+                "ok" if proc.returncode == 0 else "err")
         except Exception as e:
-            self.label_status.set("Did not get the list of participants choose another operating system and load the file back")
-            print("Could not load the list of participants, choose another operating system and load the file back")
+            self._emit("[e] {}".format(e), "err")
+        finally:
+            self.q.put(("", "__done__"))
 
-    def on_entry_click(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whachat_ts.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whachat_ts.delete(0, "end")  # delete all the text in the entry
-            self.entry_whachat_ts.insert(0, '')  # Insert blank for user input
-            self.entry_whachat_ts.config(fg='black')
+    def _launch(self, argv):
+        """Lanza una herramienta de libs/ en un hilo, con lista de argumentos."""
+        if self.busy:
+            return
+        self._set_busy(True)
+        self._emit("\n$ python3 " + " ".join(shlex.quote(x) for x in argv), "cmd")
+        threading.Thread(target=self._work, args=(argv,), daemon=True).start()
 
-    def on_entry_click_out(self, event):
-        """function that gets called whenever entry is clicked"""
-        if self.entry_whachat_te.get() == "dd-mm-yyyy HH:MM":
-            self.entry_whachat_te.delete(0, "end")  # delete all the text in the entry
-            self.entry_whachat_te.insert(0, '')  # Insert blank for user input
-            self.entry_whachat_te.config(fg='black')
-
-    def on_focusout(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whachat_ts.get() == '':
-            self.entry_whachat_ts.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whachat_ts.config(fg='grey')
-
-    def on_focusout_out(self, event):
-        """Function that's called every time the focus is lost"""
-        if self.entry_whachat_te.get() == '':
-            self.entry_whachat_te.insert(0, "dd-mm-yyyy HH:MM")
-            self.entry_whachat_te.config(fg='grey')
-
-    def estate_assets_whachat(self):
-        """Check that radiobutton is marked"""
-
-        if self.whachat_box_os.get() == "android":
-            self.combo_whachat_format.current(2)
-        else:
-            self.combo_whachat_format.current(0)
-
-    def whachat_run(self):
-        """Run WhaChat command"""
-
-        self.cmd = '"{}" -s {} -f "{}"'.format(self.whachat_file.get(), self.whachat_box_os.get(), self.combo_whachat_format.get())
-        if self.entry_whachat_ts.get() != "dd-mm-yyyy HH:MM":
-            self.cmd += ' -ts "{}"'.format(self.entry_whachat_ts.get())
-
-        if self.entry_whachat_te.get() != "dd-mm-yyyy HH:MM":
-            self.cmd += ' -te "{}"'.format(self.entry_whachat_te.get())
-
-        if self.whachat_box_rep.get() == "ES":
-            self.cmd += " -r ES"
-
-        elif self.whachat_box_rep.get() == "EN":
-            self.cmd += " -r EN"
-
-        if self.combo_whachat_user.get():
-            self.cmd += ' -u "{}"'.format(self.combo_whachat_user.get().rstrip("\n"))
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whachat.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whachat.py" {}'.format(whapa_path, self.cmd))
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def search_path_whagodri(self):
-        """Search a output path """
-
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whagodri_path.set(self.path + "/")
-        else:
-            self.whagodri_path.set((self.path + "\\").replace("/", "\\"))
-
-    def wagodri_down(self):
-        """Run Google Drive command"""
-        if self.wagodri_box_value.get() == "Info":
-            self.cmd = "-i"
-
-        elif self.wagodri_box_value.get() == "List":
-            self.cmd = "-l"
-
-        elif self.wagodri_box_value.get() == "ListW":
-            self.cmd = "-lw"
-
-        elif self.wagodri_box_value.get() == "All":
-            self.cmd = "-s"
-
-        elif self.wagodri_box_value.get() == "Images":
-            self.cmd = "-si"
-
-        elif self.wagodri_box_value.get() == "Videos":
-            self.cmd = "-sv"
-
-        elif self.wagodri_box_value.get() == "Audios":
-            self.cmd = "-sa"
-
-        elif self.wagodri_box_value.get() == "Documents":
-            self.cmd = "-sx"
-
-        elif self.wagodri_box_value.get() == "Databases":
-            self.cmd = "-sd"
-
-        elif self.wagodri_box_value.get() == "File":
-            self.cmd = '-p "{}"'.format(self.entry_whagodri_down.get()).strip("\n")
-
-        if self.whagodri_path.get():
-            self.cmd += ' -o "{}/"'.format(self.whagodri_path.get()).strip("\n")
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whagodri.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whagodri.py" {}'.format(whapa_path, self.cmd))
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def search_path_whacloud(self):
-        """Search a output path """
-
-        self.path = filedialog.askdirectory()
-        if system == "Linux":
-            self.whacloud_path.set(self.path + "/")
-        else:
-            self.whacloud_path.set((self.path + "\\").replace("/", "\\"))
-
-    def wacloud_down(self):
-        """ Run Icloud command"""
-
-        if self.wacloud_box_value.get() == "List":
-            self.cmd = " -l"
-
-        elif self.wacloud_box_value.get() == "Sync":
-            self.cmd = " -s"
-
-        elif self.wacloud_box_value.get() == "Images":
-            self.cmd = " -si"
-
-        elif self.wacloud_box_value.get() == "Videos":
-            self.cmd = " -sv"
-
-        elif self.wacloud_box_value.get() == "File":
-            self.cmd = " -p {}".format(self.entry_whacloud_down.get()).strip("\n")
-
-        if self.whacloud_path.get():
-            if system == "Linux":
-                self.cmd += ' -o "{}/"'.format(self.whagodri_path.get()).strip("\n")
-
-        if system == "Linux":
-            exec = self.system_slash(r'python3 "{}/libs/whacloud.py" {}'.format(whapa_path, self.cmd))
-        else:
-            exec = self.system_slash(r'python "{}/libs/whacloud.py" {}'.format(whapa_path, self.cmd))
-
-        self.label_status.set(exec)
-        os.system(exec)
-
-    def open_folder(self):
-        """Open current folder"""
-
-        webbrowser.open('.')
-
-    def requirements(self):
-        """Install dependencies"""
-
-        if system == "Linux":
-            exec = self.system_slash(r'sudo pip3 install --upgrade -r "{}/doc/requirements.txt"'.format(whapa_path))
-        else:
-            exec = self.system_slash(r'pip install --upgrade -r "{}/doc/requirements.txt"'.format(whapa_path))
-        self.label_status.set(exec)
-        os.system(exec)
+    def _work(self, argv):
+        try:
+            entorno = dict(os.environ, PYTHONIOENCODING="utf-8:replace")
+            proc = subprocess.Popen([sys.executable] + argv,
+                                    stdout=subprocess.PIPE,
+                                    stderr=subprocess.STDOUT,
+                                    cwd=APP_DIR, text=True, bufsize=1,
+                                    encoding="utf-8", errors="replace",
+                                    env=entorno)
+            for line in proc.stdout:
+                line = line.rstrip("\n")
+                if line.strip():
+                    tag = "err" if line.startswith("[e]") else (
+                        "ok" if line.startswith("[-]") else None)
+                    self._emit(line, tag)
+            proc.wait()
+            if proc.returncode == 0:
+                self._emit("[fin] Proceso terminado correctamente.", "ok")
+            else:
+                self._emit("[fin] Proceso terminado con codigo {}.".format(
+                    proc.returncode), "err")
+        except Exception as e:
+            self._emit("[e] No se pudo ejecutar: {}".format(e), "err")
+        finally:
+            self.q.put(("", "__done__"))
 
 
-def system_slash(string):
-    """ Change slashes depending on the platform """
-    if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
-        return string.replace("/", "\\")
-    else:
-        return string.replace("\\", "/")
-
-
-if __name__ == '__main__':
-    """Initialize"""
-
-    if system == "Linux":
-        exec = system_slash(r'python3 "{}/libs/update.py" {}'.format(whapa_path, version))
-    else:
-        exec = system_slash(r'python "{}/libs/update.py" {}'.format(whapa_path, version))
-
-    cfg_file = system_slash(r'{}/cfg/settings.cfg'.format(whapa_path))
-    if not os.path.isfile(cfg_file):
-        # It creates the settings file
-        with open(cfg_file, 'w') as cfg:
-            cfg.write(dedent("""
-                [report]
-                company = ""
-                record = ""
-                unit = ""
-                examiner = ""
-                notes = ""
-
-                [google-auth]
-                gmail = alias@gmail.com
-                # Optional. The account password or app password when using 2FA.
-                password  = yourpassword
-                # Optional. Login using the oauth cookie.
-                oauth = ""
-                # Optional. The result of "adb shell settings get secure android_id".
-                android_id  = 0000000000000000
-                # Optional. Enter the backup country code + phonenumber be synchronized, otherwise it synchronizes all backups.
-                # You can specify a list of celnumbr = BackupNumber1, BackupNumber2, ...
-                celnumbr = ""
-
-                [icloud-auth] 
-                icloud  = alias@icloud.com
-                passw = yourpassword
-                """).lstrip())
-
-    error_icon = False
-    img_folder = system_slash("{}/images/".format(whapa_path))
-    icons = (img_folder + "logo.png",
-             img_folder + "whapa.png",
-             img_folder + "about.png",
-             img_folder + "setting.png",
-             img_folder + "out.png",
-             img_folder + "search.png",
-             img_folder + "manual.png",
-             img_folder + "report.png",
-             img_folder + "file.png",
-             img_folder + "tabwhapa.png",
-             img_folder + "tabwhagodri.png",
-             img_folder + "tabwhacipher.png",
-             img_folder + "tabwhamerge.png",
-             img_folder + "infowhagodri.png",
-             img_folder + "downwhagodri.png",
-             img_folder + "merge.png",
-             img_folder + "decrypt.png",
-             img_folder + "encrypt.png",
-             img_folder + "spanish.png",
-             img_folder + "english.png",
-             img_folder + "parser.png",
-             img_folder + "terminal.png",
-             img_folder + "extract.png",
-             img_folder + "callslog.png",
-             img_folder + "status.png",
-             img_folder + "requirements.png",
-             img_folder + "update.png",
-             img_folder + "carving.png",
-             img_folder + "tabwhacloud.png",
-             img_folder + "tabwhachat.png",
-             img_folder + "android.png",
-             img_folder + "ios.png"
-             )
-
-    for icon in icons:
-        if not os.path.exists(icon):
-            print('Icon not found:', icon)
-            error_icon = True
-
-    if not error_icon:
-        if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
-            system = "Windows"
-        else:
-            system = "Linux"
-
-        Whapa(img_folder, icons)
+if __name__ == "__main__":
+    WhapaGUI().mainloop()
