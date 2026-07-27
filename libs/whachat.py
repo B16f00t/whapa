@@ -1,6 +1,19 @@
 ﻿#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import re
+import time
+import calendar
+import whadeps
+whadeps.require("pandas", "colorama", tool="whachat")
+import whacodes
+import whareader
+import whareport
+whadeps.safe_console()
+
 from colorama import init, Fore
 from configparser import ConfigParser
 import pandas as pd
@@ -228,8 +241,151 @@ background-color: #cdcdcd;
         f.write(rep_ini + obj + rep_end)
 
 
+# ===========================================================================
+#  PUENTE AL MOTOR DE INFORMES COMUN
+# ===========================================================================
+#  Un chat exportado no tiene base de datos, pero si tiene lo esencial: quien,
+#  cuando y que. Aqui se traduce el DataFrame al mismo modelo que usa whapa.py,
+#  para que los informes salgan identicos: visor interactivo, imprimible,
+#  exportacion a CSV y a KML, y los mismos filtros.
+#
+#  Lo que un chat exportado NO trae, y por tanto no aparece: identificadores de
+#  mensaje, mensajes borrados, reacciones, citas ni coordenadas. El informe lo
+#  refleja tal cual en vez de inventarlo.
+
+ADJUNTO_RX = re.compile(
+    r"<(?:attached|adjunto):\s*([^>]+)>"          # iOS
+    r"|^(.+?)\s*\((?:file attached|archivo adjunto)\)",   # Android
+    re.IGNORECASE)
+
+CIFRADO_RX = re.compile(
+    r"end-to-end encrypted|cifrados de extremo a extremo", re.IGNORECASE)
+
+OMITIDO_RX = re.compile(
+    r"<Media omitted>|<Multimedia omitido>|<archivo omitido>", re.IGNORECASE)
+
+
+def _tipo_por_nombre(nombre):
+    """Deduce el tipo a partir del nombre del archivo adjunto."""
+    n = (nombre or "").upper()
+    ext = os.path.splitext(nombre or "")[1].lower()
+    if "-STICKER-" in n or ext == ".webp":
+        return whacodes.Kind.STICKER, "Sticker"
+    if "-PHOTO-" in n or "-IMG-" in n or ext in (".jpg", ".jpeg", ".png", ".gif", ".bmp"):
+        return whacodes.Kind.IMAGE, "Imagen"
+    if "-AUDIO-" in n or "-PTT-" in n or ext in (".opus", ".ogg", ".mp3", ".m4a", ".aac", ".wav", ".amr"):
+        return whacodes.Kind.AUDIO, "Audio o nota de voz"
+    if "-VIDEO-" in n or "-VID-" in n or ext in (".mp4", ".3gp", ".mov", ".mkv", ".avi", ".webm"):
+        return whacodes.Kind.VIDEO, "Video"
+    if "-GIF-" in n:
+        return whacodes.Kind.GIF, "GIF"
+    return whacodes.Kind.DOCUMENT, "Documento"
+
+
+FORMATOS = ["%d/%m/%y %H:%M:%S", "%d/%m/%y %H:%M", "%d/%m/%Y %H:%M:%S",
+            "%d/%m/%Y %H:%M", "%m/%d/%y %H:%M:%S", "%m/%d/%y %H:%M",
+            "%d.%m.%y %H:%M:%S", "%d.%m.%y %H:%M", "%Y-%m-%d %H:%M:%S"]
+
+
+def _fecha_a_epoch(fecha, hora, preferido=None):
+    """Convierte fecha y hora del chat a epoch UTC probando varios formatos."""
+    if fecha is None or hora is None:
+        return None
+    marca = "{} {}".format(fecha, hora).strip()
+    formatos = ([preferido] if preferido else []) + FORMATOS
+    for f in formatos:
+        if not f:
+            continue
+        try:
+            return int(calendar.timegm(time.strptime(marca, f)))
+        except (ValueError, TypeError):
+            continue
+    return None
+
+
+def to_extraction(data, user, timeformat, operating_system, chat_name=None,
+                  source_file=None):
+    """DataFrame de whachat -> whareader.Extraction, para el motor comun."""
+    plataforma = whacodes.IOS if operating_system == "ios" else whacodes.ANDROID
+    chat_id = chat_name or "chat_exportado"
+    mensajes = []
+    autores = set()
+
+    for i in data.index:
+        autor = str(data["Author"][i]) if data["Author"][i] is not None else ""
+        texto = str(data["Message"][i])
+
+        # Fecha. WhatsApp exporta con formatos distintos segun idioma, region
+        # y version, asi que se prueba el indicado y despues los habituales:
+        # si falla, el mensaje se queda sin fecha, pero NO se pierde.
+        ts = _fecha_a_epoch(data["Date"][i], data["Time"][i], timeformat)
+
+        ruta = None
+        if CIFRADO_RX.search(texto):
+            kind, desc = whacodes.Kind.SYSTEM, "Aviso de cifrado de extremo a extremo"
+            autor = ""
+        elif OMITIDO_RX.search(texto):
+            kind, desc = whacodes.Kind.UNKNOWN, "Archivo no incluido en la exportacion"
+        else:
+            m = ADJUNTO_RX.search(texto)
+            if m:
+                ruta = (m.group(1) or m.group(2) or "").strip()
+                kind, desc = _tipo_por_nombre(ruta)
+            elif not autor:
+                kind, desc = whacodes.Kind.SYSTEM, "Mensaje del sistema"
+            else:
+                kind, desc = whacodes.Kind.TEXT, "Mensaje de texto"
+
+        if autor:
+            autores.add(autor)
+
+        mensajes.append(whareader.Message(
+            row_id=int(i) + 1, chat_id=chat_id,
+            from_me=(autor == user), sender=autor or None, timestamp=ts,
+            kind=kind, type_desc=desc, raw_type=None,
+            text=texto, key_id=None, media_path=ruta,
+            system_action=desc if kind is whacodes.Kind.SYSTEM else None,
+            platform=plataforma))
+
+    contactos = {chat_id: whareader.Contact(jid=chat_id,
+                                            display_name=chat_name or "Chat exportado")}
+    origenes = []
+    if source_file and os.path.exists(source_file):
+        origenes.append({"name": os.path.basename(source_file),
+                         "size": os.path.getsize(source_file),
+                         "sha256": whareader.sha256_file(source_file)})
+
+    ext = whareader.Extraction(platform=plataforma, messages=mensajes,
+                               contacts=contactos, source_files=origenes)
+    ext.participants = sorted(autores)
+    return ext
+
+
+def informes(ext, salida, lang="ES", flt=None, media_root=None,
+             copy_media=False, interactivo=True, imprimible=False,
+             csv_out=False, titulo="Informe de chat exportado"):
+    """Genera los mismos informes que whapa.py a partir de un chat exportado."""
+    hechos = []
+    os.makedirs(salida, exist_ok=True)
+    if interactivo:
+        destino = os.path.join(salida, "report")
+        r = whareport.build_report(ext, destino, title=titulo, lang=lang, flt=flt,
+                                   media_root=media_root, copy_media=copy_media)
+        hechos.append(("interactivo", r))
+    if imprimible:
+        destino = os.path.join(salida, "report_print.html")
+        r = whareport.build_printable(ext, destino, title=titulo, flt=flt,
+                                      media_root=media_root, copy_media=copy_media)
+        hechos.append(("imprimible", r))
+    if csv_out:
+        destino = os.path.join(salida, "messages.csv")
+        whareport.export_csv(whareport.search(ext, flt or whareport.Filter()), destino)
+        hechos.append(("csv", {"path": destino}))
+    return hechos
+
+
 def system_slash(string):
-    """ Change / or \ depend on the OS"""
+    """ Change / or \\ depend on the OS"""
 
     if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
         return string.replace("/", "\\")
@@ -255,7 +411,7 @@ def get_configs():
 
 
 def startsWithDateTimeiOS(s):
-    pattern = "^\[([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*)\]"  # [25/8/20, 19:52:23]
+    pattern = r"^\[([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*)\]"  # [25/8/20, 19:52:23]
     result = re.match(pattern, s)
     if result:
         return True
@@ -264,7 +420,7 @@ def startsWithDateTimeiOS(s):
 
 def startsWithDateTimeAndroid(s):
     # pattern = "^([0-9]*/[0-9]*/[0-9]*\W*[0-9]*.[0-9]*.[0-9]*)-"  # 24/5/18 14:25 -
-    pattern = "^([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*) -" # 24.07.21, 10:15 -
+    pattern = r"^([0-9]*[/.][0-9]*[/.][0-9]*\W*[0-9]*.[0-9]*.[0-9]*) -" # 24.07.21, 10:15 -
     result = re.match(pattern, s)
     if result:
         return True
@@ -273,12 +429,12 @@ def startsWithDateTimeAndroid(s):
 
 def startsWithAuthor(s):
     patterns = [
-        '([\w]+):',  # First Name
-        '([\w]+[\s]+[\w]+):',  # First Name + Last Name
-        '([\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name
-        '([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing
-        '([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing + pufff
-        '(\W.*):'  # PhoneNumber
+        r'([\w]+):',  # First Name
+        r'([\w]+[\s]+[\w]+):',  # First Name + Last Name
+        r'([\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name
+        r'([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing
+        r'([\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+[\s]+[\w]+):',  # First Name + Middle Name + Last Name + other thing + pufff
+        r'(\W.*):'  # PhoneNumber
     ]
     pattern = '^' + '|'.join(patterns)
     result = re.match(pattern, s)
@@ -430,7 +586,7 @@ def getAttachediOS(message):
 
 
 def getAttachedAndroid(message):
-    pattern = "(.*) \(attached file\)|(.*) \(archivo adjunto\)"
+    pattern = r"(.*) \(attached file\)|(.*) \(archivo adjunto\)"
     result = re.match(pattern, message)
     if result:
         file = result.group(1)
@@ -604,9 +760,23 @@ if __name__ == "__main__":
     parser.add_argument("-u", "--user", help="Choose the recipient user to start parsing")
     parser.add_argument("-s", "--system", help='Choose operating system \'Android\' or \'iOS\'.', const='android', nargs='?', choices=['android', 'ios'])
     parser.add_argument("-r", "--report", help='Make an html report in \'English\' or \'Spanish\'.', const='EN', nargs='?', choices=['EN', 'ES'])
-    parser.add_argument("-f", "--format", help='Type a date-time mask "%d/%m/%y %H:%M:%S"', nargs='?')
+    parser.add_argument("-f", "--format", help='Type a date-time mask "%%d/%%m/%%y %%H:%%M:%%S"', nargs='?')
     parser.add_argument("-ts", "--time_start", help="Show messages by start time (dd-mm-yyyy HH:MM)")
     parser.add_argument("-te", "--time_end", help="Show messages by end time (dd-mm-yyyy HH:MM)")
+    parser.add_argument("-o", "--output", help="Output path for the reports")
+    parser.add_argument("-pr", "--print_report", action="store_true",
+                        help="Make a printable html report (paper / PDF)")
+    parser.add_argument("-x", "--csv", action="store_true",
+                        help="Export the messages to CSV")
+    parser.add_argument("-mp", "--media_path",
+                        help="Folder with the exported attachments, so the report "
+                             "can show images and play audio/video "
+                             "(usually the same folder as the chat file)")
+    parser.add_argument("-cm", "--copy_media", action="store_true",
+                        help="Copy the attachments into the report folder")
+    parser.add_argument("-t", "--text", help="Show messages by text match")
+    parser.add_argument("-re", "--regex", action="store_true",
+                        help="Treat -t as a regular expression")
     args = parser.parse_args()
 
     if len(sys.argv) == 1:
@@ -688,5 +858,40 @@ if __name__ == "__main__":
             print("\nNumber of messages: {}".format(len(dataframe.index)))
             print(Fore.RED + "--------------------------------------------------------------------------------" + Fore.RESET)
             print(Fore.CYAN + "CHAT " + arg_user + Fore.RESET)
-            messages(dataframe, user, recipient, report_html, local, epoch_start, epoch_end, timeformat, mobileOS)
+            if args.report or args.print_report or args.csv:
+                # Mismo motor de informes que whapa.py
+                # Sin -o, el informe va junto al chat analizado, que es donde
+                # el usuario lo espera. Nunca dentro de libs/.
+                salida = args.output or os.path.join(
+                    os.path.dirname(os.path.abspath(conversationPath)),
+                    "report_whachat")
+                salida = os.path.abspath(salida)
+                nombre_chat = os.path.splitext(os.path.basename(conversationPath))[0]
+                ext = to_extraction(dataframe, user, timeformat, mobileOS,
+                                    chat_name=nombre_chat,
+                                    source_file=conversationPath)
+                flt = whareport.Filter(
+                    text=args.text, regex=args.regex,
+                    date_from=epoch_start if epoch_start > 0 else None,
+                    date_to=epoch_end if epoch_end < 9999999999 else None)
+                media = args.media_path or os.path.dirname(
+                    os.path.abspath(conversationPath))
+                hechos = informes(ext, salida,
+                                  lang=(args.report or "ES"),
+                                  flt=flt, media_root=media,
+                                  copy_media=args.copy_media,
+                                  interactivo=bool(args.report),
+                                  imprimible=args.print_report,
+                                  csv_out=args.csv,
+                                  titulo="Chat exportado - " + nombre_chat)
+                s = ext.summary()
+                print("\n[i] {} mensajes - {} participantes".format(
+                    s["total"], len(getattr(ext, "participants", []))))
+                for clase, r in hechos:
+                    print("[-] Informe {}: {}".format(clase, r["path"]))
+                    if r.get("media_found") is not None:
+                        print("    Adjuntos: {} localizados, {} no encontrados".format(
+                            r["media_found"], r["media_missing"]))
+            else:
+                messages(dataframe, user, recipient, report_html, local, epoch_start, epoch_end, timeformat, mobileOS)
             print("\n[i] Finished")

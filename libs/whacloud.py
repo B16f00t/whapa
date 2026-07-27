@@ -1,3 +1,10 @@
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import whadeps
+whadeps.require("pyicloud", "click", tool="whacloud")
+whadeps.safe_console()
+
 from pyicloud import PyiCloudService
 from configparser import ConfigParser
 from os.path import splitext
@@ -43,7 +50,7 @@ def help():
 
 
 def system_slash(string):
-    """ Change / or \ depend on the OS"""
+    """ Change / or \\ depend on the OS"""
 
     if sys.platform == "win32" or sys.platform == "win64" or sys.platform == "cygwin":
         return string.replace("/", "\\")

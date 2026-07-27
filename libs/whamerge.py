@@ -1,6 +1,13 @@
 ﻿#!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import whadeps
+whadeps.require("pandas", "numpy", tool="whamerge")
+whadeps.safe_console()
+
 import argparse
 import shutil
 import sqlite3
@@ -55,10 +62,10 @@ thumbnail_columns = [
 def banner():
     """ Function Banner """
 
-    print("""
+    print(r"""
      __      __.__                                               
     /  \    /  \  |__ _____    _____   ___________  ____   ____  
-    \   \/\/   /  |  \\\\__  \  /     \_/ __ \_  __ \/ ___\_/ __ \ 
+    \   \/\/   /  |  \\__  \  /     \_/ __ \_  __ \/ ___\_/ __ \ 
      \        /|   Y  \/ __ \|  Y Y  \  ___/|  | \/ /_/  >  ___/ 
       \__/\  / |___|  (____  /__|_|  /\___  >__|  \___  / \___  >
            \/       \/     \/      \/     \/     /_____/      \/ 

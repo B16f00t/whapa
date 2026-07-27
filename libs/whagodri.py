@@ -4,6 +4,13 @@ import os
 import requests
 import sys
 import argparse
+import os
+import sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import whadeps
+whadeps.require("requests", "gpsoauth", "Cryptodome", tool="whagodri")
+whadeps.safe_console()
+
 import gpsoauth
 import queue
 import threading
